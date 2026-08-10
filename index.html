@@ -2351,10 +2351,9 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <div class="row">
         <div style="max-width:200px"><label>نسبة الضريبة %</label><input type="number" id="vatRate" min="0" max="50" step="0.5" onchange="saveVat()"></div>
         <div style="max-width:200px"><label>دورة الإقرار الضريبي</label><select id="vatPeriod" onchange="saveVat()"><option value="month">شهري</option><option value="quarter">ربع سنوي</option></select></div>
-        <div><label>الاسم المسجل (يظهر في QR الفاتورة)</label><input id="vatSeller" onchange="saveVatInfo()"></div>
-        <div><label>الرقم الضريبي (15 رقم)</label><input id="vatNoInp" maxlength="15" inputmode="numeric" onchange="saveVatInfo()" placeholder="3xxxxxxxxxxxxx3"></div>
+        <div style="flex:1;min-width:260px"><label>🔒 الهوية القانونية (من بيانات الشركة)</label><div id="vatIdView" class="muted" style="padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:.82rem">—</div></div>
       </div>
-      <p class="muted" style="margin-bottom:8px">عند تعبئة الرقم الضريبي، الفواتير الضريبية المطبوعة تتضمن <b>رمز QR بصيغة TLV حسب متطلبات هيئة الزكاة والضريبة (زاتكا)</b></p>
+      <p class="muted" style="margin-bottom:8px">الاسم والرقم الضريبي مصدرهما الوحيد: الإعدادات ← بيانات الشركة. عند تعبئة الرقم الضريبي هناك، الفواتير الضريبية المطبوعة تتضمن <b>رمز QR بصيغة TLV حسب متطلبات هيئة الزكاة والضريبة (زاتكا)</b></p>
       <div class="table-wrap"><table id="tblTax"></table></div>
       <p class="muted" style="margin-top:8px">⚠️ تقديري — يفترض أن أسعارك غير شاملة الضريبة. للإقرار الرسمي راجع محاسبك ومنصة زاتكا</p>
     </div>
@@ -4190,7 +4189,7 @@ function blank(){
     equipmentLocations:[], sectionBoundaries:{},
     advances:[], holidays:[], leaves:[], custody:[], attendance:[], contracts:[],
     returns:[], quotes:[], stockTakes:[], meters:[], assigns:[], recurring:[],
-    settings:{goals:{rev:0, exp:0}, logo:"", catAlloc:{}, fishSellW:350, vatNo:"", sellerName:"مزرعة خيرات سايه",
+    settings:{goals:{rev:0, exp:0}, logo:"", catAlloc:{}, fishSellW:350, sellerName:"مزرعة خيرات سايه",
       companyName:"", crNo:"", taxNo:"", nationalAddress:"",
       sections:DEFAULT_SECTIONS.map(s=>({name:s.name, short:s.short})), fishSection:"الاستزراع السمكي (بلطي)"}
   };
@@ -4265,8 +4264,8 @@ function load(){
       if(d.settings.logo===undefined) d.settings.logo="";
       if(d.settings.fishSellW===undefined) d.settings.fishSellW=350;
       if(d.settings.vatRate===undefined) d.settings.vatRate=15;
-      if(d.settings.vatNo===undefined) d.settings.vatNo="";
-      if(d.settings.sellerName===undefined) d.settings.sellerName="مزرعة خيرات سايه";
+      if(!d.settings.taxNo && d.settings.vatNo) d.settings.taxNo=d.settings.vatNo;
+      if(!d.settings.companyName && d.settings.sellerName && d.settings.sellerName!=="مزرعة خيرات سايه") d.settings.companyName=d.settings.sellerName;
       if(d.settings.companyName===undefined) d.settings.companyName="";
       if(d.settings.accent!==undefined) delete d.settings.accent;
       if(d.settings.crNo===undefined) d.settings.crNo="";
@@ -4408,7 +4407,11 @@ async function cloudPush(){
         body:JSON.stringify({data:DB,updated_at:now})});
     }
     if(r.ok){ DB.settings.lastCloudSync=now; localStorage.setItem(KEY,JSON.stringify(DB)); cloudStatusUI(); }
-    else cloudStatusUI("⚠️ تعذر الرفع ("+r.status+")");
+    else{
+      let __m="⚠️ تعذر الرفع ("+r.status+")";
+      try{ const __tx=await r.text(); if(__tx.includes("LEGAL_IDENTITY_LOCKED")){ __m="🔒 رفض السيرفر: الهوية القانونية لا تطابق المسجلة — تواصل مع مزود السستم"; toast(__m); } }catch(e){}
+      cloudStatusUI(__m);
+    }
   }catch(e){ cloudStatusUI("📴 بلا اتصال — سيُعاد تلقائياً"); }
   __cloudBusy=false;
 }
@@ -7924,7 +7927,7 @@ function printQuote(id){
     <div style="flex:1;padding-left:20px;border-left:1.5px solid #cfd8cf">
       <p style="font-size:13.5px;font-weight:700;color:#065f46;margin:0 0 6px">🏢 مقدم العرض <span style="color:#9aa39a;font-weight:400;font-size:10.5px">Issuer</span></p>
       <p style="margin:3px 0;font-size:13.5px"><b>${coName}</b>${coEn?` <span dir="ltr" style="color:#8a8f98;font-size:10px">${coEn}</span>`:''}</p>
-      ${ln('الرقم الضريبي','VAT No',st.taxNo||st.vatNo)}
+      ${ln('الرقم الضريبي','VAT No',st.taxNo)}
       ${ln('الرقم الموحد (س.ت)','CR No',st.unifiedNo||st.crNo)}
       ${ln('الجوال','Phone',st.coPhone)}
       ${ln('العنوان','Address',coAdr)}
@@ -10121,6 +10124,7 @@ function saveVat(){
   save(); renderTax(); toast("✅ تم حفظ إعدادات ضريبة القيمة المضافة");
 }
 function renderTax(){
+  const _vi=document.getElementById("vatIdView"); if(_vi) _vi.textContent=(DB.settings.companyName||"—")+" · الرقم الضريبي: "+(DB.settings.taxNo||"—");
   const _vr=document.getElementById("vatRate"); if(_vr&&DB.settings.vatRate!=null&&_vr.value==="") _vr.value=DB.settings.vatRate;
   const _vp=document.getElementById("vatPeriod"); if(_vp&&DB.settings.vatPeriod) _vp.value=DB.settings.vatPeriod;
   const tblTax=document.getElementById("tblTax"); if(!tblTax) return;
@@ -10436,6 +10440,13 @@ function fillCompanyInfo(){
     coStreet:(s.coStreet||s.nationalAddress||""), coBldg:s.coBldg, coAddl:s.coAddl, coCity:s.coCity,
     coRegion:s.coRegion, coCountry:s.coCountry, coZip:s.coZip};
   Object.keys(map).forEach(id=>{ const e=g(id); if(e && !e.matches(":focus")) e.value=map[id]||""; });
+  const _lk=legalLocked();
+  [["taxNoInp",s.taxNo],["unifiedNoInp",(s.unifiedNo||s.crNo)]].forEach(([id2,v2])=>{
+    const e2=g(id2); if(!e2) return;
+    e2.readOnly=_lk&&!!v2;
+    e2.style.background=e2.readOnly?"var(--bg)":"";
+    e2.title=e2.readOnly?"🔒 مقفلة — التغيير عبر مزود السستم":"";
+  });
 }
 function empMovesData(){
   const who=document.getElementById("mvEmpSel")?.value||"";
@@ -10560,14 +10571,37 @@ function setFontSize(v){
 }
 
 /* ====== بيانات الشركة ====== */
+const PROVIDER_EMAIL="mansour.alsulami@hotmail.com";
+function legalLocked(){
+  try{ const s=cloudSess(); return !(s&&String(s.email||"").toLowerCase()===PROVIDER_EMAIL); }catch(e){ return true; }
+}
+async function cloudRegisterLegal(){
+  try{
+    if(!cloudOn()) return;
+    const t=DB.settings.taxNo||"", c=DB.settings.unifiedNo||"";
+    if(!t && !c) return;
+    const prov=!legalLocked();
+    await cloudAuthFetch("/rest/v1/farm_legal?on_conflict=farm_id",{method:"POST",
+      headers:{Prefer:prov?"resolution=merge-duplicates":"resolution=ignore-duplicates"},
+      body:JSON.stringify([{farm_id:cloudFarmId(), tax_no:t, cr_no:c, updated_at:new Date().toISOString()}])});
+  }catch(e){}
+}
 function saveCompanyInfo(showToast){
   DB.settings.companyName   = document.getElementById("companyNameInp")?.value||"";
   DB.settings.companyNameEn  = document.getElementById("companyNameEnInp")?.value||"";
-  DB.settings.unifiedNo = document.getElementById("unifiedNoInp")?.value||"";
+  const _nu=document.getElementById("unifiedNoInp")?.value||"";
+  if(legalLocked() && DB.settings.unifiedNo && _nu!==DB.settings.unifiedNo){
+    const _e=document.getElementById("unifiedNoInp"); if(_e)_e.value=DB.settings.unifiedNo;
+    toast("🔒 السجل التجاري جزء من الهوية القانونية المقفلة — التغيير عبر مزود السستم");
+  } else DB.settings.unifiedNo=_nu;
   DB.settings.crNo      = DB.settings.unifiedNo;
   DB.settings.coPhone   = document.getElementById("coPhone")?.value||"";
   DB.settings.agrNo     = document.getElementById("agrNoInp")?.value||"";
-  DB.settings.taxNo         = document.getElementById("taxNoInp")?.value||"";
+  const _nt=document.getElementById("taxNoInp")?.value||"";
+  if(legalLocked() && DB.settings.taxNo && _nt!==DB.settings.taxNo){
+    const _e2=document.getElementById("taxNoInp"); if(_e2)_e2.value=DB.settings.taxNo;
+    toast("🔒 الرقم الضريبي جزء من الهوية القانونية المقفلة — التغيير عبر مزود السستم");
+  } else DB.settings.taxNo=_nt;
   DB.settings.coStreet  = document.getElementById("coStreet")?.value||"";
   DB.settings.coBldg    = document.getElementById("coBldg")?.value||"";
   DB.settings.coAddl    = document.getElementById("coAddl")?.value||"";
@@ -10576,14 +10610,10 @@ function saveCompanyInfo(showToast){
   DB.settings.coCountry = document.getElementById("coCountry")?.value||"";
   DB.settings.coZip     = document.getElementById("coZip")?.value||"";
   save();
+  try{ cloudRegisterLegal(); }catch(e){}
   try{ renderCompanySummary(); }catch(e){}
   try{ applyLogo(); }catch(e){}
   if(showToast===true){ saveNow(); toast("✅ حُفظت بيانات الشركة"); }
-}
-function saveVatInfo(){
-  DB.settings.sellerName = document.getElementById("vatSeller")?.value||"";
-  DB.settings.vatNo      = document.getElementById("vatNoInp")?.value||"";
-  save(); toast("✅ تم حفظ بيانات ضريبة القيمة المضافة");
 }
 
 /* ====== إدارة الأقسام ====== */
@@ -14198,7 +14228,7 @@ function printInvoice(id){
   const taxT=inv.items.reduce((t,i)=>t+invLineTax(i),0);
   const sub=total-taxT;
   function tlv(tag,val){ const enc=new TextEncoder().encode(val); return String.fromCharCode(tag,enc.length,...enc); }
-  const qrB64=btoa(tlv(1,coName)+tlv(2,st.taxNo||st.vatNo||'')+tlv(3,inv.date||'')+tlv(4,total.toFixed(2))+tlv(5,taxT.toFixed(2)));
+  const qrB64=btoa(tlv(1,coName)+tlv(2,st.taxNo||'')+tlv(3,inv.date||'')+tlv(4,total.toFixed(2))+tlv(5,taxT.toFixed(2)));
   const ttlAr=inv.type==='credit'?'إشعار دائن':inv.type==='debit'?'إشعار مدين':inv.type==='simplified'?'فاتورة ضريبية مبسطة':'فاتورة ضريبية';
   const ttlEn=inv.type==='credit'?'CREDIT NOTE':inv.type==='debit'?'DEBIT NOTE':inv.type==='simplified'?'SIMPLIFIED TAX INVOICE':'TAX INVOICE';
   const ln=(lbl,en,val)=>val?`<p style="margin:3px 0;font-size:12.5px"><span style="color:#6b7280">${lbl} <span style="font-size:9.5px;color:#9aa39a">${en}</span>:</span> ${val}</p>`:'';
@@ -14234,7 +14264,7 @@ function printInvoice(id){
     <div style="flex:1;padding-left:20px;border-left:1.5px solid #cfd8cf">
       <p style="font-size:13.5px;font-weight:700;color:#065f46;margin:0 0 6px">🏢 البائع <span style="color:#9aa39a;font-weight:400;font-size:10.5px">Seller</span></p>
       <p style="margin:3px 0;font-size:13.5px"><b>${coName}</b>${coEn?` <span dir="ltr" style="color:#8a8f98;font-size:10px">${coEn}</span>`:''}</p>
-      ${ln('الرقم الضريبي','VAT No',st.taxNo||st.vatNo)}
+      ${ln('الرقم الضريبي','VAT No',st.taxNo)}
       ${ln('الرقم الموحد (س.ت)','CR No',st.unifiedNo||st.crNo)}
       ${ln('الجوال','Phone',st.coPhone)}
       ${ln('العنوان','Address',coAdr)}

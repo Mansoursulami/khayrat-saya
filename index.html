@@ -3269,6 +3269,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <select id="impType" onchange="impReset()">
           <option value="cust">العملاء</option>
           <option value="sup">الموردون</option>
+          <option value="emp">الموظفون</option>
           <option value="inv">أصناف المخزون</option>
           <option value="lv">المواشي (جرد بالعدد)</option>
           <option value="tanks">أحواض الأسماك (إنشاء بالجملة)</option>
@@ -11006,6 +11007,8 @@ const IMP_CFG={
     ex:["مؤسسة الخضار الطازج","0501234567","300000000000003","7000000000","5000","30","الرياض"]},
   sup:{name:"الموردون",heads:["اسم الجهة*","المسؤول*","الجوال*","البريد الإلكتروني","الآيبان*","الرقم الضريبي*","نوع التعريف*","رقم التعريف*"],
     ex:["مؤسسة الأعلاف المتحدة","أبو محمد","0559876543","supplier@email.com","SA0000000000000000000000","300000000000003","سجل تجاري","1010101010"]},
+  emp:{name:"الموظفون",heads:["الاسم*","الوظيفة*","رقم الهوية/الإقامة*","الراتب الشهري*","الجوال*","الجنسية","القسم","البريد الإلكتروني","تاريخ انتهاء الهوية"],
+    ex:["سالم أحمد","عامل مزرعة","2456789012","2500","0555555555","سعودي","عام (كل المزرعة)","salem@email.com","2027-05-01"]},
   inv:{name:"أصناف المخزون",heads:["اسم الصنف*","التصنيف*","الوحدة*","الكمية*","تكلفة الوحدة","حد التنبيه"],
     ex:["علف بلطي 30% بروتين","أعلاف","كيس","50","45","10"]},
   lv:{name:"المواشي (جرد بالعدد)",heads:["النوع*","العدد*","الجنس","الحظيرة","ملاحظات"],
@@ -11239,6 +11242,15 @@ function impPreviewRows(text){
       rec={name:g(0),contact:g(1),phone:g(2),email:g(3),bank:g(4),vatNo:g(5),idType:g(6),idNo:g(7),curr:"SAR"};
       [["name","اسم الجهة"],["contact","المسؤول"],["phone","الجوال"],["bank","الآيبان"],["vatNo","الرقم الضريبي"],["idType","نوع التعريف"],["idNo","رقم التعريف"]].forEach(([k,l])=>{ if(!rec[k]) miss.push(l); });
       dup=DB.suppliers.some(s=>s.name===rec.name);
+    }else if(type==="emp"){
+      rec={name:g(0),role:g(1),idNo:g(2),salary:num(r[3]),phone:g(4),nationality:g(5),section:g(6)||"عام (كل المزرعة)",email:g(7),idExp:g(8)};
+      if(!rec.name) miss.push("الاسم");
+      if(!rec.role) miss.push("الوظيفة");
+      if(!rec.idNo) miss.push("رقم الهوية");
+      if(!(rec.salary>0)) miss.push("الراتب الشهري");
+      if(!rec.phone) miss.push("الجوال");
+      dup=DB.employees.some(e=>String(e.idNo||"").trim()===rec.idNo)
+          || out.some(o=>o.ok&&o.rec&&String(o.rec.idNo||"")===rec.idNo);
     }else if(type==="inv"){
       rec={name:g(0),cat:g(1),unit:g(2),qty:num(r[3]),cost:num(r[4]),min:num(r[5]),acc:"",section:""};
       if(!rec.name) miss.push("اسم الصنف"); if(!rec.cat) miss.push("التصنيف"); if(!rec.unit) miss.push("الوحدة");
@@ -11384,6 +11396,13 @@ function impCommit(){
     const r=x.rec;
     if(st.type==="cust") DB.customers.push({id:uid(),custNo:nextCustNo(),...r});
     else if(st.type==="sup") DB.suppliers.push({id:uid(),supNo:nextSupNo(),...r});
+    else if(st.type==="emp"){
+      DB.settings.empSeq=(DB.settings.empSeq||0)+1;
+      DB.employees.push({id:uid(), empNo:String(DB.settings.empSeq).padStart(4,"0"),
+        name:r.name, role:r.role, idNo:r.idNo, salary:r.salary, phone:r.phone,
+        nationality:r.nationality||"", section:r.section, email:r.email||"", idExp:r.idExp||"",
+        notes:"استيراد CSV", perms:{tabs:{},acts:{}}, alloc:{}});
+    }
     else if(st.type==="inv"){
       if(!invUnitsList().some(u=>u.n===r.unit)){ invUnitsList().push({n:r.unit,kg:null}); }
       DB.inventory.push({id:uid(),itemNo:nextItemNo(),...r});
@@ -11461,7 +11480,7 @@ function impCommit(){
   logEdit("⬆️ استيراد CSV",IMP_CFG[st.type].name+" — "+n+" سجل");
   save();
   try{ fillSelects(); }catch(e){}
-  try{ renderCustomers(); }catch(e){} try{ renderSuppliers(); }catch(e){}
+  try{ renderCustomers(); }catch(e){} try{ renderSuppliers(); }catch(e){} try{ renderEmployees(); }catch(e){}
   try{ renderInv(); }catch(e){} try{ renderLivestock(); }catch(e){}
   try{ renderFish(); }catch(e){} try{ renderWater(); }catch(e){} try{ renderCycles(); }catch(e){} try{ renderFA(); }catch(e){} try{ renderAssets(); }catch(e){}
   impReset();

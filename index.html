@@ -720,18 +720,46 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
 </header>
 
 <div id="cloudGate" style="display:none;position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#064e3b,#047857);display:none;align-items:center;justify-content:center;font-family:inherit">
-  <div style="background:#fff;border-radius:18px;padding:34px 30px;width:min(92vw,400px);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+  <div style="background:#fff;border-radius:18px;padding:30px 26px;width:min(92vw,420px);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);max-height:92vh;overflow:auto">
     <div style="font-size:2.6rem">🌴</div>
     <h2 style="color:#065f46;margin:6px 0 2px">مزرعة خيرات سايه</h2>
-    <p class="muted" style="font-size:.78rem;margin-bottom:16px">سجل دخول حساب المزرعة السحابي لجلب بياناتك على هذا الجهاز</p>
-    <div style="text-align:right">
-      <label style="font-size:.75rem">الإيميل</label>
-      <input id="cgEmail" type="email" style="direction:ltr;width:100%;box-sizing:border-box;margin-bottom:10px" placeholder="you@email.com">
-      <label style="font-size:.75rem">كلمة المرور</label>
-      <input id="cgPw" type="password" style="direction:ltr;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')cloudGateLogin()">
+    <div id="cgView_login">
+      <p class="muted" style="font-size:.78rem;margin-bottom:16px">سجل دخول حساب المزرعة السحابي لجلب بياناتك على هذا الجهاز</p>
+      <div style="text-align:right">
+        <label style="font-size:.75rem">الإيميل</label>
+        <input id="cgEmail" type="email" style="direction:ltr;width:100%;box-sizing:border-box;margin-bottom:10px" placeholder="you@email.com">
+        <label style="font-size:.75rem">كلمة المرور</label>
+        <input id="cgPw" type="password" style="direction:ltr;width:100%;box-sizing:border-box" onkeydown="if(event.key==='Enter')cloudGateLogin()">
+      </div>
+      <button class="btn" style="width:100%;margin-top:16px" onclick="cloudGateLogin()">☁️ دخول وجلب البيانات</button>
+      <p id="cgMsg" class="muted" style="font-size:.72rem;margin-top:10px;min-height:1em"></p>
+      <div style="margin-top:10px;border-top:1px solid #eee;padding-top:10px;display:flex;flex-direction:column;gap:6px">
+        <a href="#" onclick="cgShow('join');return false" style="font-size:.74rem;color:#065f46">👷 موظف جديد؟ اطلب الانضمام لمزرعتك</a>
+        <a href="#" onclick="cloudGateNewFarm();return false" style="font-size:.7rem;color:#888">🏡 مزرعة جديدة؟ أنشئ حسابها بالإيميل وكلمة المرور أعلاه</a>
+      </div>
     </div>
-    <button class="btn" style="width:100%;margin-top:16px" onclick="cloudGateLogin()">☁️ دخول وجلب البيانات</button>
-    <p id="cgMsg" class="muted" style="font-size:.72rem;margin-top:10px;min-height:1em"></p>
+    <div id="cgView_join" style="display:none">
+      <p class="muted" style="font-size:.78rem;margin-bottom:14px">أنشئ حسابك وأرسل طلب انضمام — تدخل بعد اعتماد صاحب المزرعة</p>
+      <div style="text-align:right">
+        <label style="font-size:.75rem">اسمك الكامل</label>
+        <input id="cgName" style="width:100%;box-sizing:border-box;margin-bottom:8px">
+        <label style="font-size:.75rem">الإيميل</label>
+        <input id="cgJEmail" type="email" style="direction:ltr;width:100%;box-sizing:border-box;margin-bottom:8px" placeholder="you@email.com">
+        <label style="font-size:.75rem">كلمة المرور (6+ أحرف)</label>
+        <input id="cgJPw" type="password" style="direction:ltr;width:100%;box-sizing:border-box;margin-bottom:8px">
+        <label style="font-size:.75rem">🔑 رمز المزرعة (اطلبه من صاحب المزرعة)</label>
+        <input id="cgCode" style="direction:ltr;width:100%;box-sizing:border-box" placeholder="xxxxxxxx-xxxx-xxxx…">
+      </div>
+      <button class="btn" style="width:100%;margin-top:14px" onclick="cloudGateJoin()">📨 إنشاء الحساب وإرسال الطلب</button>
+      <p id="cgJMsg" class="muted" style="font-size:.72rem;margin-top:10px;min-height:1em"></p>
+      <div style="margin-top:8px"><a href="#" onclick="cgShow('login');return false" style="font-size:.72rem;color:#666">→ رجوع لتسجيل الدخول</a></div>
+    </div>
+    <div id="cgView_pend" style="display:none">
+      <div style="font-size:2rem;margin-top:6px">⏳</div>
+      <p id="cgPendMsg" style="font-size:.85rem;margin:10px 0 16px">تم إرسال طلب الانضمام — بانتظار اعتماد صاحب المزرعة</p>
+      <button class="btn" style="width:100%" onclick="cloudGateCheck()">🔄 تحديث الحالة</button>
+      <button class="btn secondary" style="width:100%;margin-top:8px" onclick="cloudGateSignout()">🚪 خروج</button>
+    </div>
   </div>
 </div>
 <div id="loginScreen">
@@ -1946,6 +1974,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     </div>
   </div>
   <h2>قائمة الموظفين <button class="btn small secondary no-print" onclick="exportEmpCSV()">📥 تصدير CSV</button></h2>
+  <div class="card no-print" id="joinReqCard" style="display:none"></div>
   <div class="card table-wrap"><table id="tblEmployees"></table></div>
   <h2>سجل الرواتب المصروفة</h2>
   <div class="card table-wrap"><table id="tblSalaries"></table></div>
@@ -4424,7 +4453,9 @@ function __persistNow(){
 /* ====== ☁️ المزامنة السحابية (Supabase — المرحلة الأولى) ====== */
 const SUPA_URL="https://wsrjvxfklozmwzolaqmt.supabase.co";
 const SUPA_KEY="sb_publishable_ByqrSbsddtE1eeb4QCNbsQ_iSnJL9HN";
-const CLOUD_ROW="main";
+function cloudUid(){ const s=cloudSess(); return (s&&s.uid)||""; }
+function cloudFarmId(){ const s=cloudSess(); return (s&&(s.farmId||s.uid))||""; }
+function cloudIsFarmOwner(){ const s=cloudSess(); return !!s && (!s.farmId || s.farmId===s.uid); }
 function cloudSess(){ try{ return JSON.parse(localStorage.getItem("ksCloudSess")||"null"); }catch(e){ return null; } }
 function cloudSetSess(s){ if(s) localStorage.setItem("ksCloudSess",JSON.stringify(s)); else localStorage.removeItem("ksCloudSess"); cloudStatusUI(); }
 function cloudOn(){ return !!cloudSess(); }
@@ -4438,8 +4469,12 @@ async function cloudAuthFetch(path,opts){
   return fetch(SUPA_URL+path,opts);
 }
 function __cloudStoreTok(j,email){
+  const old=cloudSess()||{};
   cloudSetSess({access_token:j.access_token,refresh_token:j.refresh_token,
-    expires_at:Math.floor(Date.now()/1000)+(+j.expires_in||3600),email:email||(j.user&&j.user.email)||""});
+    expires_at:Math.floor(Date.now()/1000)+(+j.expires_in||3600),
+    email:email||(j.user&&j.user.email)||old.email||"",
+    uid:(j.user&&j.user.id)||old.uid||"",
+    farmId:old.farmId||"",memberStatus:old.memberStatus||"",empId:old.empId||""});
 }
 async function cloudSignup(email,pw){
   const r=await fetch(SUPA_URL+"/auth/v1/signup",{method:"POST",headers:{apikey:SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({email,password:pw})});
@@ -4463,6 +4498,22 @@ async function cloudRefresh(){
     if(r.ok&&j.access_token) __cloudStoreTok(j,s.email); else if(r.status===400) cloudSetSess(null);
   }catch(e){}
 }
+async function cloudResolveFarm(){
+  const s=cloudSess(); if(!s||!s.uid) return null;
+  try{
+    const r=await cloudAuthFetch("/rest/v1/farm_members?member_uid=eq."+s.uid+"&select=farm_id,status,emp_id");
+    if(!r.ok) return null;
+    const rows=await r.json(); const m=rows[0]||null;
+    s.farmId=m?m.farm_id:s.uid; s.memberStatus=m?(m.status||""):""; s.empId=(m&&m.emp_id)||"";
+    localStorage.setItem("ksCloudSess",JSON.stringify(s));
+    return m;
+  }catch(e){ return null; }
+}
+function copyFarmCode(){
+  const s=cloudSess(); if(!s||!s.uid) return;
+  try{ navigator.clipboard.writeText(s.uid); toast("📋 نُسخ رمز المزرعة"); }
+  catch(e){ prompt("انسخ رمز المزرعة:", s.uid); }
+}
 let __cloudTimer=null, __cloudBusy=false;
 function cloudQueuePush(){
   if(!cloudOn()) return;
@@ -4472,12 +4523,20 @@ function cloudQueuePush(){
 async function cloudPush(){
   __cloudTimer=null;
   if(!cloudOn()||__cloudBusy) return;
+  const __ps=cloudSess();
+  if(__ps&&__ps.uid&&__ps.farmId&&__ps.farmId!==__ps.uid&&__ps.memberStatus!=="approved") return;
   __cloudBusy=true; cloudStatusUI("⏫ يرفع...");
   try{
     const now=new Date().toISOString();
-    const r=await cloudAuthFetch("/rest/v1/farm_state",{method:"POST",
-      headers:{Prefer:"resolution=merge-duplicates"},
-      body:JSON.stringify([{id:CLOUD_ROW,data:DB,updated_at:now}])});
+    let r;
+    if(cloudIsFarmOwner()){
+      r=await cloudAuthFetch("/rest/v1/farm_state",{method:"POST",
+        headers:{Prefer:"resolution=merge-duplicates"},
+        body:JSON.stringify([{id:cloudFarmId(),data:DB,updated_at:now}])});
+    }else{
+      r=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+cloudFarmId(),{method:"PATCH",
+        body:JSON.stringify({data:DB,updated_at:now})});
+    }
     if(r.ok){ DB.settings.lastCloudSync=now; localStorage.setItem(KEY,JSON.stringify(DB)); cloudStatusUI(); }
     else cloudStatusUI("⚠️ تعذر الرفع ("+r.status+")");
   }catch(e){ cloudStatusUI("📴 بلا اتصال — سيُعاد تلقائياً"); }
@@ -4486,7 +4545,7 @@ async function cloudPush(){
 async function cloudPull(silent){
   if(!cloudOn()) return null;
   try{
-    const r=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+CLOUD_ROW+"&select=data,updated_at");
+    const r=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+cloudFarmId()+"&select=data,updated_at");
     if(!r.ok) return null;
     const rows=await r.json();
     if(!rows.length){ if(!silent) toast("☁️ لا توجد نسخة بالسحابة بعد — اضغط رفع الآن"); return null; }
@@ -4504,6 +4563,15 @@ async function cloudPullApply(){
 }
 async function cloudBootCheck(){
   if(!cloudOn()) return;
+  const __s=cloudSess();
+  if(__s&&__s.uid&&__s.farmId&&__s.farmId!==__s.uid){
+    const m=await cloudResolveFarm();
+    if(m && m.status!=="approved"){
+      alert("⛔ أوقف صاحب المزرعة وصولك للسحابة");
+      cloudSetSess(null); localStorage.removeItem(KEY); sessionStorage.removeItem("ksUser");
+      location.reload(); return;
+    }
+  }
   const row=await cloudPull(true); if(!row) return;
   const localT=DB.settings.lastCloudSync||"";
   if(row.updated_at && row.updated_at>localT){
@@ -4521,7 +4589,8 @@ function cloudStatusUI(msg){
   if(!s){ el.innerHTML='<span class="muted">غير متصل — سجل دخولك السحابي أدناه</span>'; }
   else{
     const last=DB.settings.lastCloudSync?String(DB.settings.lastCloudSync).slice(0,16).replace("T"," "):"—";
-    el.innerHTML='☁️ متصل: <b>'+s.email+'</b> · آخر مزامنة: <b dir="ltr">'+last+'</b>'+(msg?' · '+msg:'');
+    const code=(cloudIsFarmOwner()&&s.uid)?'<div style="margin-top:6px">🔑 رمز المزرعة: <b dir="ltr" style="user-select:all;font-size:.78rem">'+s.uid+'</b> <button class="btn small secondary no-print" type="button" onclick="copyFarmCode()">📋 نسخ</button><div class="muted" style="font-size:.7rem">أعطِ هذا الرمز لموظفك ليرسل طلب انضمام من شاشة الدخول على جهازه</div></div>':'';
+    el.innerHTML='☁️ متصل: <b>'+s.email+'</b> · آخر مزامنة: <b dir="ltr">'+last+'</b>'+(msg?' · '+msg:'')+code;
   }
   const f=document.getElementById("cloudLoginForm"), a=document.getElementById("cloudActions");
   if(f) f.style.display=s?"none":"";
@@ -4533,6 +4602,7 @@ async function cloudConnect(mode){
   if(pw.length<6){ toast("⚠️ كلمة المرور 6 أحرف على الأقل"); return; }
   try{
     if(mode==="signup") await cloudSignup(em,pw); else await cloudLogin(em,pw);
+    await cloudResolveFarm();
     toast("☁️ تم الاتصال بالسحابة");
     cloudStatusUI();
     const row=await cloudPull(true);
@@ -5275,35 +5345,105 @@ function applyRole(){
   setTimeout(buildNotifications, 500);
 }
 function cloudGateNeeded(){
-  try{ return !localStorage.getItem(KEY) && !cloudSess(); }catch(e){ return false; }
+  try{ return !localStorage.getItem(KEY); }catch(e){ return false; }
 }
 function cloudGateShow(){
   const g=document.getElementById("cloudGate"); if(!g) return;
   g.style.display="flex";
-  if(!navigator.onLine){ const m=document.getElementById("cgMsg"); if(m) m.textContent="📴 أول تشغيل يحتاج اتصال إنترنت"; }
+  const s=cloudSess();
+  if(s&&s.uid){
+    const pm=document.getElementById("cgPendMsg"); if(pm)pm.textContent="🔄 جارٍ التحقق من حالة حسابك...";
+    cgShow("pend"); cloudGateCheck();
+  }else{
+    cgShow("login");
+    if(!navigator.onLine){ const m=document.getElementById("cgMsg"); if(m) m.textContent="📴 أول تشغيل يحتاج اتصال إنترنت"; }
+  }
 }
+function cgShow(v){ ["login","join","pend"].forEach(x=>{ const el=document.getElementById("cgView_"+x); if(el) el.style.display=(x===v)?"":"none"; }); }
 async function cloudGateLogin(){
   const em=(document.getElementById("cgEmail")||{}).value||"", pw=(document.getElementById("cgPw")||{}).value||"";
-  const m=document.getElementById("cgMsg");
-  if(!em||!pw){ if(m) m.textContent="⚠️ أدخل الإيميل وكلمة المرور"; return; }
-  if(m) m.textContent="⏳ جارٍ الاتصال...";
-  try{
-    await cloudLogin(em,pw);
-    if(m) m.textContent="⬇️ يجلب بيانات المزرعة...";
-    const row=await cloudPull(true);
-    if(row&&row.data){
-      const d=row.data; d.settings=d.settings||{}; d.settings.lastCloudSync=row.updated_at;
-      localStorage.setItem(KEY, JSON.stringify(d));
-      if(m) m.textContent="✅ تم — يفتح السستم...";
-      setTimeout(()=>location.reload(), 600);
-    } else {
-      /* حساب صحيح بلا نسخة سحابية بعد — يكمل بسستم جديد */
-      document.getElementById("cloudGate").style.display="none";
-    }
-  }catch(e){ if(m) m.textContent="❌ "+(e.message||"فشل الدخول"); }
+  const msg=document.getElementById("cgMsg");
+  if(!em||!pw){ if(msg)msg.textContent="⚠️ أدخل الإيميل وكلمة المرور"; return; }
+  if(msg)msg.textContent="⏳ جارٍ الاتصال...";
+  try{ await cloudLogin(em,pw); await cloudGateCheck(); }
+  catch(e){ if(msg)msg.textContent="❌ "+(e.message||"فشل الدخول"); }
 }
+async function cloudGateNewFarm(){
+  const em=(document.getElementById("cgEmail")||{}).value||"", pw=(document.getElementById("cgPw")||{}).value||"";
+  const msg=document.getElementById("cgMsg");
+  if(!em||!pw||pw.length<6){ if(msg)msg.textContent="⚠️ اكتب الإيميل وكلمة مرور (6+ أحرف) في الخانات أعلاه ثم اضغط الرابط"; return; }
+  if(!confirm("إنشاء حساب مزرعة جديدة فاضية بهذا الإيميل؟")) return;
+  if(msg)msg.textContent="⏳ جارٍ إنشاء الحساب...";
+  try{
+    await cloudSignup(em,pw);
+    document.getElementById("cloudGate").style.display="none";
+    try{ loginScreen.style.display="flex"; fillLogin(); }catch(e){}
+    toast("✅ حساب مزرعة جديد — ابدأ إعداد مزرعتك");
+  }catch(e){ if(msg)msg.textContent="❌ "+(e.message||"فشل إنشاء الحساب"); }
+}
+async function cloudGateJoin(){
+  const nm=(document.getElementById("cgName")||{}).value||"", em=(document.getElementById("cgJEmail")||{}).value||"";
+  const pw=(document.getElementById("cgJPw")||{}).value||"", code=((document.getElementById("cgCode")||{}).value||"").trim();
+  const msg=document.getElementById("cgJMsg");
+  if(!nm||!em||!pw||!code){ if(msg)msg.textContent="⚠️ عبّئ كل الخانات (الاسم، الإيميل، كلمة المرور، رمز المزرعة)"; return; }
+  if(pw.length<6){ if(msg)msg.textContent="⚠️ كلمة المرور 6 أحرف على الأقل"; return; }
+  if(msg)msg.textContent="⏳ جارٍ إنشاء الحساب...";
+  try{
+    try{ await cloudSignup(em,pw); }
+    catch(e){ await cloudLogin(em,pw); }
+    const s=cloudSess(); if(!s||!s.uid) throw new Error("تعذر فتح الجلسة");
+    const r=await cloudAuthFetch("/rest/v1/farm_members?on_conflict=member_uid",{method:"POST",
+      headers:{Prefer:"resolution=merge-duplicates"},
+      body:JSON.stringify([{farm_id:code,member_uid:s.uid,email:em,name:nm,status:"pending"}])});
+    if(!r.ok && r.status!==409) throw new Error("تعذر إرسال الطلب ("+r.status+")");
+    s.farmId=code; s.memberStatus="pending"; localStorage.setItem("ksCloudSess",JSON.stringify(s));
+    const pm=document.getElementById("cgPendMsg"); if(pm)pm.textContent="⏳ تم إرسال طلب الانضمام — بانتظار اعتماد صاحب المزرعة";
+    cgShow("pend");
+  }catch(e){ if(msg)msg.textContent="❌ "+(e.message||"فشل الإرسال"); }
+}
+async function __gateApply(row){
+  const d=row.data||{}; d.settings=d.settings||{}; d.settings.lastCloudSync=row.updated_at;
+  localStorage.setItem(KEY, JSON.stringify(d));
+  location.reload();
+}
+async function cloudGateCheck(){
+  const s=cloudSess();
+  if(!s||!s.uid){ cgShow("login"); return; }
+  const pm=document.getElementById("cgPendMsg");
+  const m=await cloudResolveFarm();
+  if(m){
+    if(m.status==="approved"){
+      if(pm)pm.textContent="✅ تم الاعتماد — جارٍ جلب بيانات المزرعة...";
+      cgShow("pend");
+      const row=await cloudPull(true);
+      if(row){ await __gateApply(row); }
+      else if(pm)pm.textContent="⚠️ تم الاعتماد لكن تعذر جلب البيانات — جرّب 🔄 بعد قليل";
+    }
+    else if(m.status==="rejected"){ if(pm)pm.textContent="❌ رُفض طلبك — تواصل مع صاحب المزرعة"; cgShow("pend"); }
+    else { if(pm)pm.textContent="⏳ الطلب ما زال بانتظار اعتماد صاحب المزرعة"; cgShow("pend"); }
+    return;
+  }
+  const row=await cloudPull(true);
+  if(row){ await __gateApply(row); return; }
+  document.getElementById("cloudGate").style.display="none";
+  try{ loginScreen.style.display="flex"; fillLogin(); }catch(e){}
+}
+function cloudGateSignout(){ cloudSetSess(null); cgShow("login"); const m=document.getElementById("cgMsg"); if(m)m.textContent=""; }
 function bootLogin(){
   if(cloudGateNeeded()){ cloudGateShow(); }
+  /* موظف سحابي معتمد ومربوط → دخول تلقائي بصلاحياته */
+  try{
+    const cs=cloudSess();
+    if(cs&&cs.uid&&cs.farmId&&cs.farmId!==cs.uid&&cs.memberStatus==="approved"&&cs.empId){
+      const emp=DB.employees.find(e=>e.id===cs.empId);
+      if(emp){
+        CURRENT_USER={type:"emp",id:emp.id,name:emp.name};
+        sessionStorage.setItem("ksUser",JSON.stringify(CURRENT_USER));
+        document.getElementById("loginScreen").style.display="none";
+        applyRole(); return;
+      }
+    }
+  }catch(e){}
   // مسح أي بيانات "تذكّر" محفوظة — المستخدم يجب أن يختار ذلك بنفسه
   localStorage.removeItem("ksRememberUser");
   // تحقق من جلسة نشطة فقط (sessionStorage — تُمسح تلقائياً عند إغلاق المتصفح)
@@ -8402,6 +8542,61 @@ function renderEmployees(){
     `<tr><td>${s.date}</td><td><b>${s.empName}</b></td><td>${s.month}</td><td class="neg">${fmtSR(s.amount)}</td></tr>`).join("");
   tblSalaries.innerHTML = `<tr><th>تاريخ الصرف</th><th>الموظف</th><th>الشهر</th><th>المبلغ</th></tr>`
     + (srows || `<tr><td colspan="4" class="muted">لا توجد رواتب مصروفة بعد</td></tr>`);
+  try{ renderJoinReqs(); }catch(e){}
+}
+async function renderJoinReqs(){
+  const el=document.getElementById("joinReqCard"); if(!el) return;
+  const s=cloudSess();
+  if(!s||!s.uid||!cloudIsFarmOwner()||!isOwner()){ el.style.display="none"; return; }
+  let rows=[];
+  try{
+    const r=await cloudAuthFetch("/rest/v1/farm_members?farm_id=eq."+s.uid+"&select=id,email,name,status,emp_id&order=created_at.desc");
+    if(r.ok) rows=await r.json();
+  }catch(e){}
+  if(!rows.length){ el.style.display="none"; return; }
+  el.style.display="";
+  const badge=st=>st==="approved"?'<span class="badge active">معتمد</span>':st==="rejected"?'<span class="badge danger">موقوف</span>':'<span class="badge warn">بانتظار الاعتماد</span>';
+  const opts=DB.employees.map(e=>'<option value="'+e.id+'">'+e.name+'</option>').join("");
+  el.innerHTML='<h3>☁️ طلبات انضمام الموظفين للسحابة</h3>'+rows.map(m=>{
+    const linked=m.emp_id?((DB.employees.find(e=>e.id===m.emp_id)||{}).name||"؟"):"";
+    let html='<div class="row" style="align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding:8px 0">';
+    html+='<div style="flex:1;min-width:180px"><b>'+(m.name||"—")+'</b> <span class="muted" dir="ltr" style="font-size:.75rem">'+(m.email||"")+'</span> '+badge(m.status)+(linked?' <span class="muted">↔ '+linked+'</span>':'')+'</div>';
+    if(m.status!=="approved") html+='<select id="jr_'+m.id+'" style="min-width:150px"><option value="">اربطه بموظف…</option><option value="__new__">➕ سجله كموظف جديد باسم «'+(m.name||"بدون اسم")+'»</option>'+opts+'</select><button class="btn small" type="button" onclick="approveJoin('+m.id+',&quot;'+String(m.name||"").replace(/"/g,"")+'&quot;)">✅ اعتماد</button>';
+    if(m.status!=="rejected") html+='<button class="btn small secondary" type="button" style="border-color:#c66;color:#791F1F" onclick="rejectJoin('+m.id+')">⛔ '+(m.status==="approved"?"إيقاف":"رفض")+'</button>';
+    else html+='<button class="btn small secondary" type="button" onclick="deleteJoin('+m.id+')">🗑️ حذف الطلب</button>';
+    return html+'</div>';
+  }).join("")+'<p class="muted" style="font-size:.72rem;margin-top:6px">الاعتماد يربط الحساب السحابي بموظف مسجل فيدخل بصلاحياته تلقائياً من أي جهاز. الإيقاف يمنعه فوراً من كل الأجهزة.</p>';
+}
+async function approveJoin(id,reqName){
+  const sel=document.getElementById("jr_"+id); let empId=sel?sel.value:"";
+  if(!empId){ toast("⚠️ اختر الموظف المرتبط أو «سجله كموظف جديد»"); return; }
+  if(empId==="__new__"){
+    const nm=(reqName||"").trim()||prompt("اسم الموظف الجديد:")||"";
+    if(!nm){ toast("⚠️ يلزم اسم"); return; }
+    if(!confirm("تسجيل «"+nm+"» كموظف جديد بدون أي صلاحيات (تمنحها له لاحقاً من الصلاحيات) واعتماد دخوله؟")) return;
+    const em={id:uid(), name:nm, empNo:"", role:"", nationality:"", idNo:"", idExp:"", salary:0, phone:"", pin:"0000", notes:"انضم عبر السحابة"};
+    DB.employees.push(em); save();
+    try{ fillSelects(); }catch(e){}
+    empId=em.id;
+  }
+  try{
+    const r=await cloudAuthFetch("/rest/v1/farm_members?id=eq."+id,{method:"PATCH",body:JSON.stringify({status:"approved",emp_id:empId})});
+    if(r.ok){ toast("✅ اعتُمد الطلب"); renderJoinReqs(); } else toast("⚠️ تعذر الاعتماد ("+r.status+")");
+  }catch(e){ toast("📴 تعذر الاتصال"); }
+}
+async function rejectJoin(id){
+  if(!confirm("إيقاف وصول هذا الحساب للسحابة؟")) return;
+  try{
+    const r=await cloudAuthFetch("/rest/v1/farm_members?id=eq."+id,{method:"PATCH",body:JSON.stringify({status:"rejected"})});
+    if(r.ok){ toast("⛔ أُوقف الوصول"); renderJoinReqs(); } else toast("⚠️ تعذر ("+r.status+")");
+  }catch(e){ toast("📴 تعذر الاتصال"); }
+}
+async function deleteJoin(id){
+  if(!confirm("حذف الطلب نهائياً؟ (يقدر يرسل طلباً جديداً)")) return;
+  try{
+    const r=await cloudAuthFetch("/rest/v1/farm_members?id=eq."+id,{method:"DELETE"});
+    if(r.ok){ toast("🗑️ حُذف"); renderJoinReqs(); } else toast("⚠️ تعذر ("+r.status+")");
+  }catch(e){ toast("📴 تعذر الاتصال"); }
 }
 
 /* ====== طلبات العملاء ====== */

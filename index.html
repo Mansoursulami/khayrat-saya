@@ -220,7 +220,6 @@ thead tr{background:var(--green-light)}
 thead th{color:var(--green-dark);font-weight:700;font-size:.82rem}
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:end}
 .filters>div{min-width:120px;flex:1}
-footer{text-align:center;padding:20px;color:var(--muted);font-size:.78rem}
 .alerts{border-right:5px solid var(--amber);background:#fffbeb}
 .alerts ul{list-style:none}
 .alerts li{padding:5px 0;font-size:.88rem;border-bottom:1px dashed #fde68a}
@@ -3315,10 +3314,6 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     </div>
     <div class="table-wrap"><table id="tblEmpMoves"></table></div>
   </div>
-  <div class="card" id="st_reset" style="display:none">
-    <h3>🗑️ تصفير البيانات</h3>
-    <button class="btn danger" onclick="resetData()">حذف جميع البيانات</button>
-  </div>
 </div>
 
 </main>
@@ -3391,7 +3386,6 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
   </div>
 </div>
 <!-- أُزيل زر الإضافة العائم المكرر (fabBox) لتعارض معرّف fabMenu؛ الزر الأساسي #fab يقوم بنفس الوظيفة -->
-<footer>مزرعة خيرات سايه © سستم التشغيل — جميع المبالغ بعملة الريال السعودي (⃁)</footer>
 <div id="fishPriceModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;align-items:center;justify-content:center;padding:16px">
   <div class="card" style="max-width:420px;width:100%">
     <h3>💲 تسعير بيع السمك</h3>
@@ -3932,8 +3926,8 @@ Object.assign(I18N.en,{"سجل الملاك":"Owners registry","الفواتير
 Object.assign(I18N.ur,{"سجل الملاك":"مالکان رجسٹر","الفواتير":"انوائسز","طباعة":"پرنٹ","لا توجد نسخة احتياطية بعد":"ابھی کوئی بیک اپ نہیں","اتركه فارغاً للإبقاء على الحالي":"موجودہ رکھنے کے لیے خالی چھوڑیں","النوع":"قسم","رئيسي":"مرکزی","إضافي":"اضافی","الاسم بالإنجليزية":"انگریزی نام","الرقم السري (اختياري عند التعديل)":"خفیہ نمبر (ترمیم میں اختیاری)","✕ إلغاء التعديل":"✕ ترمیم منسوخ","💾 حفظ التعديل":"💾 تبدیلیاں محفوظ","⚠️ عبي الاسم ورقم الهوية":"⚠️ نام اور شناختی نمبر بھریں","⚠️ الرقم السري مطلوب لمالك جديد":"⚠️ نئے مالک کے لیے خفیہ نمبر لازمی","✅ حُدّث المالك الرئيسي":"✅ مرکزی مالک اپ ڈیٹ","التعديل من السجل: اضغط ✏️ فتتعبأ بيانات المالك بالنموذج أعلاه — عدّل واحفظ. كل مالك يدخل بهويته ورقمه بصلاحية كاملة.":"رجسٹر سے ترمیم: ✏️ دبائیں، فارم بھر جائے گا — ترمیم کر کے محفوظ کریں۔"});
 </script>
 <script id="i18nPerms">
-Object.assign(I18N.en,{"أقسام اليوميات — وين يسجل ميدانياً":"Daily log sections — where they record in the field","حساسة — امنحها بوعي":"Sensitive — grant consciously","التسجيل الميداني في هذا القسم":"Field recording in this section","بطاقات الأقسام وأعدادها للاطلاع":"Section cards & counts (view)","تسجيل الدورات والمهام وأنواع العمل":"Record cycles, tasks & work types","تسجيل جودة الحصاد":"Record harvest quality","خريطة المزرعة":"Farm map","سجل صيانة المعدات وتنبيهاتها":"Equipment maintenance log & alerts","سجل أمراض النباتات والمعالجة":"Plant diseases & treatment log","فحوصات التربة":"Soil tests","تقديم طلبات الشراء ومتابعتها":"Submit & track purchase requests","العد الفعلي في الجرد الدوري":"Physical count in periodic stocktake","سجل المبيعات ومتابعة الديون والدفعات":"Sales log, debts & payments tracking","تسجيل المصروفات بمرفقاتها والمتكررات":"Record expenses with attachments & recurring","المخزون والمعدات وحركاتها":"Inventory, equipment & movements","الموردون وفواتير الشراء":"Suppliers & purchase invoices","سجل العملاء والراكدين":"Customers log & dormant follow-up","تعريف المنتجات وأسعارها":"Define products & prices","الفواتير الإلكترونية: مسودة واعتماد وإشعارات":"E-invoices: draft, approval & notes","المدفوعات الآجلة":"Deferred payments","وحدات البيع وأوزانها":"Sale units & weights","لوحة المالك: الأرباح والتنبيهات والتقارير الحية":"Owner dashboard: profits, alerts & live reports","الدفاتر والقوائم والضريبة + الاعتماد الأولي للطلبات":"Books, statements & tax + initial request approval","الموارد البشرية: الملفات والرواتب والحضور (منح الصلاحيات يبقى لك)":"HR: files, salaries & attendance (granting permissions stays yours)","بدونها: يسجل ولا يعدل أو يحذف إدخالاته":"Without it: can record but not edit or delete own entries","قبض وتحصيل ديون العملاء وسداد الموردين":"Collect customer debts & pay suppliers","تعديل وحذف إدخالاته":"Edit & delete own entries","تسجيل سداد العملاء والموردين":"Record customer & supplier payments","الموظفين":"Employees","الإنتاج والمبيعات":"Sales & production"});
-Object.assign(I18N.ur,{"أقسام اليوميات — وين يسجل ميدانياً":"روزنامچہ سیکشنز — کہاں درج کرے","حساسة — امنحها بوعي":"حساس — سوچ کر دیں","التسجيل الميداني في هذا القسم":"اس سیکشن میں فیلڈ اندراج","بطاقات الأقسام وأعدادها للاطلاع":"سیکشن کارڈز و تعداد (دیکھنا)","تسجيل الدورات والمهام وأنواع العمل":"سائیکل، ٹاسک و کام اقسام درج کرنا","تسجيل جودة الحصاد":"کٹائی معیار درج کرنا","خريطة المزرعة":"فارم نقشہ","سجل صيانة المعدات وتنبيهاتها":"مشین مرمت لاگ و الرٹس","سجل أمراض النباتات والمعالجة":"پودوں کی بیماریاں و علاج","فحوصات التربة":"مٹی ٹیسٹ","تقديم طلبات الشراء ومتابعتها":"خریداری درخواستیں جمع و پیروی","العد الفعلي في الجرد الدوري":"گنتی میں اصل عد","سجل المبيعات ومتابعة الديون والدفعات":"فروخت لاگ و قرض پیروی","تسجيل المصروفات بمرفقاتها والمتكررات":"اخراجات مع منسلکات درج کرنا","المخزون والمعدات وحركاتها":"اسٹاک، مشینیں و حرکات","الموردون وفواتير الشراء":"سپلائرز و خریداری انوائسز","سجل العملاء والراكدين":"گاہک لاگ و غیر فعال","تعريف المنتجات وأسعارها":"پروڈکٹس و قیمتیں","الفواتير الإلكترونية: مسودة واعتماد وإشعارات":"ای-انوائسز: مسودہ، منظوری و نوٹس","المدفوعات الآجلة":"ادھار ادائیگیاں","وحدات البيع وأوزانها":"فروخت یونٹس و وزن","لوحة المالك: الأرباح والتنبيهات والتقارير الحية":"مالک ڈیش بورڈ: منافع و اطلاعات","الدفاتر والقوائم والضريبة + الاعتماد الأولي للطلبات":"کھاتے، گوشوارے و ٹیکس + ابتدائی منظوری","الموارد البشرية: الملفات والرواتب والحضور (منح الصلاحيات يبقى لك)":"HR: فائلیں، تنخواہیں و حاضری","بدونها: يسجل ولا يعدل أو يحذف إدخالاته":"اس کے بغیر: درج کرے مگر ترمیم/حذف نہیں","قبض وتحصيل ديون العملاء وسداد الموردين":"گاہک وصولی و سپلائر ادائیگی","تعديل وحذف إدخالاته":"اپنے اندراجات کی ترمیم و حذف","تسجيل سداد العملاء والموردين":"گاہک و سپلائر ادائیگی درج کرنا","الموظفين":"ملازمین","الإنتاج والمبيعات":"فروخت و پیداوار"});
+Object.assign(I18N.en,{"أقسام اليوميات — وين يسجل ميدانياً":"Daily log sections — where they record in the field","حساسة — امنحها بوعي":"Sensitive — grant consciously","التسجيل الميداني في هذا القسم":"Field recording in this section","بطاقات الأقسام وأعدادها للاطلاع":"Section cards & counts (view)","تسجيل الدورات والمهام وأنواع العمل":"Record cycles, tasks & work types","تسجيل جودة الحصاد":"Record harvest quality","خريطة المزرعة":"Farm map","سجل صيانة المعدات وتنبيهاتها":"Equipment maintenance log & alerts","سجل أمراض النباتات والمعالجة":"Plant diseases & treatment log","فحوصات التربة":"Soil tests","تقديم طلبات الشراء ومتابعتها":"Submit & track purchase requests","العد الفعلي في الجرد الدوري":"Physical count in periodic stocktake","سجل المبيعات ومتابعة الديون والدفعات":"Sales log, debts & payments tracking","تسجيل المصروفات بمرفقاتها والمتكررات":"Record expenses with attachments & recurring","المخزون والمعدات وحركاتها":"Inventory, equipment & movements","الموردون وفواتير الشراء":"Suppliers & purchase invoices","سجل العملاء والراكدين":"Customers log & dormant follow-up","تعريف المنتجات وأسعارها":"Define products & prices","الفواتير الإلكترونية: مسودة واعتماد وإشعارات":"E-invoices: draft, approval & notes","المدفوعات الآجلة":"Deferred payments","وحدات البيع وأوزانها":"Sale units & weights","لوحة المالك: الأرباح والتنبيهات والتقارير الحية":"Owner dashboard: profits, alerts & live reports","الدفاتر والقوائم والضريبة + الاعتماد الأولي للطلبات":"Books, statements & tax + initial request approval","الموارد البشرية: الملفات والرواتب والحضور (منح الصلاحيات يبقى لك)":"HR: files, salaries & attendance (granting permissions stays yours)","بدونها: يسجل ولا يعدل أو يحذف إدخالاته":"Without it: can record but not edit or delete own entries","قبض وتحصيل ديون العملاء وسداد الموردين":"Collect customer debts & pay suppliers","✏️ تعديل إدخالاته":"✏️ Edit own entries","🗑️ حذف إدخالاته":"🗑️ Delete own entries","تسجيل سداد العملاء والموردين":"Record customer & supplier payments","الموظفين":"Employees","الإنتاج والمبيعات":"Sales & production"});
+Object.assign(I18N.ur,{"أقسام اليوميات — وين يسجل ميدانياً":"روزنامچہ سیکشنز — کہاں درج کرے","حساسة — امنحها بوعي":"حساس — سوچ کر دیں","التسجيل الميداني في هذا القسم":"اس سیکشن میں فیلڈ اندراج","بطاقات الأقسام وأعدادها للاطلاع":"سیکشن کارڈز و تعداد (دیکھنا)","تسجيل الدورات والمهام وأنواع العمل":"سائیکل، ٹاسک و کام اقسام درج کرنا","تسجيل جودة الحصاد":"کٹائی معیار درج کرنا","خريطة المزرعة":"فارم نقشہ","سجل صيانة المعدات وتنبيهاتها":"مشین مرمت لاگ و الرٹس","سجل أمراض النباتات والمعالجة":"پودوں کی بیماریاں و علاج","فحوصات التربة":"مٹی ٹیسٹ","تقديم طلبات الشراء ومتابعتها":"خریداری درخواستیں جمع و پیروی","العد الفعلي في الجرد الدوري":"گنتی میں اصل عد","سجل المبيعات ومتابعة الديون والدفعات":"فروخت لاگ و قرض پیروی","تسجيل المصروفات بمرفقاتها والمتكررات":"اخراجات مع منسلکات درج کرنا","المخزون والمعدات وحركاتها":"اسٹاک، مشینیں و حرکات","الموردون وفواتير الشراء":"سپلائرز و خریداری انوائسز","سجل العملاء والراكدين":"گاہک لاگ و غیر فعال","تعريف المنتجات وأسعارها":"پروڈکٹس و قیمتیں","الفواتير الإلكترونية: مسودة واعتماد وإشعارات":"ای-انوائسز: مسودہ، منظوری و نوٹس","المدفوعات الآجلة":"ادھار ادائیگیاں","وحدات البيع وأوزانها":"فروخت یونٹس و وزن","لوحة المالك: الأرباح والتنبيهات والتقارير الحية":"مالک ڈیش بورڈ: منافع و اطلاعات","الدفاتر والقوائم والضريبة + الاعتماد الأولي للطلبات":"کھاتے، گوشوارے و ٹیکس + ابتدائی منظوری","الموارد البشرية: الملفات والرواتب والحضور (منح الصلاحيات يبقى لك)":"HR: فائلیں، تنخواہیں و حاضری","بدونها: يسجل ولا يعدل أو يحذف إدخالاته":"اس کے بغیر: درج کرے مگر ترمیم/حذف نہیں","قبض وتحصيل ديون العملاء وسداد الموردين":"گاہک وصولی و سپلائر ادائیگی","✏️ تعديل إدخالاته":"✏️ اپنی اندراجات میں ترمیم","🗑️ حذف إدخالاته":"🗑️ اپنی اندراجات حذف کریں","تسجيل سداد العملاء والموردين":"گاہک و سپلائر ادائیگی درج کرنا","الموظفين":"ملازمین","الإنتاج والمبيعات":"فروخت و پیداوار"});
 I18N_PAT.unshift(
 {re:/^— (.+)$/,en:"— $1",ur:"— $1"},
 {re:/^(.+) · (.+)$/,en:"$1 · $2",ur:"$1 · $2"}
@@ -4219,7 +4213,7 @@ function load(){
         names.forEach(n=>d.tanks.push({id:uid(), name:n, type:"سمك تربية", initCount:0, startDate:"", notes:"(مرحّل تلقائياً — حدّث العدد)"}));
       }
       d.tanks.forEach(t=>{ if(!t.type) t.type="سمك تربية"; if(!t.meals) t.meals=3; });
-      d.employees.forEach(e=>{ if(!e.perms) e.perms={tabs:{}, acts:{}}; if(!e.alloc) e.alloc={}; });
+      d.employees.forEach(e=>{ if(!e.perms) e.perms={tabs:{}, acts:{}}; if(!e.alloc) e.alloc={}; if(e.perms.acts && e.perms.acts.edit===false && e.perms.acts.del===undefined) e.perms.acts.del=false; });
       if(!d.settings.sections || !d.settings.sections.length) d.settings.sections = DEFAULT_SECTIONS.map(s=>({name:s.name, short:s.short}));
       // ترحيل: إضافة أي أقسام افتراضية جديدة وإعادة ترتيبها حسب DEFAULT_SECTIONS
       DEFAULT_SECTIONS.forEach(ds=>{ if(!d.settings.sections.some(s=>s.name===ds.name)) d.settings.sections.push({name:ds.name, short:ds.short}); });
@@ -4603,7 +4597,7 @@ const PERM_TABS = [["secs","🏡 المتابعة"],["cycles","🌱 الدورا
 const PERM_FINANCIAL = [["prod","🧺 الإنتاج والمبيعات"],["exp","💸 المصروفات"],["inv","📦 المخزون والمعدات"],["sup","🚚 الموردين"],["cust","🤝 العملاء"],["products","🏷️ المنتجات"],["quotes","📋 عروض الأسعار"],["invoices","🧾 الفواتير"],["deferred","⏰ المدفوعات الآجلة"],["units","📏 وحدات البيع"]];
 // تابات المالك فقط — لا تُمنح لأي موظف
 const PERM_SENSITIVE = [["dash","📊 الملخص"],["acct","📒 الحسابات"],["emp","👷 الموظفين"]];
-const PERM_ACTS = [["edit","تعديل وحذف إدخالاته"],["settle","تسجيل سداد العملاء والموردين"]];
+const PERM_ACTS = [["edit","✏️ تعديل إدخالاته"],["del","🗑️ حذف إدخالاته"],["settle","تسجيل سداد العملاء والموردين"]];
 function myPerms(){
   if(!CURRENT_USER || CURRENT_USER.type!=="emp") return null;
   const e = DB.employees.find(x=>x.id===CURRENT_USER.id);
@@ -4634,6 +4628,12 @@ function canEdit(empName){
   if(!CURRENT_USER || empName!==CURRENT_USER.name) return false;
   const p = myPerms();
   return !p || !p.acts || p.acts.edit!==false;
+}
+function canDelete(empName){
+  if(isOwner()) return true;
+  if(!CURRENT_USER || empName!==CURRENT_USER.name) return false;
+  const p = myPerms();
+  return !p || !p.acts || p.acts.del!==false;
 }
 function canSettle(){
   if(isOwner()) return true;
@@ -5790,7 +5790,7 @@ function renderTasks(){
       && (!fTkEmp.value||t.employee.includes(fTkEmp.value.trim())))
     .slice().reverse().slice(0,200).map(t=>
     `<tr><td>${t.date}</td><td><b>${t.type}</b></td><td>${t.section}</td><td>${t.desc||""}</td><td>${t.employee}</td>
-     <td>${canEdit(t.employee)?`<button class="edt" onclick="editTask('${t.id}')">✏️</button><button class="del" onclick="delTask('${t.id}')">🗑️</button>`:""}</td></tr>`).join("");
+     <td>${canEdit(t.employee)?`<button class="edt" onclick="editTask('${t.id}')">✏️</button>`:""}${canDelete(t.employee)?`<button class="del" onclick="delTask('${t.id}')">🗑️</button>`:""}</td></tr>`).join("");
   tblTasks.innerHTML = `<tr><th>التاريخ</th><th>العمل</th><th>القسم</th><th>التفاصيل</th><th>الموظف</th><th></th></tr>`
     + (rows || `<tr><td colspan="6" class="muted">📝 لا أعمال مسجلة — سجّل أعمال اليوم من النموذج أعلاه، أو عدّل الفلاتر</td></tr>`);
 }
@@ -5832,7 +5832,7 @@ function renderWater(){
     `<tr><td>${w.date}</td><td><b>${w.tank}</b></td>
      <td>${wVal(w.temp,WLIM.temp)}</td><td>${wVal(w.o2,WLIM.o2)}</td><td>${wVal(w.ph,WLIM.ph)}</td><td>${wVal(w.amm,WLIM.amm)}</td>
      <td>${w.employee}</td><td>${w.notes||""}</td>
-     <td>${canEdit(w.employee)?`<button class="edt" onclick="editWater('${w.id}')">✏️</button><button class="del" onclick="delWater('${w.id}')">🗑️</button>`:""}</td></tr>`).join("");
+     <td>${canEdit(w.employee)?`<button class="edt" onclick="editWater('${w.id}')">✏️</button>`:""}${canDelete(w.employee)?`<button class="del" onclick="delWater('${w.id}')">🗑️</button>`:""}</td></tr>`).join("");
   tblWater.innerHTML = `<tr><th>التاريخ</th><th>الحوض</th><th>حرارة °م</th><th>أكسجين</th><th>pH</th><th>أمونيا</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
     + (rows || `<tr><td colspan="9" class="muted">لا توجد قياسات مطابقة</td></tr>`);
 }
@@ -5934,7 +5934,7 @@ function renderSprays(){
       <td>${fmt(s.safety)} يوم</td>
       <td>${end>=t?`<span class="badge danger">⛔ ممنوع الحصاد حتى ${end}</span>`:`<span class="badge active">انتهت (${end})</span>`}</td>
       <td>${s.employee}</td><td>${s.notes||""}</td>
-      <td>${canEdit(s.employee)?`<button class="edt" onclick="editSpray('${s.id}')">✏️</button><button class="del" onclick="delSpray('${s.id}')">🗑️</button>`:""}</td></tr>`;
+      <td>${canEdit(s.employee)?`<button class="edt" onclick="editSpray('${s.id}')">✏️</button>`:""}${canDelete(s.employee)?`<button class="del" onclick="delSpray('${s.id}')">🗑️</button>`:""}</td></tr>`;
   }).join("");
   tblSprays.innerHTML = `<tr><th>تاريخ الرش</th><th>المبيد</th><th>القسم</th><th>الدورة</th><th>فترة الأمان</th><th>الحالة</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
     + (rows || `<tr><td colspan="9" class="muted">🧪 لا عمليات رش — سجّلها من النموذج أعلاه ليحسب النظام فترة الأمان ويحذّرك قبل الحصاد</td></tr>`);
@@ -5967,7 +5967,7 @@ function renderClimate(){
     `<tr><td>${c.date}</td><td><b>${c.house}</b></td>
      <td>${wVal(c.temp,GLIM.temp)}</td><td>${wVal(c.hum,GLIM.hum)}</td>
      <td>${c.employee}</td><td>${c.notes||""}</td>
-     <td>${canEdit(c.employee)?`<button class="edt" onclick="editClimate('${c.id}')">✏️</button><button class="del" onclick="delClimate('${c.id}')">🗑️</button>`:""}</td></tr>`).join("");
+     <td>${canEdit(c.employee)?`<button class="edt" onclick="editClimate('${c.id}')">✏️</button>`:""}${canDelete(c.employee)?`<button class="del" onclick="delClimate('${c.id}')">🗑️</button>`:""}</td></tr>`).join("");
   tblClimate.innerHTML = `<tr><th>التاريخ</th><th>البيت</th><th>حرارة °م</th><th>رطوبة %</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
     + (rows || `<tr><td colspan="7" class="muted">💧 لا قياسات مياه — سجّل أول قياس من النموذج أعلاه لتفعيل تنبيهات جودة المياه</td></tr>`);
 }
@@ -6102,7 +6102,7 @@ function addTransfer(e){
 }
 function delTransfer(id){
   const tr = DB.transfers.find(x=>x.id===id); if(!tr) return;
-  if(!canEdit(tr.employee)){ toast("⚠️ ما تقدر تحذف إدخال موظف ثاني"); return; }
+  if(!canDelete(tr.employee)){ toast("⚠️ ما عندك صلاحية حذف هذا الإدخال"); return; }
   if(confirm("حذف عملية النقل؟ (الأعداد ترجع تلقائياً)")){
     DB.transfers=DB.transfers.filter(x=>x.id!==id); save(); renderFish(); toast("تم الحذف");
   }
@@ -6111,7 +6111,7 @@ function renderTransfers(){
   const rows = DB.transfers.slice().reverse().slice(0,30).map(tr=>
     `<tr><td>${tr.date}</td><td><b>${tr.from}</b> ⬅️ <b>${tr.to}</b></td><td>${fmt(tr.count)} 🐟</td>
      <td>${tr.employee}</td><td>${tr.notes||""}</td>
-     <td>${canEdit(tr.employee)?`<button class="del" onclick="delTransfer('${tr.id}')">🗑️</button>`:""}</td></tr>`).join("");
+     <td>${canDelete(tr.employee)?`<button class="del" onclick="delTransfer('${tr.id}')">🗑️</button>`:""}</td></tr>`).join("");
   tblTransfers.innerHTML = `<tr><th>التاريخ</th><th>النقل</th><th>العدد</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
     + (rows || `<tr><td colspan="6" class="muted">🔁 لا عمليات نقل — استخدم النموذج أعلاه لنقل السمك بين الأحواض مع تحديث الأعداد تلقائياً</td></tr>`);
 }
@@ -6337,7 +6337,7 @@ function renderFish(){
     `<tr><td>${f.date}</td><td><b>${f.tank}</b></td><td>${f.meal?`<span class="badge active">وجبة ${f.meal}</span>`:"—"}</td><td>${fmt(f.feed)} كجم</td>
      <td class="${f.dead>0?"neg":""}">${fmt(f.dead)}</td><td>${f.sold?fmt(f.sold):"—"}</td><td>${f.avgW?fmt(f.avgW)+" جم":"—"}</td>
      <td>${f.employee}</td><td>${f.notes||""}</td>
-     <td>${canEdit(f.employee)?`<button class="edt" onclick="editFish('${f.id}')">✏️</button><button class="del" onclick="delFish('${f.id}')">🗑️</button>`:""}</td></tr>`).join("");
+     <td>${canEdit(f.employee)?`<button class="edt" onclick="editFish('${f.id}')">✏️</button>`:""}${canDelete(f.employee)?`<button class="del" onclick="delFish('${f.id}')">🗑️</button>`:""}</td></tr>`).join("");
   tblFish.innerHTML = `<tr><th>التاريخ</th><th>الحوض</th><th>الوجبة</th><th>العلف</th><th>النافق</th><th>المحصود</th><th>متوسط الوزن</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
     + (rows || `<tr><td colspan="10" class="muted">🐟 لا سجلات تغذية بعد — سجّل العلف والنافق يومياً من النموذج أعلاه</td></tr>`);
 
@@ -6996,8 +6996,7 @@ function renderCycles(){
       <td><span class="badge ${c.status==="نشطة"?"active":c.status==="مخططة"?"warn":"done"}">${c.status==="مخططة"?"🔵 مخططة":c.status}</span></td>
       <td>${c.employee||""}</td>
       <td>${canEdit(c.employee)?`<button class="edt" onclick="editCycle('${c.id}')">✏️</button>
-          ${c.status==="مخططة"?`<button class="edt" title="بدء الآن" onclick="startCycle('${c.id}')">▶️</button>`:`<button class="del" title="إنهاء/تنشيط" onclick="endCycle('${c.id}')">🔁</button>`}
-          <button class="del" onclick="delCycle('${c.id}')">🗑️</button>`:""}</td>
+          ${c.status==="مخططة"?`<button class="edt" title="بدء الآن" onclick="startCycle('${c.id}')">▶️</button>`:`<button class="del" title="إنهاء/تنشيط" onclick="endCycle('${c.id}')">🔁</button>`}`:""}${canDelete(c.employee)?`<button class="del" onclick="delCycle('${c.id}')">🗑️</button>`:""}</td>
     </tr>`;
   }).join("");
   tblCycles.innerHTML =
@@ -7237,7 +7236,7 @@ function renderExpenses(){
     return `<tr><td>${x.date}</td><td><b>${x.cat}</b></td><td>${x.section}</td>
      <td>${cyc?prodName(cyc.productId):"—"}</td>
      <td class="neg">${fmtSR(x.amount)}</td><td>${x.employee||""}</td><td>${x.notes||""}</td>
-     <td>${(x.invFile||x.invFileRef)?`<button class="edt" title="عرض الفاتورة" onclick="viewExpFile('${x.id}')">📎</button>`:""}${canEdit(x.employee)?`<button class="edt" onclick="editExpense('${x.id}')">✏️</button><button class="del" onclick="delExpense('${x.id}')">🗑️</button>`:""}</td></tr>`;
+     <td>${(x.invFile||x.invFileRef)?`<button class="edt" title="عرض الفاتورة" onclick="viewExpFile('${x.id}')">📎</button>`:""}${canEdit(x.employee)?`<button class="edt" onclick="editExpense('${x.id}')">✏️</button>`:""}${canDelete(x.employee)?`<button class="del" onclick="delExpense('${x.id}')">🗑️</button>`:""}</td></tr>`;
   }).join("");
   tblExpenses.innerHTML =
     `<tr><th>التاريخ</th><th>البند</th><th>القسم</th><th>الدورة</th><th>المبلغ</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
@@ -8387,7 +8386,7 @@ function renderOrders(){
       <td>${fmt(o.qty)} ${o.unit||"كجم"}</td><td>${when}</td>
       <td><span class="badge ${o.status==="جديد"?(d<0?"danger":"warn"):"active"}">${o.status}</span></td>
       <td>${o.notes||""}</td>
-      <td>${o.status==="جديد"?`<button class="edt" title="تحويل لفاتورة بيع" onclick="orderToInvoice('${o.id}')">🧾</button>`:""}<button class="edt" title="تسليم/إرجاع" onclick="orderDone('${o.id}')">✅</button>${canEdit(o.employee)?`<button class="edt" onclick="editOrder('${o.id}')">✏️</button><button class="del" onclick="delOrder('${o.id}')">🗑️</button>`:""}</td></tr>`;
+      <td>${o.status==="جديد"?`<button class="edt" title="تحويل لفاتورة بيع" onclick="orderToInvoice('${o.id}')">🧾</button>`:""}<button class="edt" title="تسليم/إرجاع" onclick="orderDone('${o.id}')">✅</button>${canEdit(o.employee)?`<button class="edt" onclick="editOrder('${o.id}')">✏️</button>`:""}${canDelete(o.employee)?`<button class="del" onclick="delOrder('${o.id}')">🗑️</button>`:""}</td></tr>`;
   }).join("");
   tblOrders.innerHTML = `<tr><th>تاريخ التسليم</th><th>العميل</th><th>المنتج</th><th>الكمية</th><th>متى</th><th>الحالة</th><th>ملاحظات</th><th></th></tr>`
     + (rows || `<tr><td colspan="8" class="muted">🛒 لا طلبات عملاء — سجّل طلبات التوريد المستقبلية أعلاه وينبّهك الملخص قبل موعد التسليم</td></tr>`);
@@ -8623,7 +8622,7 @@ function renderPurchases(){
      <td class="neg">${fmtSR(p.amount)}</td>
      <td>${p.paid?'<span class="badge active">مدفوع</span>':'<span class="badge danger">آجل</span> <button class="btn small secondary" onclick="markPurchasePaid(\''+p.id+'\')">سداد</button>'}</td>
      <td>${p.employee||""}</td>
-     <td>${canEdit(p.employee)?`<button class="edt" onclick="editPurchase('${p.id}')">✏️</button><button class="del" onclick="delPurchase('${p.id}')">🗑️</button>`:""}</td></tr>`).join("");
+     <td>${canEdit(p.employee)?`<button class="edt" onclick="editPurchase('${p.id}')">✏️</button>`:""}${canDelete(p.employee)?`<button class="del" onclick="delPurchase('${p.id}')">🗑️</button>`:""}</td></tr>`).join("");
   tblPurchases.innerHTML = `<tr><th>التاريخ</th><th>المورد</th><th>البند</th><th>الوصف</th><th>المبلغ</th><th>السداد</th><th>الموظف</th><th></th></tr>`
     + (rows || `<tr><td colspan="8" class="muted">🧾 لا فواتير شراء بعد — سجّلها من النموذج أعلاه وتنعكس تلقائياً على المصروفات والمخزون</td></tr>`);
   const unpaid = DB.purchases.filter(p=>pRemain(p)>0.005).slice().reverse();
@@ -10585,14 +10584,6 @@ function saveVatInfo(){
   DB.settings.vatNo      = document.getElementById("vatNoInp")?.value||"";
   save(); toast("✅ تم حفظ بيانات ضريبة القيمة المضافة");
 }
-function resetData(){
-  if(!confirm("⚠️ سيتم حذف جميع البيانات نهائياً. هل أنت متأكد؟")) return;
-  if(!confirm("⚠️ تأكيد أخير: سيتم مسح كل شيء. المتابعة؟")) return;
-  cancelPendingSave();
-  localStorage.removeItem(KEY);
-  sessionStorage.removeItem("ksUser");
-  location.reload();
-}
 
 /* ====== إدارة الأقسام ====== */
 function addSection(){
@@ -10949,8 +10940,8 @@ function renderTrHub(){
       (ok("units")?hc("units","📏","وحدات البيع",invUnitsList().length,"وحدات بنود الفواتير وأوزانها"):""))
     ||'<p class="muted">ما عندك صلاحية لأي بند تجاري — كلم المالك</p>';
 }
-const STV={theme:"st_theme",secs:"st_secs",company:"st_company",perms:"st_perms",trash:"st_trash",backup:"st_backup",imp:"st_import",log:"st_log",reset:"st_reset"};
-const STV_TITLES={owner:"👑 بيانات المالك",pin:"🔐 الرقم السري للدخول",theme:"🎨 الثيم",secs:"🏡 إدارة الأقسام",company:"🏢 بيانات الشركة والشعار",perms:"🛡️ صلاحيات الموظفين",trash:"♻️ سلة المهملات",imp:"⬆️ استيراد بيانات (CSV)",backup:"💾 النسخ الاحتياطي واللقطات",log:"🕵️ حركات الموظفين",reset:"🗑️ تصفير البيانات"};
+const STV={theme:"st_theme",secs:"st_secs",company:"st_company",perms:"st_perms",trash:"st_trash",backup:"st_backup",imp:"st_import",log:"st_log"};
+const STV_TITLES={theme:"🎨 الثيم",secs:"🏡 إدارة الأقسام",company:"🏢 بيانات الشركة والشعار",perms:"🛡️ صلاحيات الموظفين",trash:"♻️ سلة المهملات",imp:"⬆️ استيراد بيانات (CSV)",backup:"💾 النسخ الاحتياطي واللقطات",log:"🕵️ حركات الموظفين"};
 function permFillSelect(){
   const sel=document.getElementById("permEmpSel"); if(!sel) return;
   const v=sel.value;
@@ -10967,7 +10958,7 @@ const PERM_DESC={
   invoices:"الفواتير الإلكترونية: مسودة واعتماد وإشعارات",deferred:"المدفوعات الآجلة",units:"وحدات البيع وأوزانها",
   dash:"لوحة المالك: الأرباح والتنبيهات والتقارير الحية",acct:"الدفاتر والقوائم والضريبة + الاعتماد الأولي للطلبات",
   emp:"الموارد البشرية: الملفات والرواتب والحضور (منح الصلاحيات يبقى لك)",
-  edit:"بدونها: يسجل ولا يعدل أو يحذف إدخالاته",settle:"قبض وتحصيل ديون العملاء وسداد الموردين"};
+  edit:"بدونها: يسجل ولا يستطيع تعديل إدخالاته",del:"بدونها: لا يستطيع حذف أي إدخال — حتى إدخالاته هو",settle:"قبض وتحصيل ديون العملاء وسداد الموردين"};
 const PERM_LBL=Object.fromEntries([...PERM_TABS,...PERM_FINANCIAL,...PERM_SENSITIVE,...PERM_ACTS]);
 function permLoadEmp(){
   const id=document.getElementById("permEmpSel")?.value;
@@ -10994,7 +10985,7 @@ function permLoadEmp(){
   const tradeKeys=["prod","exp","inv","sup","cust","products","purchasereq","stockcheck","quotes","invoices","deferred","units"];
   const mk=k=>row("tab",k,(PERM_LBL[k]||k).split(" ")[0],(PERM_LBL[k]||k).split(" ").slice(1).join(" "),PERM_DESC[k],!!(p.tabs&&p.tabs[k]===true));
   const mkD=k=>row("tab",k,(PERM_LBL[k]||k).split(" ")[0],(PERM_LBL[k]||k).split(" ").slice(1).join(" "),PERM_DESC[k],!!(p.tabs&&p.tabs[k]===true),true);
-  const mkA=k=>row("act",k,k==="edit"?"✏️":"💰",(PERM_LBL[k]||k),PERM_DESC[k],(!p.acts||p.acts[k]!==false),true);
+  const mkA=k=>row("act",k,k==="edit"?"✏️":k==="del"?"🗑️":"💰",(PERM_LBL[k]||k),PERM_DESC[k],(!p.acts||p.acts[k]!==false),true);
   box.innerHTML=
     grpCard("📝 أقسام اليوميات — وين يسجل ميدانياً",secsHtml)
     +grpCard("⚙️ التشغيل",opsKeys.map(mk).join(""))
@@ -11515,8 +11506,7 @@ function renderStHub(){
       hc("backup","☁️","السحابة واللقطات",(typeof cloudOn==="function"&&cloudOn())?"متصل":"غير متصل","المزامنة التلقائية ولقطات الاسترجاع")+
       hc("imp","⬆️","استيراد بيانات (CSV)","قوالب جاهزة","عملاء وموردون وأصناف ومواشي — دفعة وحدة")+
       hc("trash","♻️","سلة المهملات",(DB.trash||[]).length,"استرجاع آخر المحذوفات")+
-      hc("log","🕵️","حركات الموظفين","تقرير","كل عملية باسم منفّذها — من السجلات الفعلية")+
-      hc("reset","🗑️","تصفير البيانات","⚠️","حذف كل شيء — استخدمه بحذر"));
+      hc("log","🕵️","حركات الموظفين","تقرير","كل عملية باسم منفّذها — من السجلات الفعلية"));
 }
 const HRV={emp:"hr_emp",shift:"tab-shifts",perf:"tab-performance",payroll:"tab-payroll",adv:"hr_adv",hol:"hr_hol",leave:"hr_leave",cust:"hr_cust",att:"hr_att",con:"hr_con",eos:"hr_eos",prod:"hr_prod"};
 const HRV_TITLES={emp:"👥 الموظفون",con:"📜 العقود",shift:"⏰ المناوبات",att:"📅 الحضور والانصراف",leave:"🏖️ الإجازات",hol:"🌍 العطلات الرسمية",payroll:"💵 كشف الرواتب",adv:"🤲 السلف",cust:"💼 العهد",eos:"🧮 نهاية الخدمة",perf:"⭐ تقييم الأداء",prod:"🏆 الإنتاجية"};

@@ -209,8 +209,6 @@ tr:hover td{background:#fafcfa}
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:760px){.charts{grid-template-columns:1fr}}
 .chart-box{position:relative;height:280px}
-#lockScreen{max-width:360px;margin:60px auto;text-align:center}
-#lockScreen input{text-align:center;font-size:1.3rem;letter-spacing:8px;direction:ltr}
 .toast{position:fixed;bottom:20px;right:50%;transform:translateX(50%);background:var(--green-dark);color:#fff;padding:12px 24px;border-radius:12px;font-weight:700;display:none;z-index:99}
 .muted{color:var(--muted);font-size:.82rem}
 /* حالات الفراغ المحسّنة */
@@ -228,16 +226,6 @@ footer{text-align:center;padding:20px;color:var(--muted);font-size:.78rem}
 .alerts li{padding:5px 0;font-size:.88rem;border-bottom:1px dashed #fde68a}
 .alerts li:last-child{border:none}
 .editing{outline:3px solid var(--blue);outline-offset:2px}
-#loginScreen{position:fixed;inset:0;background:#e8ede9;z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;overflow:hidden}
-.lgWave{position:absolute;border-radius:50%;pointer-events:none;animation:lgFloat 10s ease-in-out infinite alternate}
-.lgWave.w1{top:-60px;right:10%;width:340px;height:200px;background:radial-gradient(ellipse,#ffffffbb,transparent 65%);transform:rotate(-12deg)}
-.lgWave.w2{bottom:-70px;left:5%;width:380px;height:220px;background:radial-gradient(ellipse,#d5e2da99,transparent 65%);transform:rotate(8deg);animation-delay:-3.5s}
-.lgWave.w3{top:32%;left:28%;width:300px;height:180px;background:radial-gradient(ellipse,#c9d8cf88,transparent 65%);transform:rotate(-20deg);animation-delay:-7s}
-@keyframes lgFloat{from{margin-top:0}to{margin-top:26px}}
-#loginScreen .card{max-width:360px;width:100%;text-align:center;background:rgba(255,255,255,.8);backdrop-filter:blur(10px);border:1px solid #fff;border-radius:20px;box-shadow:0 14px 34px rgba(90,110,100,.2);position:relative;color:#1f2937}
-#loginScreen label{text-align:start;color:#5b6660}
-#loginScreen input{background:#fff;color:#374151;border:1px solid #e2e7e4;border-radius:12px}
-#lgLogoWrap{width:70px;height:70px;border-radius:50%;margin:0 auto 10px;overflow:hidden;border:2.5px solid #fff;box-shadow:0 3px 12px rgba(6,78,59,.18);background:linear-gradient(135deg,#ecfdf5,#d1fae5);display:flex;align-items:center;justify-content:center;font-size:2rem}
 #lgLogoWrap img{width:100%;height:100%;object-fit:cover;display:none}
 .userTag{background:rgba(255,255,255,.92);color:var(--hd3);padding:4px 13px 4px 6px;border-radius:999px;font-size:.8rem;font-weight:700;display:none;gap:7px;align-items:center;cursor:pointer;border:none;box-shadow:0 2px 6px rgba(0,0,0,.15);white-space:nowrap}
 #hAvatar{width:27px;height:27px;border-radius:50%;background:var(--hd1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex:none}
@@ -439,9 +427,6 @@ body.dark .ilFishBal{color:#FAC775}
 .dsd.up{background:rgba(110,231,183,.18);color:#6ee7b7}
 .dsd.down{background:rgba(252,165,165,.18);color:#fca5a5}
 .dsd.flat{background:rgba(255,255,255,.12);color:rgba(255,255,255,.75)}
-.dashBkChip{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:700;padding:6px 12px;border-radius:99px;cursor:pointer;border:1px solid transparent;align-self:end}
-.dashBkChip.ok{background:rgba(4,120,87,.1);color:var(--green);border-color:rgba(4,120,87,.25)}
-.dashBkChip.late{background:rgba(220,38,38,.1);color:var(--red);border-color:rgba(220,38,38,.3);animation:bkPulse 2s infinite}
 @keyframes bkPulse{50%{box-shadow:0 0 0 4px rgba(220,38,38,.12)}}
 .safetyBand{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.35);border-inline-start:4px solid var(--red);color:var(--text);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:.85rem}
 .safetyBand .sbIco{font-size:1.1rem}
@@ -524,12 +509,6 @@ body.dark .ilFishBal{color:#FAC775}
 .themeOpt .tprev .bd{flex:1;display:flex;gap:4px;padding:5px}
 .themeOpt .tprev .cd{flex:1;border-radius:4px;border:1px solid rgba(0,0,0,.08)}
 .themeOpt .tlabel{display:flex;align-items:center;gap:6px;justify-content:center}
-.lgLang{border:1px solid #fff;background:rgba(255,255,255,.85);color:#3f4a44;border-radius:999px;height:38px;padding:0 16px;cursor:pointer;font-size:.85rem;font-weight:700;display:flex;align-items:center;gap:6px}
-.lgLang:hover{background:#fff}
-#lgLangMenu{display:none;position:absolute;top:48px;left:0;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.18);overflow:hidden;min-width:140px;z-index:5}
-.lgLangItem{display:block;width:100%;border:none;background:none;color:var(--text);padding:10px 16px;cursor:pointer;font-size:.9rem;text-align:center}
-.lgLangItem:hover{background:var(--green-light)}
-.lgLangItem.on{background:var(--green);color:#fff;font-weight:700}
 /* ===== KPI card accent borders ===== */
 .kpi.green{border-top:3px solid var(--green)}
 .kpi.red{border-top:3px solid var(--red)}
@@ -568,7 +547,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green)!i
   body{background:#fff;color:#000;font-size:11pt}
   .tab{display:none !important}
   #tab-dash{display:block !important}
-  #lockScreen{display:none !important}
   #dashContent{display:block !important}
   .card{break-inside:avoid;border:1px solid #ccc;box-shadow:none!important;animation:none!important}
   .chart-box{height:180px}
@@ -597,12 +575,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green)!i
 .kb-toggle button{padding:4px 12px;border:none;border-radius:7px;cursor:pointer;font-size:.78rem;background:none;color:var(--muted);transition:.15s}
 .kb-toggle button.on{background:var(--green);color:#fff}
 /* Backup bar in settings */
-.bk-bar{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin:10px 0;flex-wrap:wrap}
-.bk-bar .bk-icon{font-size:1.6rem}
-.bk-bar .bk-info{flex:1;min-width:120px}
-.bk-bar .bk-info b{display:block;font-size:.9rem}
-.bk-bar .bk-info small{color:var(--muted);font-size:.8rem}
-.bk-bar .bk-warn{background:#fef9c3;color:#854d0e;padding:3px 10px;border-radius:8px;font-size:.78rem;font-weight:600}
 
 .pswitch{position:relative;width:38px;height:21px;-webkit-appearance:none;appearance:none;background:var(--border);border-radius:11px;cursor:pointer;transition:.15s;flex-shrink:0;margin:0}
 .pswitch:checked{background:var(--green)}
@@ -706,7 +678,6 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <div id="notifList"></div>
     </div>
   </div>
-  <button class="hIco ownerOnly" onclick="exportData()" title="نسخة احتياطية">💾</button>
   <button id="themeBtn" class="hIco" onclick="toggleTheme()" title="الوضع الليلي">🌙</button>
   <button class="hIco" onclick="helpBox.style.display='flex'" title="مساعدة">❓</button>
   <div style="position:relative;margin-inline-start:4px">
@@ -762,74 +733,9 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     </div>
   </div>
 </div>
-<div id="loginScreen">
-  <span class="lgWave w1"></span><span class="lgWave w2"></span><span class="lgWave w3"></span>
-  <div class="card">
-    <div id="lgLogoWrap"><img id="lgLogoImg"><span id="lgLogoEmoji">🌱</span></div>
-    <h1 id="lgFarmName" style="font-size:1.35rem;color:#1f2937;margin-bottom:2px;font-weight:800">مزرعة خيرات سايه</h1>
-    <p class="muted" id="lgSub" style="margin-bottom:16px;color:#8f9a94">سجّل دخولك للمتابعة</p>
-    <label id="lgLbId">رقم الهوية</label>
-    <input id="lgUser" inputmode="numeric" maxlength="15" style="margin-bottom:10px;direction:ltr;letter-spacing:2px" placeholder="أدخل رقم الهوية">
-    <label id="lgLbPin">الرقم السري</label>
-    <input type="password" id="lgPin" maxlength="6" inputmode="numeric" style="text-align:center;letter-spacing:6px;direction:ltr" placeholder="••••">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.82rem;margin:0">
-        <input type="checkbox" id="rememberMe" style="width:15px;height:15px;accent-color:#047857;cursor:pointer">
-        <span id="lgLbRem">تذكّر بيانات الدخول</span>
-      </label>
-      <button type="button" id="lgLbFgt" onclick="openForgotModal()" style="background:none;border:none;color:#047857;cursor:pointer;font-size:.82rem;font-weight:700">نسيت كلمة المرور؟</button>
-    </div>
-    <button class="btn" id="lgBtn" style="width:100%;margin-top:14px;background:#047857;border-radius:12px;box-shadow:0 6px 18px rgba(4,120,87,.3)" onclick="login()">دخول</button>
-    <p class="muted" id="lgFirstRun" style="margin-top:10px;display:none">أول تشغيل: أي رقم هوية + الرقم السري الافتراضي <b>1234</b></p>
-  </div>
-
-  <!-- Modal نسيت كلمة المرور -->
-  <div id="forgotModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;align-items:center;justify-content:center;padding:16px">
-    <div class="card" style="max-width:380px;width:100%;text-align:center">
-
-      <!-- الخطوة 1: التحقق من الهوية -->
-      <div id="fgStep1">
-        <h3 style="color:var(--green-dark);margin-bottom:6px">🔑 استعادة كلمة المرور</h3>
-        <p class="muted" style="margin-bottom:16px">أدخل رقم هويتك والبريد الإلكتروني المسجل للتحقق من هويتك</p>
-        <label style="text-align:right;display:block">رقم الهوية</label>
-        <input id="fgIdNo" inputmode="numeric" maxlength="15" style="margin-bottom:10px;direction:ltr;letter-spacing:2px;width:100%" placeholder="أدخل رقم الهوية">
-        <label style="text-align:right;display:block">البريد الإلكتروني</label>
-        <input type="email" id="fgEmail" inputmode="email" style="margin-bottom:16px;width:100%" placeholder="name@example.com">
-        <div style="display:flex;gap:10px">
-          <button class="btn" style="flex:1" onclick="submitForgot()">التالي ←</button>
-          <button class="btn secondary" style="flex:1" onclick="closeForgotModal()">إلغاء</button>
-        </div>
-      </div>
-
-      <!-- الخطوة 2: تعيين رقم سري جديد -->
-      <div id="fgStep2" style="display:none">
-        <div style="font-size:2.5rem;margin-bottom:8px">✅</div>
-        <h3 style="color:var(--green-dark);margin-bottom:4px">تم التحقق</h3>
-        <p class="muted" style="margin-bottom:16px">أدخل رقم سري جديد (4 أرقام على الأقل)</p>
-        <label style="text-align:right;display:block">الرقم السري الجديد</label>
-        <input type="password" id="fgNewPin" inputmode="numeric" maxlength="6" style="text-align:center;letter-spacing:6px;direction:ltr;margin-bottom:10px;width:100%" placeholder="••••">
-        <label style="text-align:right;display:block">تأكيد الرقم السري</label>
-        <input type="password" id="fgConfirmPin" inputmode="numeric" maxlength="6" style="text-align:center;letter-spacing:6px;direction:ltr;margin-bottom:16px;width:100%" placeholder="••••">
-        <div style="display:flex;gap:10px">
-          <button class="btn" style="flex:1" onclick="confirmResetPin()">💾 حفظ الرقم السري</button>
-          <button class="btn secondary" style="flex:1" onclick="closeForgotModal()">إلغاء</button>
-        </div>
-      </div>
-
-    </div>
-  </div>
-  <div style="position:absolute;top:16px;inset-inline-start:16px">
-    <button type="button" class="lgLang" title="اللغة / Language" onclick="lgLangMenu.style.display = lgLangMenu.style.display==='block'?'none':'block'">🌐 <span id="lgLangCur">العربية</span> ▾</button>
-    <div id="lgLangMenu">
-      <button type="button" class="lgLangItem" data-l="ar" onclick="setLang('ar')">العربية</button>
-      <button type="button" class="lgLangItem" data-l="en" onclick="setLang('en')">English</button>
-      <button type="button" class="lgLangItem" data-l="ur" onclick="setLang('ur')">اردو</button>
-    </div>
-  </div>
-</div>
 
 <nav id="mainNav">
-  <button data-tab="dash" class="ownerOnly nav-direct" onclick="showTab('dash')">📊 الملخص</button>
+  <button data-tab="dash" class="nav-direct" onclick="showTab('dash')">📊 الملخص</button>
 
   <div class="nav-drop-wrap">
     <button class="nav-drop-btn" data-group="tashgheel" onclick="toggleNavDrop(this)">⚙️ التشغيل <span class="nav-arrow">▾</span></button>
@@ -884,19 +790,13 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
 
 <!-- ============ الملخص ============ -->
 <div class="tab" id="tab-dash">
-  <div id="lockScreen" class="card" style="display:none">
-    <h3>🔒 لوحة المالك محمية</h3>
-    <p class="muted" style="margin-bottom:12px">أدخل الرقم السري (الافتراضي 1234 — غيّره من الإعدادات)</p>
-    <input type="password" id="pinInput" maxlength="6" inputmode="numeric" placeholder="••••">
-    <button class="btn" style="margin-top:12px;width:100%" onclick="tryUnlock()">دخول</button>
-  </div>
   <div id="dashContent" style="display:none">
     <div id="welcomeBanner" style="display:none">
       <div style="flex:1">
         <h3>👋 أهلاً بك في مزرعة خيرات سايه!</h3>
         <p>ابدأ بإعداد المزرعة — أضف الأقسام والموظفين وسجّل أول دورة زراعية</p>
         <div class="steps">
-          <button class="step" onclick="closeBannerFn();showTab('settings')">⚙️ إعداد المالك</button>
+          <button class="step" onclick="closeBannerFn();showTab('settings');setTimeout(function(){try{stView('company')}catch(e){}},150)">🏢 بيانات المزرعة</button>
           <button class="step" onclick="closeBannerFn();showTab('emp')">👷 إضافة موظف</button>
           <button class="step" onclick="closeBannerFn();showTab('secs')">🏡 إضافة قسم</button>
           <button class="step" onclick="closeBannerFn();showTab('cycles')">🌱 دورة جديدة</button>
@@ -922,7 +822,6 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <button class="btn small secondary" onclick="exportWorkbook()">📊 تصدير Excel</button>
         <button class="btn small secondary" onclick="copyToday()">📋 ملخص اليوم</button>
         <button class="btn small secondary" onclick="printFarmCensus()">🖨️ التقرير الشامل</button>
-        <span id="dashBkChip" class="no-print" style="display:none"></span>
         <span style="margin-inline-start:auto;display:flex;gap:6px;align-items:end">
           <span><label style="font-size:.7rem">تقرير سنوي</label><input type="number" id="ryYear" style="width:90px" min="2020" max="2100"></span>
           <button class="btn small secondary" onclick="printAnnual()">🖨️ طباعة السنة</button>
@@ -3255,31 +3154,6 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     <b id="stViewTitle" style="font-size:.95rem"></b>
   </div>
   <div id="stHub"></div>
-  <div class="card" id="st_owner" style="display:none">
-    <h3>👑 المُلّاك والدخول</h3>
-    <form onsubmit="saveOwnerForm(event)">
-      <div class="row">
-        <div><label>اسم المالك *</label><input id="ownName" required placeholder="مثال: منصور"></div>
-        <div><label>الاسم بالإنجليزية</label><input id="ownNameEn" placeholder="e.g. Mansour" style="direction:ltr"></div>
-        <div><label>رقم الهوية (للدخول) *</label><input id="ownIdNo" required inputmode="numeric" maxlength="15" placeholder="مثال: 1XXXXXXXXX" style="direction:ltr"></div>
-        <div><label>الرقم السري (اختياري عند التعديل)</label><input id="ownPin" type="password" maxlength="6" placeholder="اتركه فارغاً للإبقاء على الحالي" style="direction:ltr"></div>
-      </div>
-      <button class="btn" id="ownBtn">➕ إضافة مالك</button>
-      <button class="btn secondary" type="button" id="ownCancel" style="display:none;width:auto;margin-top:8px" onclick="ownReset()">✕ إلغاء التعديل</button>
-    </form>
-    <h4 style="margin:14px 0 6px">📋 سجل الملاك</h4>
-    <p class="muted" style="font-size:.76rem;margin:0 0 8px">التعديل من السجل: اضغط ✏️ فتتعبأ بيانات المالك بالنموذج أعلاه — عدّل واحفظ. كل مالك يدخل بهويته ورقمه بصلاحية كاملة.</p>
-    <div class="table-wrap"><table id="tblOwnersReg"></table></div>
-
-    <hr style="border:none;border-top:1px dashed var(--border);margin:14px 0">
-    <form onsubmit="saveLock(event)">
-      <div class="row">
-        <div><label>⏲️ قفل تلقائي بعد خمول (دقائق — 0 لإيقافه)</label><input type="number" id="lockMin" min="0" max="240" step="1"></div>
-      </div>
-      <button class="btn secondary">حفظ القفل التلقائي</button>
-    </form>
-
-  </div>
   <div class="card" id="st_theme" style="display:none">
     <h3>🎨 الثيم</h3>
     <p class="muted" style="margin-bottom:10px">اختر تصميم السستم — التبديل فوري وآمن، بياناتك ما تتأثر، وترجع للكلاسيكي بضغطة.</p>
@@ -3313,6 +3187,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     <div id="coSummary" style="background:var(--green-light);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px"></div>
     <p class="muted" style="margin-bottom:12px">✏️ عدّل من الحقول أدناه — السجل أعلاه يتحدّث فوراً مع كل حرف</p>
     <div class="row" style="flex-wrap:wrap;gap:12px">
+      <div style="flex:1;min-width:200px"><label>👑 اسم المالك</label><input id="cmpOwnerName" placeholder="مثال: منصور" oninput="DB.settings.ownerName=this.value.trim();save()"></div>
       <div style="flex:1;min-width:200px"><label>اسم الشركة / المزرعة</label><input id="companyNameInp" placeholder="مثال: مزرعة خيرات سايه" oninput="saveCompanyInfo()"></div>
       <div style="flex:1;min-width:200px"><label>الاسم بالإنجليزية (للفاتورة)</label><input id="companyNameEnInp" placeholder="Khayrat Saya Farm" style="direction:ltr" oninput="saveCompanyInfo()"></div>
       <div style="flex:1;min-width:200px"><label>الرقم الوطني الموحد (السجل التجاري)</label><input id="unifiedNoInp" inputmode="numeric" maxlength="10" placeholder="70xxxxxxxx" style="direction:ltr" oninput="saveCompanyInfo()"></div>
@@ -3382,19 +3257,9 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <button class="btn secondary" type="button" style="border-color:#c66;color:#791F1F" onclick="cloudLogout()">🔌 قطع الاتصال</button>
     </div>
     <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)">
-    <h3>💾 النسخ الاحتياطي</h3>
-    <p class="muted" style="margin-bottom:10px">البيانات محفوظة على هذا الجهاز/المتصفح فقط. صدّر نسخة احتياطية بشكل دوري، وتقدر تنقلها لجهاز ثاني بالاستيراد.</p>
-    <div class="bk-bar" id="bkStatusBar">
-      <div class="bk-icon">💾</div>
-      <div class="bk-info"><b id="bkDateText">جاري الفحص...</b><small id="bkSubText"></small></div>
-      <span id="bkWarnBadge" style="display:none" class="bk-warn">⚠️ تأخرت النسخة!</span>
-    </div>
-    <button class="btn secondary" onclick="exportData()">⬇️ تصدير البيانات (ملف JSON)</button>
-    <button class="btn secondary" onclick="document.getElementById('importFile').click()">⬆️ استيراد نسخة</button>
+    <h3 style="margin-top:14px">📸 لقطات الاسترجاع (داخل هذا الجهاز)</h3>
+    <p class="muted" style="margin-bottom:8px">نسختك الاحتياطية الحقيقية هي السحابة (تُزامَن تلقائياً بعد كل حفظ). هذه اللقطات طبقة استرجاع إضافية: لقطة أسبوعية تلقائية (آخر 4) ترجعك لما قبل أي خطأ كبير.</p>
     <button class="btn secondary" onclick="takeSnap(true)">📸 أخذ لقطة الآن</button>
-    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-    <h3 style="margin-top:14px">📸 لقطات تلقائية داخل المتصفح</h3>
-    <p class="muted" style="margin-bottom:8px">السستم يأخذ لقطة كاملة من بياناتك تلقائياً كل أسبوع (يحتفظ بآخر 4) — تقدر ترجع لأي لقطة لو صار خطأ كبير</p>
     <div class="table-wrap"><table id="tblSnaps"></table></div>
   </div>
   <div class="card" id="st_import" style="display:none">
@@ -4330,7 +4195,7 @@ function blank(){
     equipmentLocations:[], sectionBoundaries:{},
     advances:[], holidays:[], leaves:[], custody:[], attendance:[], contracts:[],
     returns:[], quotes:[], stockTakes:[], meters:[], assigns:[], recurring:[],
-    settings:{pin:"1234", goals:{rev:0, exp:0}, lastBackup:"", autoLock:15, logo:"", catAlloc:{}, fishSellW:350, vatNo:"", sellerName:"مزرعة خيرات سايه",
+    settings:{goals:{rev:0, exp:0}, logo:"", catAlloc:{}, fishSellW:350, vatNo:"", sellerName:"مزرعة خيرات سايه",
       companyName:"", crNo:"", taxNo:"", nationalAddress:"",
       sections:DEFAULT_SECTIONS.map(s=>({name:s.name, short:s.short})), fishSection:"الاستزراع السمكي (بلطي)"}
   };
@@ -4341,7 +4206,6 @@ function load(){
     if(d && d.products){
       const b = blank();
       for(const k of Object.keys(b)) if(d[k]===undefined) d[k]=b[k];
-      d.employees.forEach(e=>{ if(!e.pin) e.pin="0000"; });
       /* ترقيم تلقائي رجعي للعملاء والموردين */
       d.settings.custSeq=d.settings.custSeq||0; d.settings.supSeq=d.settings.supSeq||0;
       (d.customers||[]).forEach(c=>{ if(!c.custNo){ d.settings.custSeq++; c.custNo="CUS-"+String(d.settings.custSeq).padStart(4,"0"); } });
@@ -4373,7 +4237,6 @@ function load(){
       d.settings.empSeq = _eseq;
       if(!d.settings.catAlloc) d.settings.catAlloc={};
       if(!d.settings.goals) d.settings.goals={rev:0, exp:0};
-      if(d.settings.lastBackup===undefined) d.settings.lastBackup="";
       // ترحيل: توحيد تصنيف الرواتب (يمنع ظهورها للموظفين)
       if(d.expenses) d.expenses.forEach(x=>{ if(x.cat==="رواتب") x.cat="رواتب وعمالة"; });
       /* ترحيل: موظفو "الإدارة" القدامى → قسم عام (كل المزرعة) */
@@ -4404,7 +4267,6 @@ function load(){
         }
         (lv.weightLogs||[]).forEach(w=>{ if(!w.tag && (w.animalId||w.animalType)) w.tag=w.animalId||w.animalType; });
       }
-      if(d.settings.autoLock===undefined) d.settings.autoLock=15;
       if(d.settings.logo===undefined) d.settings.logo="";
       if(d.settings.fishSellW===undefined) d.settings.fishSellW=350;
       if(d.settings.vatRate===undefined) d.settings.vatRate=15;
@@ -5026,17 +4888,6 @@ function renderFinPos(){
 
 /* ===== Dashboard Extras: safety band, mini row, backup chip, deep toggle ===== */
 function renderDashExtras(){
-  // شريحة النسخة الاحتياطية
-  const chip=document.getElementById("dashBkChip");
-  if(chip){
-    const lb=DB.settings.lastBackup;
-    const days=lb?Math.floor((new Date()-new Date(lb))/864e5):null;
-    const late=(days===null||days>7);
-    chip.style.display="inline-flex";
-    chip.className="no-print dashBkChip "+(late?"late":"ok");
-    chip.textContent=days===null?"💾 لا نسخة احتياطية بعد":(late?`💾 آخر نسخة قبل ${days} يوم ⚠️`:`💾 آخر نسخة قبل ${days} يوم ✅`);
-    chip.onclick=()=>showTab("settings");
-  }
   // شريط فترات الأمان النشطة (رش المبيدات)
   const sb=document.getElementById("dashSafety");
   if(sb){
@@ -5152,154 +5003,9 @@ function setTrend(elId, current, previous){
   else { el.textContent="لا تغيير"; el.className="trend neutral"; }
 }
 
-function fillLogin(){
-  const saved = localStorage.getItem("ksRememberUser");
-  if(saved){
-    lgUser.value = saved;
-    document.getElementById("rememberMe").checked = true;
-    lgPin.focus();
-  }
-}
-/* ====== نسيت كلمة المرور ====== */
-let _fgTarget = null; // { type:"owner"|"emp", empId? }
-
-function openForgotModal(){
-  _fgTarget = null;
-  document.getElementById("fgIdNo").value = "";
-  document.getElementById("fgEmail").value = "";
-  document.getElementById("fgNewPin").value = "";
-  document.getElementById("fgConfirmPin").value = "";
-  document.getElementById("fgStep1").style.display = "";
-  document.getElementById("fgStep2").style.display = "none";
-  document.getElementById("forgotModal").style.display = "flex";
-  setTimeout(()=>document.getElementById("fgIdNo").focus(), 100);
-}
-function closeForgotModal(){
-  document.getElementById("forgotModal").style.display = "none";
-  _fgTarget = null;
-}
-function submitForgot(){
-  const idNo  = document.getElementById("fgIdNo").value.trim();
-  const email = document.getElementById("fgEmail").value.trim().toLowerCase();
-  if(!idNo)  { toast("⚠️ أدخل رقم الهوية"); document.getElementById("fgIdNo").focus(); return; }
-  if(!email) { toast("⚠️ أدخل البريد الإلكتروني"); document.getElementById("fgEmail").focus(); return; }
-
-  const ownerIdNo = DB.settings.ownerIdNo || "";
-
-  if(ownerIdNo && idNo === ownerIdNo){
-    const ownerEm = DB.settings.ownerIsEmp && DB.settings.ownerEmpId
-      ? DB.employees.find(e=>e.id===DB.settings.ownerEmpId) : null;
-    const regEmail = ownerEm ? (ownerEm.email||"").toLowerCase() : "";
-    if(regEmail && email === regEmail){
-      _fgTarget = {type:"owner", empId: ownerEm.id};
-    }
-  } else {
-    const em = DB.employees.find(e=>(e.idNo||"")===idNo && (e.email||"").toLowerCase()===email);
-    if(em) _fgTarget = {type:"emp", empId: em.id};
-  }
-
-  if(!_fgTarget){
-    toast("❌ رقم الهوية أو البريد الإلكتروني غير مطابق للسجلات"); return;
-  }
-
-  // الانتقال للخطوة 2
-  document.getElementById("fgStep1").style.display = "none";
-  document.getElementById("fgStep2").style.display = "";
-  setTimeout(()=>document.getElementById("fgNewPin").focus(), 100);
-}
-function confirmResetPin(){
-  const newPin     = document.getElementById("fgNewPin").value.trim();
-  const confirmPin = document.getElementById("fgConfirmPin").value.trim();
-  if(!newPin || newPin.length < 4){ toast("⚠️ الرقم السري 4 أرقام على الأقل"); document.getElementById("fgNewPin").focus(); return; }
-  if(newPin !== confirmPin){ toast("❌ الرقمان السريان غير متطابقين"); document.getElementById("fgConfirmPin").focus(); return; }
-  if(!_fgTarget){ toast("❌ حدث خطأ، أعد المحاولة"); closeForgotModal(); return; }
-
-  if(_fgTarget.type === "owner" && _fgTarget.empId){
-    // المالك موظف — غيّر PIN الموظف
-    const em = DB.employees.find(e=>e.id===_fgTarget.empId);
-    if(em) em.pin = newPin;
-  } else if(_fgTarget.type === "emp"){
-    const em = DB.employees.find(e=>e.id===_fgTarget.empId);
-    if(em) em.pin = newPin;
-  } else {
-    // مالك بدون ربط موظف — غيّر PIN النظام
-    DB.settings.pin = newPin;
-  }
-  save();
-  closeForgotModal();
-  toast("✅ تم تغيير الرقم السري بنجاح — سجل دخولك بالرقم الجديد");
-}
-document.addEventListener("keydown", e=>{
-  if(e.key==="Escape") closeForgotModal();
-});
-
-function login(){
-  // ── تنظيف المدخلات ──
-  const norm = s => String(s||"").trim().replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
-  const idNo = norm(document.getElementById("lgUser").value);
-  const p    = norm(document.getElementById("lgPin").value);
-
-  if(!idNo){ alert("⚠️ أدخل رقم الهوية"); return; }
-  if(!p)   { alert("⚠️ أدخل الرقم السري"); return; }
-
-  // ── التحقق من الهوية ──
-  try{
-    const ownerIdNo = norm(DB.settings.ownerIdNo || "");
-    const extraOw = (DB.settings.owners||[]).find(o=>norm(o.idNo)===idNo && norm(o.idNo));
-    /* الموظف أولاً: رقم هوية مطابق لموظف = دخول موظف بصلاحياته — حتى لو المالك ما سجّل هويته */
-    const em0 = DB.employees.find(e => norm(e.idNo||"") === idNo);
-    const isOwnerAttempt = !ownerIdNo || idNo === ownerIdNo;
-
-    if(extraOw){
-      if(p !== norm(extraOw.pin||"")){ alert("❌ الرقم السري خاطئ"); return; }
-      CURRENT_USER = {type:"owner", name: extraOw.name || "المالك"};
-
-    } else if(em0 && !(ownerIdNo && idNo === ownerIdNo)){
-      // موظف
-      if(norm(em0.pin||"1234") !== p){ alert("❌ الرقم السري خاطئ"); return; }
-      CURRENT_USER = {type:"emp", id:em0.id, name:em0.name};
-
-    } else if(isOwnerAttempt){
-      const correctPin = norm(DB.settings.pin || "1234");
-      if(p !== correctPin){
-        alert("❌ الرقم السري خاطئ\n\n(إذا نسيت بياناتك اضغط «👁️ اعرض بياناتي المحفوظة» في أسفل شاشة الدخول)");
-        return;
-      }
-      CURRENT_USER = {type:"owner", name: DB.settings.ownerName || "المالك"};
-
-    } else {
-      alert("❌ رقم الهوية غير مسجل كموظف"); return;
-    }
-  }catch(err){
-    alert("❌ خطأ في التحقق:\n" + err.message);
-    return;
-  }
-
-  // ── الدخول ناجح ──
-  try{ sessionStorage.setItem("ksUser", JSON.stringify(CURRENT_USER)); }catch(e){}
-  const remEl = document.getElementById("rememberMe");
-  try{
-    if(remEl && remEl.checked) localStorage.setItem("ksRememberUser", JSON.stringify(CURRENT_USER));
-    else localStorage.removeItem("ksRememberUser");
-  }catch(e){}
-
-  document.getElementById("lgUser").value = "";
-  document.getElementById("lgPin").value  = "";
-  document.getElementById("loginScreen").style.display = "none";
-
-  try{
-    applyRole();
-    try{ cloudStatusUI(); setTimeout(cloudBootCheck, 1200); }catch(e){}
-    try{ toast("👋 أهلاً " + CURRENT_USER.name); }catch(e){}
-  }catch(err2){
-    // applyRole فشل — أعد تحميل الصفحة مع الجلسة محفوظة
-    alert("⚠️ حصل خطأ أثناء تحميل التطبيق:\n" + err2.message + "\n\nسيتم إعادة تحميل الصفحة تلقائياً.");
-    location.reload();
-  }
-}
 function logout(){
   if(!confirm("تسجيل الخروج النهائي من هذا الجهاز؟ (الدخول القادم يحتاج إنترنت)\nملاحظة: إغلاق الصفحة وحده يقفل الجلسة ويطلب كلمة المرور عند الفتح")) return;
-  sessionStorage.removeItem("ksUser"); sessionStorage.removeItem("ksAuthed"); localStorage.removeItem("ksRememberUser");
+  sessionStorage.removeItem("ksUser"); sessionStorage.removeItem("ksAuthed");
   try{ localStorage.removeItem("ksCloudSess"); localStorage.removeItem("ksCredHash"); }catch(e){}
   location.reload();
 }
@@ -5338,12 +5044,11 @@ function applyRole(){
   document.querySelectorAll(".ownerOnly").forEach(el=>{ el.style.display = owner ? "" : "none"; });
   userTag.style.display="inline-flex"; userName.textContent=CURRENT_USER.name;
   const _av=document.getElementById("hAvatar"); if(_av) _av.textContent=(CURRENT_USER.name||"؟").trim().charAt(0);
-  unlocked = owner;
   applyEmpNames();
   const act = document.querySelector("nav button.active");
   const firstAllowed = act && canTab(act.dataset.tab)
     ? act.dataset.tab
-    : (["daily","trade","cycles","secs","quality","farmmap","maintenance","diseases","soiltest","emp","acct","dash"].find(canTab)||"daily");
+    : (["dash","daily","trade","cycles","secs","quality","farmmap","maintenance","diseases","soiltest","emp","acct"].find(canTab)||"daily");
   showTab(firstAllowed);
   try{ fillSelects(); }catch(e){ console.error("fillSelects:",e); }
   try{ applyLogo(); }catch(e){}
@@ -5367,7 +5072,6 @@ function cloudGateNeeded(){
 }
 function cloudGateShow(){
   const g=document.getElementById("cloudGate"); if(!g) return;
-  try{ const l=document.getElementById("loginScreen"); if(l)l.style.display="none"; }catch(e){}
   g.style.display="flex";
   const s=cloudSess();
   const authed=sessionStorage.getItem("ksAuthed")==="1";
@@ -5483,9 +5187,6 @@ async function cloudGateCheck(){
 function cloudGateSignout(){ cloudSetSess(null); cgShow("login"); const m=document.getElementById("cgMsg"); if(m)m.textContent=""; }
 function bootLogin(){
   /* 🔑 الدخول الموحد: باب واحد بالإيميل للجميع — الهوية تُشتق من الحساب السحابي */
-  localStorage.removeItem("ksRememberUser");
-  const l=document.getElementById("loginScreen");
-  if(l)l.style.display="none";
   const cs=cloudSess();
   if(!cs||!cs.access_token){ cloudGateShow(); return; }
   if(cloudGateNeeded()){ cloudGateShow(); return; }
@@ -5514,10 +5215,8 @@ function bootLogin(){
   }catch(e){}
   cloudGateShow();
 }
-document.addEventListener("keydown",e=>{ if(e.key==="Enter" && document.activeElement.id==="lgPin") login(); });
 
 /* ====== التبويبات ====== */
-let unlocked = false;
 function showTab(t){
   if(t==="shifts"||t==="performance"||t==="payroll"){ window.__hrPend={shifts:"shift",performance:"perf",payroll:"payroll"}[t]; t="emp"; }
   if(TR_TABS.includes(t)){ window.__trPend=t; t="trade"; }
@@ -5570,18 +5269,11 @@ function showTab(t){
     renderDailySecPicker();
   }
   if(t==="dash"){
-    document.getElementById("lockScreen").style.display = unlocked ? "none" : "block";
-    document.getElementById("dashContent").style.display = unlocked ? "block" : "none";
-    if(unlocked){ renderDash(); renderReport(); renderCalendar(); renderAnalytics(); renderReady(); renderAllocEditors(); renderIncome(); renderOps(); showWelcomeBanner(); }
-    else { const pi=document.getElementById("pinInput"); pi.value=""; pi.focus(); }
+    document.getElementById("dashContent").style.display = "block";
+    renderDash(); renderReport(); renderCalendar(); renderAnalytics(); renderReady(); renderAllocEditors(); renderIncome(); renderOps(); showWelcomeBanner();
   }
 }
-function tryUnlock(){
-  const _pv=document.getElementById("pinInput").value;
-  if(_pv === DB.settings.pin || (DB.settings.owners||[]).some(o=>o.pin===_pv)){ unlocked=true; showTab("dash"); }
-  else toast("❌ رقم سري خاطئ");
-}
-document.addEventListener("keydown",e=>{ if(e.key==="Enter" && document.activeElement.id==="pinInput") tryUnlock(); });
+
 
 /* ====== تعبئة القوائم ====== */
 function natsList(){
@@ -5694,7 +5386,6 @@ function fillSelects(){
   });
   recSec.innerHTML = `<option>عام (كل المزرعة)</option>`+sec;
   const _emS=document.getElementById("emSection"); if(_emS){ const v=_emS.value; _emS.innerHTML=`<option>عام (كل المزرعة)</option><option>إداري</option>`+sec; if(v) _emS.value=v; }
-  fillLogin();
 }
 
 /* ====== المهام المسندة ====== */
@@ -5741,7 +5432,6 @@ function renderAssigns(){
   }
   renderMyTasks();
   if(ASSIGN_VIEW==="kanban") renderKanban();
-  refreshBkBar();
 }
 function renderMyTasks(){
   if(typeof tblMyTasks==="undefined") return;
@@ -7993,17 +7683,6 @@ function applyLogo(){
     nameEl.textContent = nm;
   }
   try{ refreshUserChip(); }catch(e){}
-  const lgN=document.getElementById("lgFarmName");
-  if(lgN){
-    const l=localStorage.getItem("ksLang")||"ar";
-    const arName=DB.settings.companyName||"مزرعة خيرات سايه";
-    lgN.textContent=(l!=="ar" && DB.settings.companyNameEn)?DB.settings.companyNameEn:arName;
-  }
-  const li=document.getElementById("lgLogoImg"), le=document.getElementById("lgLogoEmoji");
-  if(li&&le){
-    if(DB.settings.logo){ li.src=DB.settings.logo; li.style.display="block"; le.style.display="none"; }
-    else { li.style.display="none"; le.style.display="inline"; }
-  }
   const fr=document.getElementById("lgFirstRun");
   if(fr) fr.style.display=(DB.employees&&DB.employees.length)?"none":"block";
 }
@@ -8067,17 +7746,7 @@ function renderSnaps(){
 /* اللقطات التلقائية اليومية تتم عبر autoSnap() عند الحفظ */
 
 /* ====== القفل التلقائي ====== */
-function saveLock(e){
-  e.preventDefault();
-  DB.settings.autoLock = +lockMin.value||0;
-  save(); toast(DB.settings.autoLock?"⏲️ القفل التلقائي بعد "+DB.settings.autoLock+" دقيقة":"⏲️ تم إيقاف القفل التلقائي");
-}
-let lastActivity = Date.now();
-["click","keydown","input","touchstart"].forEach(ev=>document.addEventListener(ev, ()=>lastActivity=Date.now(), true));
-setInterval(()=>{
-  const m = +(DB.settings.autoLock??15);
-  if(CURRENT_USER && m>0 && Date.now()-lastActivity > m*60000) logout();
-}, 30000);
+
 
 /* ====== عروض الأسعار ====== */
 function qtUnitOpts(){
@@ -9224,10 +8893,6 @@ function getAlerts(){
     if(i.exp<today()) items.push(`⏰ <b>${i.name}</b> منتهي الصلاحية منذ ${i.exp} — لا تستخدمه`);
     else if(i.exp<=exp30b) items.push(`⏰ <b>${i.name}</b> تنتهي صلاحيته ${i.exp}`);
   });
-  const lb = DB.settings.lastBackup;
-  const lbDays = lb ? Math.floor((new Date(today())-new Date(lb))/864e5) : null;
-  if((DB.harvests.length+DB.expenses.length+DB.cycles.length)>0 && (!lb || lbDays>=7))
-    items.push(`💾 ${lb?`آخر نسخة احتياطية قبل ${lbDays} يوم`:`ما سويت نسخة احتياطية بعد`} — <button class="btn small secondary" onclick="exportData()">⬇️ نسخ الآن</button>`);
   /* طلبات الشراء: تنبيه حسب المرحلة والدور */
   (DB.purchaseRequests||[]).forEach(r=>{
     const emp=DB.employees.find(e=>e.id===r.empId);
@@ -10658,52 +10323,6 @@ function printFinancialReport(){
 
 
 /* ====== تصدير / استيراد البيانات ====== */
-function exportData(){
-  DB.settings.lastBackup = today();
-  save();
-  refreshBkBar();
-  const blob = new Blob([JSON.stringify(DB,null,2)],{type:"application/json"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "مزرعة-خيرات-سايه_" + today() + ".json";
-  a.click(); URL.revokeObjectURL(a.href);
-  toast("✅ تم تصدير البيانات");
-}
-function importData(e){
-  const file = e.target.files[0]; if(!file) return;
-  if(!confirm("⚠️ الاستيراد سيستبدل كل البيانات الحالية. هل أنت متأكد؟")) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      const d = JSON.parse(ev.target.result);
-      if(!d.harvests || !d.expenses || !d.cycles) throw new Error("ملف غير صالح");
-      cancelPendingSave();
-      localStorage.setItem(KEY, JSON.stringify(d));
-      toast("✅ تم الاستيراد — سيُعاد تحميل الصفحة");
-      setTimeout(()=>location.reload(), 1200);
-    } catch(err){ toast("❌ خطأ في الملف: "+err.message); }
-  };
-  reader.readAsText(file);
-  e.target.value = "";
-}
-function refreshBkBar(){
-  const bar = document.getElementById("bkStatusBar");
-  if(!bar) return;
-  const lb = DB.settings.lastBackup;
-  const bkDate = document.getElementById("bkDateText");
-  const bkSub = document.getElementById("bkSubText");
-  const bkWarn = document.getElementById("bkWarnBadge");
-  if(!lb){ 
-    bkDate.textContent = "لا توجد نسخة احتياطية بعد";
-    bkSub.textContent = "يُنصح بعمل نسخة دورية لحفظ بياناتك";
-    bkWarn.style.display = "inline-block";
-  } else {
-    const days = Math.floor((new Date(today())-new Date(lb))/864e5);
-    bkDate.textContent = "آخر نسخة: " + lb;
-    bkSub.textContent = days === 0 ? "تمت اليوم ✅" : `منذ ${days} يوم`;
-    bkWarn.style.display = days>=7 ? "inline-block" : "none";
-  }
-}
 
 /* ====== لوحة Kanban للمهام المسندة ====== */
 let ASSIGN_VIEW = "table";
@@ -10898,101 +10517,12 @@ function csvEmpMoves(){
 function renderSettings(){
   fillCompanyInfo();
   const s = DB.settings;
-  const n = document.getElementById("ownerName");       if(n) n.value = s.ownerName||"";
-  const i = document.getElementById("ownerIdNo");       if(i) i.value = s.ownerIdNo||"";
-  const ne = document.getElementById("ownerNameEn");    if(ne) ne.value = s.ownerNameEn||"";
-  const l = document.getElementById("lockMin");         if(l) l.value = s.autoLock||0;
+  const n = document.getElementById("cmpOwnerName");    if(n) n.value = s.ownerName||"";
   const oe = document.getElementById("ownerIsEmp");     if(oe){ oe.checked = !!s.ownerIsEmp; toggleOwnerEmp(); }
   const oes = document.getElementById("ownerEmpSel");
   if(oes){ oes.innerHTML = DB.employees.map(e=>`<option value="${e.id}"${e.id===s.ownerEmpId?" selected":""}>${e.name}</option>`).join(""); }
-  renderOwnersReg();
-  refreshBkBar();
 }
-let EDIT_OWN=null;
-function _ownerIdErr(idNo, exceptId){
-  const n=String(idNo||"").trim();
-  if(exceptId!=="main" && n===String(DB.settings.ownerIdNo||"").trim() && n) return "رقم الهوية مستخدم للمالك الرئيسي";
-  if((DB.settings.owners||[]).some(o=>o.id!==exceptId && String(o.idNo).trim()===n)) return "رقم الهوية مستخدم لمالك آخر";
-  if(DB.employees.some(e=>String(e.idNo||"").trim()===n)) return "رقم الهوية مستخدم لأحد الموظفين";
-  return "";
-}
-function renderOwnersReg(){
-  const t=document.getElementById("tblOwnersReg"); if(!t) return;
-  const st=DB.settings, list=st.owners||[];
-  t.innerHTML = `<tr><th>النوع</th><th>الاسم</th><th>الاسم بالإنجليزية</th><th>رقم الهوية</th><th>إجراءات</th></tr>`
-    + `<tr><td>👑 رئيسي</td><td><b>${st.ownerName||"—"}</b></td><td dir="ltr">${st.ownerNameEn||"—"}</td><td dir="ltr">${st.ownerIdNo||"—"}</td>
-        <td><button class="mini" onclick="editOwner('main')">✏️</button></td></tr>`
-    + list.map(o=>`<tr><td>⭐ إضافي</td><td><b>${o.name}</b></td><td dir="ltr">${o.nameEn||"—"}</td><td dir="ltr">${o.idNo}</td>
-        <td><button class="mini" onclick="editOwner('${o.id}')">✏️</button> <button class="mini danger" onclick="delOwner('${o.id}')">🗑️</button></td></tr>`).join("");
-}
-function ownReset(){
-  EDIT_OWN=null;
-  ["ownName","ownNameEn","ownIdNo","ownPin"].forEach(i=>{const e=document.getElementById(i); if(e) e.value="";});
-  const b=document.getElementById("ownBtn"); if(b) b.textContent="➕ إضافة مالك";
-  const c=document.getElementById("ownCancel"); if(c) c.style.display="none";
-}
-function editOwner(id){
-  const st=DB.settings;
-  const src = id==="main" ? {name:st.ownerName,nameEn:st.ownerNameEn,idNo:st.ownerIdNo} : (st.owners||[]).find(x=>x.id===id);
-  if(!src) return;
-  EDIT_OWN=id;
-  document.getElementById("ownName").value=src.name||"";
-  document.getElementById("ownNameEn").value=src.nameEn||"";
-  document.getElementById("ownIdNo").value=src.idNo||"";
-  document.getElementById("ownPin").value="";
-  document.getElementById("ownBtn").textContent="💾 حفظ التعديل";
-  document.getElementById("ownCancel").style.display="inline-block";
-  try{ document.getElementById("st_owner").scrollIntoView({behavior:"smooth"}); }catch(e){}
-  setTimeout(()=>{ try{ document.getElementById("ownName").focus(); }catch(e){} },250);
-}
-function saveOwnerForm(e){
-  e.preventDefault();
-  const name=document.getElementById("ownName").value.trim();
-  const nameEn=document.getElementById("ownNameEn").value.trim();
-  const idNo=document.getElementById("ownIdNo").value.trim();
-  const pin=document.getElementById("ownPin").value.trim();
-  if(!name||!idNo){ toast("⚠️ عبي الاسم ورقم الهوية"); return; }
-  if(pin && pin.length<4){ toast("⚠️ الرقم السري 4 أرقام على الأقل"); return; }
-  const err=_ownerIdErr(idNo, EDIT_OWN||"__new__"); if(err){ toast("⚠️ "+err); return; }
-  const st=DB.settings;
-  if(EDIT_OWN==="main"){
-    const _o={name:st.ownerName,idNo:st.ownerIdNo};
-    const _d=_diff(_o,{name,idNo},{name:"الاسم",idNo:"رقم الهوية"});
-    st.ownerName=name; st.ownerNameEn=nameEn; st.ownerIdNo=idNo;
-    if(pin) st.pin=pin;
-    if(_d||pin) logEdit("✏️ تعديل بيانات مالك","(رئيسي) "+(_d||"الرقم السري"));
-    if(CURRENT_USER && CURRENT_USER.type==="owner") CURRENT_USER.name=name;
-    toast("✅ حُدّث المالك الرئيسي");
-  } else if(EDIT_OWN){
-    const o=(st.owners||[]).find(x=>x.id===EDIT_OWN); if(!o) return;
-    const _d=_diff(o,{name,idNo},{name:"الاسم",idNo:"رقم الهوية"});
-    o.name=name; o.nameEn=nameEn; o.idNo=idNo; if(pin) o.pin=pin;
-    if(_d||pin) logEdit("✏️ تعديل بيانات مالك",_d||(name+" — الرقم السري"));
-    toast("✅ تم التعديل");
-  } else {
-    if(!pin){ toast("⚠️ الرقم السري مطلوب لمالك جديد"); return; }
-    st.owners=st.owners||[];
-    st.owners.push({id:uid(), name, nameEn, idNo, pin});
-    logEdit("👑 إضافة مالك", name);
-    toast("✅ أُضيف المالك "+name);
-  }
-  save(); renderOwnersReg();
-  try{ renderSettingsHub(); }catch(e2){}
-  try{ applyLogo(); }catch(e2){}
-  ownReset();
-}
-function delOwner(id){
-  const o=(DB.settings.owners||[]).find(x=>x.id===id); if(!o) return;
-  if(!confirm("حذف المالك «"+o.name+"»؟ لن يستطيع الدخول بعدها.")) return;
-  DB.settings.owners=DB.settings.owners.filter(x=>x.id!==id);
-  logEdit("🗑️ حذف مالك", o.name);
-  save(); renderOwnersReg(); try{renderSettingsHub();}catch(e2){} toast("🗑️ حُذف المالك");
-}
-function toggleOwnerEmp(){
-  const oe = document.getElementById("ownerIsEmp");
-  const wrap = document.getElementById("ownerEmpWrap");
-  if(wrap) wrap.style.display = oe&&oe.checked?"":"none";
-}
+
 function fillOwnerFromEmp(){
   const sel = document.getElementById("ownerEmpSel");
   if(!sel) return;
@@ -11011,32 +10541,16 @@ function toggleTheme(){
   const btn = document.getElementById("themeBtn");
   if(btn) btn.textContent = dark?"☀️":"🌙";
 }
-const LG_I18N={
-  ar:{sub:"سجّل دخولك للمتابعة",id:"رقم الهوية",idPh:"أدخل رقم الهوية",pin:"الرقم السري",rem:"تذكّر بيانات الدخول",fgt:"نسيت كلمة المرور؟",btn:"دخول",cur:"العربية"},
-  en:{sub:"Sign in to continue",id:"ID number",idPh:"Enter your ID number",pin:"PIN",rem:"Remember me",fgt:"Forgot password?",btn:"Sign in",cur:"English"},
-  ur:{sub:"جاری رکھنے کے لیے لاگ ان کریں",id:"شناختی نمبر",idPh:"شناختی نمبر درج کریں",pin:"خفیہ نمبر",rem:"لاگ ان یاد رکھیں",fgt:"پاس ورڈ بھول گئے؟",btn:"لاگ ان",cur:"اردو"}
-};
-function updateLoginLang(l){
-  const t=LG_I18N[l]||LG_I18N.ar;
-  const set=(id,v)=>{const e=document.getElementById(id); if(e) e.textContent=v;};
-  set("lgSub",t.sub); set("lgLbId",t.id); set("lgLbPin",t.pin); set("lgLbRem",t.rem); set("lgLbFgt",t.fgt); set("lgBtn",t.btn); set("lgLangCur",t.cur);
-  const u=document.getElementById("lgUser"); if(u) u.placeholder=t.idPh;
-  try{ applyLogo(); }catch(e){}
-}
 function setLang(l){
   try{ setSysLang(l); }catch(e){ document.documentElement.lang=l; document.documentElement.dir=(l==="en")?"ltr":"rtl"; }
   localStorage.setItem("ksLang", l);
   DB.settings.lang = l; save();
   const sel = document.getElementById("langSel"); if(sel) sel.value=l;
-  document.querySelectorAll(".lgLangItem").forEach(b=>b.classList.toggle("on", b.dataset.l===l));
-  try{ updateLoginLang(l); }catch(e){}
-  const m=document.getElementById("lgLangMenu"); if(m) m.style.display="none";
 }
 try{
   const _sl=localStorage.getItem("ksLang")||"ar";
-  updateLoginLang(_sl);
   const _syncSel=()=>{ const sel=document.getElementById("langSel"); if(sel) sel.value=_sl;
-    document.querySelectorAll(".lgLangItem").forEach(b=>b.classList.toggle("on", b.dataset.l===_sl)); };
+    };
   _syncSel();
   if(_sl!=="ar") setTimeout(()=>{ try{ setSysLang(_sl); _syncSel(); }catch(e){} }, 50);
 }catch(e){ console.error("loginLang:",e); }
@@ -11435,7 +10949,7 @@ function renderTrHub(){
       (ok("units")?hc("units","📏","وحدات البيع",invUnitsList().length,"وحدات بنود الفواتير وأوزانها"):""))
     ||'<p class="muted">ما عندك صلاحية لأي بند تجاري — كلم المالك</p>';
 }
-const STV={owner:"st_owner",theme:"st_theme",secs:"st_secs",company:"st_company",perms:"st_perms",trash:"st_trash",backup:"st_backup",imp:"st_import",log:"st_log",reset:"st_reset"};
+const STV={theme:"st_theme",secs:"st_secs",company:"st_company",perms:"st_perms",trash:"st_trash",backup:"st_backup",imp:"st_import",log:"st_log",reset:"st_reset"};
 const STV_TITLES={owner:"👑 بيانات المالك",pin:"🔐 الرقم السري للدخول",theme:"🎨 الثيم",secs:"🏡 إدارة الأقسام",company:"🏢 بيانات الشركة والشعار",perms:"🛡️ صلاحيات الموظفين",trash:"♻️ سلة المهملات",imp:"⬆️ استيراد بيانات (CSV)",backup:"💾 النسخ الاحتياطي واللقطات",log:"🕵️ حركات الموظفين",reset:"🗑️ تصفير البيانات"};
 function permFillSelect(){
   const sel=document.getElementById("permEmpSel"); if(!sel) return;
@@ -11983,7 +11497,6 @@ function stView(k){
 function renderStHub(){
   const hub=document.getElementById("stHub"); if(!hub) return;
   const st=DB.settings||{};
-  const lb=st.lastBackup, lbD=lb?Math.floor((new Date()-new Date(lb))/864e5):null;
   const hc=(k,ico,t,val,sub)=>`<div class="card sec-pick-card" onclick="stView('${k}')" style="padding:20px 18px;text-align:right">
     <div style="font-size:.92rem;color:var(--muted)">${ico} ${t}</div>
     <div style="font-size:1.45rem;font-weight:800;margin:6px 0">${val}</div>
@@ -11993,14 +11506,13 @@ function renderStHub(){
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px">${cards}</div></div>`;
   hub.innerHTML=
     grp("🧑 الحساب والهوية",
-      hc("owner","👑","المُلّاك والدخول",(1+(st.owners||[]).length)+" مالك","البيانات والرقم السري والقفل وملاك إضافيون")+
       hc("company","🏢","بيانات الشركة",st.companyName||st.sellerName||"—","الاسم والسجل والضريبة والشعار"))+
     grp("🎨 المظهر والبنية",
       hc("theme","🎨","الثيم",document.body.className.replace(/theme-|dark/g,"").trim()?"مخصص":(document.body.classList.contains("dark")?"داكن":"الافتراضي"),"ألوان الواجهة")+
       hc("secs","🏡","إدارة الأقسام",(typeof SECTIONS!=="undefined"?SECTIONS.length:0)+" قسم","إضافة وترتيب أقسام المزرعة"))+
     grp("💾 البيانات والأمان",
       hc("perms","🛡️","صلاحيات الموظفين",(DB.employees||[]).length+" موظف","المنح والسحب — من هنا حصراً")+
-      hc("backup","💾","النسخ الاحتياطي",lb?("قبل "+lbD+" يوم"):"لا نسخ بعد","تصدير JSON واللقطات التلقائية")+
+      hc("backup","☁️","السحابة واللقطات",(typeof cloudOn==="function"&&cloudOn())?"متصل":"غير متصل","المزامنة التلقائية ولقطات الاسترجاع")+
       hc("imp","⬆️","استيراد بيانات (CSV)","قوالب جاهزة","عملاء وموردون وأصناف ومواشي — دفعة وحدة")+
       hc("trash","♻️","سلة المهملات",(DB.trash||[]).length,"استرجاع آخر المحذوفات")+
       hc("log","🕵️","حركات الموظفين","تقرير","كل عملية باسم منفّذها — من السجلات الفعلية")+
@@ -12768,7 +12280,6 @@ function initAll(){
    renderQuotes,renderEmployees,renderSettings,renderTrash
   ].forEach(fn=>{ try{ fn(); }catch(e){ console.error("initAll:", fn.name, e); } });
   try{ renderDailySecPicker(); }catch(e){}
-  try{ refreshBkBar(); }catch(e){}
   try{ buildNotifications(); }catch(e){}
   try{ renderQuality(); }catch(e){}
   try{ renderMaintenance(); }catch(e){}

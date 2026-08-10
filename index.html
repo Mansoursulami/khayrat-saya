@@ -587,7 +587,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green)!i
 #tab-emp,#tab-shifts,#tab-performance,#tab-payroll{--fh:#BA7517;--fhname:"الموارد البشرية"}
 #tab-fish,#tab-daily{--fh:#0F766E;--fhname:"اليوميات"}
 #tab-diseases,#tab-quality,#tab-soiltest{--fh:#639922;--fhname:"الجودة والنباتات"}
-#tab-farmmap{--fh:#5F5E5A;--fhname:"الخريطة"}
 #tab-maintenance{--fh:#5F5E5A;--fhname:"الصيانة"}
 #tab-cycles{--fh:#639922;--fhname:"الدورات"}
 #tab-prod{--fh:#D85A30;--fhname:"سجل المبيعات"}
@@ -602,7 +601,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green)!i
 html[lang="en"] #tab-emp,html[lang="en"] #tab-shifts,html[lang="en"] #tab-performance,html[lang="en"] #tab-payroll{--fhname:"Human Resources"}
 html[lang="en"] #tab-fish,html[lang="en"] #tab-daily{--fhname:"Daily log"}
 html[lang="en"] #tab-diseases,html[lang="en"] #tab-quality,html[lang="en"] #tab-soiltest{--fhname:"Quality & plants"}
-html[lang="en"] #tab-farmmap{--fhname:"Map"}
 html[lang="en"] #tab-maintenance{--fhname:"Maintenance"}
 html[lang="en"] #tab-cycles{--fhname:"Cycles"}
 html[lang="en"] #tab-prod{--fhname:"Sales log"}
@@ -617,7 +615,6 @@ html[lang="en"] #tab-settings{--fhname:"Settings"}
 html[lang="ur"] #tab-emp,html[lang="ur"] #tab-shifts,html[lang="ur"] #tab-performance,html[lang="ur"] #tab-payroll{--fhname:"ہیومن ریسورس"}
 html[lang="ur"] #tab-fish,html[lang="ur"] #tab-daily{--fhname:"روزنامچہ"}
 html[lang="ur"] #tab-diseases,html[lang="ur"] #tab-quality,html[lang="ur"] #tab-soiltest{--fhname:"معیار و پودے"}
-html[lang="ur"] #tab-farmmap{--fhname:"نقشہ"}
 html[lang="ur"] #tab-maintenance{--fhname:"مرمت"}
 html[lang="ur"] #tab-cycles{--fhname:"سائیکلز"}
 html[lang="ur"] #tab-prod{--fhname:"فروخت لاگ"}
@@ -743,7 +740,6 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <button data-tab="secs" onclick="showTab('secs');closeNavDrops()">🏡 المتابعة</button>
       <button data-tab="cycles" onclick="showTab('cycles');closeNavDrops()">🌱 الدورات</button>
       <div class="nav-drop-sep"></div>
-      <button data-tab="farmmap" onclick="showTab('farmmap');closeNavDrops()">🗺️ الخريطة</button>
       <button data-tab="quality" onclick="showTab('quality');closeNavDrops()">⭐ الجودة</button>
       <button data-tab="diseases" onclick="showTab('diseases');closeNavDrops()">🌿 أمراض النباتات</button>
           <button data-tab="soiltest" onclick="showTab('soiltest');closeNavDrops()">🧪 تحليل التربة</button>
@@ -2566,63 +2562,6 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
   </div>
 </div>
 
-<!-- ============ خريطة المزرعة ============ -->
-<div class="tab" id="tab-farmmap">
-  <div class="card">
-    <h3>🗺️ خريطة المزرعة التفاعلية</h3>
-    <p class="muted" style="margin-bottom:8px">صورة فضائية حقيقية للمزرعة — اضغط على أي علامة لعرض إحصائياتها، واسحبها لوضعها على موقعها الصحيح</p>
-    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-      <button onclick="farmLeafMap&&farmLeafMap.setView([22.2415032,39.667973],16)" style="font-size:.8rem;padding:4px 10px;border-radius:6px;border:1px solid #16a34a;background:#f0fdf4;cursor:pointer">🏠 وسط المزرعة</button>
-      <button onclick="updateFarmMarkers();toast('✅ تم تحديث العلامات')" style="font-size:.8rem;padding:4px 10px;border-radius:6px;border:1px solid #16a34a;background:#f0fdf4;cursor:pointer">🔄 تحديث</button>
-      <span style="font-size:.78rem;color:#6b7280;align-self:center">💡 اسحب العلامة لتحديد موقع القسم على الخريطة — يُحفظ تلقائياً</span>
-    </div>
-    <div id="farmMapLeaflet" style="width:100%;height:480px;border-radius:8px;z-index:1;border:1px solid #d1fae5"></div>
-    <div id="farmMapInfo" style="margin-top:12px;padding:12px;background:var(--bg2,#f1f5f9);border-radius:8px;display:none"></div>
-  </div>
-  <!-- رسم حدود الأقسام -->
-  <div class="card">
-    <h3>✏️ رسم حدود الأقسام</h3>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
-      <select id="boundarySecSel" class="selFilter">
-        <option value="">-- اختر قسم --</option>
-      </select>
-      <button id="btnStartBoundary" onclick="startDrawBoundary()" class="btn" style="background:var(--blue,#3498db)">✏️ ابدأ رسم الحدود</button>
-      <button id="btnFinishBoundary" onclick="finishDrawBoundary()" class="btn" style="display:none">✅ حفظ الحدود</button>
-      <button id="btnCancelBoundary" onclick="cancelDrawBoundary()" style="display:none;background:var(--red);color:#fff;border:none;border-radius:6px;padding:6px 14px;cursor:pointer">✕ إلغاء</button>
-      <button onclick="clearBoundary()" style="background:var(--border);border:none;border-radius:6px;padding:6px 14px;cursor:pointer">🗑️ حذف حدود القسم</button>
-    </div>
-    <p id="boundaryHint" class="muted" style="margin:0;font-size:13px">اختر قسماً ثم اضغط "ابدأ رسم الحدود"، ثم انقر على الخريطة لتحديد نقاط الحدود</p>
-  </div>
-  <!-- تتبع موقع المعدات -->
-  <div class="card">
-    <h3>🚜 مواقع المعدات على الخريطة</h3>
-    <form onsubmit="saveEquipLocation(event)" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
-      <div><label>المعدة</label>
-        <select id="eqLocItem">
-          <option value="">-- اختر --</option>
-        </select>
-      </div>
-      <div><label>أو أدخل اسماً</label><input id="eqLocName" placeholder="مثال: جرار #1"></div>
-      <div><label>خط العرض</label><input type="number" id="eqLocLat" step="0.000001" placeholder="22.24..."></div>
-      <div><label>خط الطول</label><input type="number" id="eqLocLng" step="0.000001" placeholder="39.66..."></div>
-      <div><label>الحالة</label>
-        <select id="eqLocStatus" class="selFilter">
-          <option value="active">نشط</option>
-          <option value="idle">معطل</option>
-          <option value="maintenance">صيانة</option>
-        </select>
-      </div>
-      <button class="btn" type="submit">📍 حفظ الموقع</button>
-      <button type="button" onclick="pickEquipOnMap()" style="background:var(--green-light);border:1px solid var(--green);border-radius:6px;padding:6px 14px;cursor:pointer">🎯 اختر من الخريطة</button>
-    </form>
-    <div style="overflow-x:auto;margin-top:12px">
-      <table class="tbl"><thead><tr><th>المعدة</th><th>خط العرض</th><th>خط الطول</th><th>الحالة</th><th></th></tr></thead>
-        <tbody id="eqLocTbody"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
 <!-- ============ مراقبة الجودة ============ -->
 <div class="tab" id="tab-quality">
   <div class="card">
@@ -3185,7 +3124,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     <div id="coSummary" style="background:var(--green-light);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px"></div>
     <p class="muted" style="margin-bottom:12px">✏️ عدّل من الحقول أدناه — السجل أعلاه يتحدّث فوراً مع كل حرف</p>
     <div class="row" style="flex-wrap:wrap;gap:12px">
-      <div style="flex:1;min-width:200px"><label>👑 اسم المالك</label><input id="cmpOwnerName" placeholder="مثال: منصور" oninput="DB.settings.ownerName=this.value.trim();save()"></div>
+      <div style="flex:1;min-width:200px"><label>👤 اسم الأدمن الرئيسي</label><input id="adminNameInp" placeholder="يظهر أعلى الشاشة وفي السجلات" oninput="saveAdminName(this.value)"></div>
       <div style="flex:1;min-width:200px"><label>اسم الشركة / المزرعة</label><input id="companyNameInp" placeholder="مثال: مزرعة خيرات سايه" oninput="saveCompanyInfo()"></div>
       <div style="flex:1;min-width:200px"><label>الاسم بالإنجليزية (للفاتورة)</label><input id="companyNameEnInp" placeholder="Khayrat Saya Farm" style="direction:ltr" oninput="saveCompanyInfo()"></div>
       <div style="flex:1;min-width:200px"><label>الرقم الوطني الموحد (السجل التجاري)</label><input id="unifiedNoInp" inputmode="numeric" maxlength="10" placeholder="70xxxxxxxx" style="direction:ltr" oninput="saveCompanyInfo()"></div>
@@ -3374,7 +3313,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <div style="background:var(--bg);border-radius:10px;padding:8px 12px"><b>📝 اليوميات</b><span class="muted" style="display:block;font-size:.8rem;line-height:1.6">تسجيل أعمال اليوم: المهام المسندة، الرش، المواشي (تغذية وأوزان وبيع)، والأسماك</span></div>
       <div style="background:var(--bg);border-radius:10px;padding:8px 12px"><b>🏡 الأقسام</b><span class="muted" style="display:block;font-size:.8rem;line-height:1.6">شاشة لكل قسم من أقسام المزرعة: دوراته وأعماله وأرقامه</span></div>
       <div style="background:var(--bg);border-radius:10px;padding:8px 12px"><b>🌱 الدورات</b><span class="muted" style="display:block;font-size:.8rem;line-height:1.6">كل زراعة = دورة (حالية أو مخططة للمستقبل) + إسناد المهام + أنواع العمل — والبيع لاحقاً يُنسب للدورة</span></div>
-      <div style="background:var(--bg);border-radius:10px;padding:8px 12px"><b>🛠️ التشغيل</b><span class="muted" style="display:block;font-size:.8rem;line-height:1.6">المخزون والجرد والباركود، الصيانة والمعدات، خريطة المزرعة، الجودة وأمراض النباتات وتحليل التربة</span></div>
+      <div style="background:var(--bg);border-radius:10px;padding:8px 12px"><b>🛠️ التشغيل</b><span class="muted" style="display:block;font-size:.8rem;line-height:1.6">المخزون والجرد والباركود، الصيانة والمعدات، الجودة وأمراض النباتات وتحليل التربة</span></div>
       <div style="background:var(--bg);border-radius:10px;padding:8px 12px"><b>🛒 التجارة</b><span class="muted" style="display:block;font-size:.8rem;line-height:1.6">الفواتير الإلكترونية (البيع الرسمي: مسودة ← اعتماد ← تُسجل مبيعاً تلقائياً)، سجل المبيعات والديون، العملاء وكشوفهم، الموردون وفواتير الشراء، طلبات الشراء باعتمادها الثلاثي، المنتجات ووحدات البيع، والمدفوعات الآجلة</span></div>
       <div style="background:var(--bg);border-radius:10px;padding:8px 12px"><b>💸 المصروفات</b><span class="muted" style="display:block;font-size:.8rem;line-height:1.6">المصروف التشغيلي (بفاتورته الإلزامية) + المصاريف المتكررة الشهرية ومنها العدادات (كهرباء وماء) بقراءاتها</span></div>
       <div style="background:var(--bg);border-radius:10px;padding:8px 12px"><b>📒 الحسابات</b><span class="muted" style="display:block;font-size:.8rem;line-height:1.6">المحاسبة الكاملة: الأداء والموازنة، القوائم المالية، الضريبة، الأصول، والتقارير المتقدمة — للمالك والمحاسب</span></div>
@@ -3631,7 +3570,7 @@ Object.assign(I18N.en,{"3 أشهر":"3 months","الراتب":"Salary","درجة
 Object.assign(I18N.ur,{"3 أشهر":"3 ماہ","الراتب":"تنخواہ","درجة B":"درجہ B","لم تقس":"ناپا نہیں","المبلغ":"رقم","المورد":"سپلائر","يوميات":"روزنامچہ","ممتازة":"بہترین","✅ أولي":"✅ ابتدائی","المنتج":"پروڈکٹ","الفريق":"ٹیم","التقدير":"تخمینہ","مصروفات":"اخراجات","الضريبة":"ٹیکس","لا يوجد":"کچھ نہیں","المحصود":"کٹائی شدہ","الإنجاز":"پیش رفت","مقاسة ✓":"ناپا گیا ✓","👋 أهلاً":"👋 خوش آمدید","المسجّل":"اندراج کنندہ","النتيجة":"نتیجہ","التاريخ":"تاریخ","🔄 تحديث":"🔄 تازہ کریں","سند صرف":"ادائیگی واؤچر","✕ إلغاء":"✕ منسوخ","التحضين":"انکیوبیشن","مثال: 7":"مثلاً 7","المتبقي":"باقی","البدلات":"الاؤنسز","➕ تسجيل":"➕ اندراج","التغيّر":"تبدیلی","بالعهدة":"امانت میں","الطريقة":"طریقہ","➕ إضافة":"➕ شامل کریں","التوصية":"سفارش","ملاحظات":"نوٹس","إيرادات":"آمدنی","الهامش:":"مارجن:","البند *":"مد *","— دائن:":"— کریڈٹ:","✅ سليمة":"✅ صحت مند","🟢 خفيفة":"🟢 ہلکی","الحظائر":"باڑے","ملاحظة:":"نوٹ:","المدفوع":"ادا شدہ","الميلاد":"تاریخ پیدائش","الاسم *":"نام *","المستحق":"واجب الادا","➕ إدخال":"➕ اندراج","الدورية":"تکرار","التواصل":"رابطہ","الحوض *":"تالاب *","لم يولد":"پیدا نہیں ہوا","إجراءات":"کارروائیاں","البداية":"آغاز","🟢 عادية":"🟢 عام","النوع *":"قسم *","التطعيم":"ویکسینیشن","B — جيد":"B — اچھا","🔴 طارئة":"🔴 ہنگامی","اختياري":"اختیاری","عرض سعر":"کوٹیشن","المجموع":"کل","القسم *":"سیکشن *","🖨 طباعة":"🖨 پرنٹ","المحصول":"فصل","الزريعة":"مچھلی کے بچے","🐣 مولود":"🐣 نومولود","الجنسية":"قومیت","المرحلة":"مرحلہ","العربية":"عربی","التوقيع":"دستخط","— حدد —":"— منتخب کریں —","🎨 الثيم":"🎨 تھیم","الأعراض":"علامات","المختبر":"لیبارٹری","التكلفة":"لاگت","سند قبض":"وصولی واؤچر","رطوبة %":"نمی %","المشكلة":"مسئلہ","الآيبان":"آئی بین","🔴 شديدة":"🔴 شدید","الحيوان":"جانور","✅ إنجاز":"✅ مکمل","السلالة":"نسل","التفريخ":"ہیچنگ","التصنيف":"زمرہ","النهاية":"اختتام","رش مبيد":"کیڑے مار سپرے","⚙️ ولدت":"⚙️ بچہ دیا","استقالة":"استعفیٰ","🟡 عاجلة":"🟡 فوری","الوظيفة":"عہدہ","المنفّذ":"کرنے والا","لا قياس":"کوئی پیمائش نہیں","المستلم":"وصول کنندہ","الوصف *":"تفصیل *","✅ تعافى":"✅ صحت یاب","مشتريات":"خریداری","الحظيرة":"باڑہ","✅ نهائي":"✅ حتمی","التسمين":"موٹا کرنا","الصنف *":"آئٹم *","من حظيرة":"باڑے سے","العهدة *":"امانت *","من حوض *":"تالاب سے *","🟡 متوسطة":"🟡 درمیانی","لا أحواض":"کوئی تالاب نہیں","مرض فطري":"پھپھوندی کی بیماری","المنتج *":"پروڈکٹ *","التفاصيل":"تفصیلات","الموقع *":"مقام *","مثال: 30":"مثلاً 30","متوازن ✓":"متوازن ✓","تم الحذف":"حذف ہو گیا","D — رديء":"D — ناقص","الجاهزية":"تیاری","📲 واتساب":"📲 واٹس ایپ","السداد *":"ادائیگی *","البيان *":"بیان *","تلقائياً":"خودکار طور پر","⭐ الجودة":"⭐ معیار","ربع سنوي":"سہ ماہی","الإجمالي":"کل","الحالة *":"حالت *","الموظف *":"ملازم *","الموازنة":"بجٹ","↩️ إرجاع":"↩️ واپس","الدولة *":"ملک *","الخصومات":"کٹوتیاں","الأمونيا":"امونیا","الكمية *":"مقدار *","المواليد":"پیدائشیں","الالتزام":"ذمہ داری","آخر شراء":"آخری خریداری","أضف عميل":"گاہک شامل کریں","المورد *":"سپلائر *","✅ متوازن":"✅ متوازن","التالي ←":"اگلا ←","العميل *":"گاہک *","لا أنواع":"کوئی اقسام نہیں","صالح حتى":"تک درست","— بدون —":"— کوئی نہیں —","الصلاحية":"میعاد","حفظ الرش":"سپرے محفوظ کریں","الجوال *":"موبائل *","المبيعات":"فروخت","📜 العقود":"📜 معاہدے","التكاليف":"اخراجات","✏️ تعديل":"✏️ ترمیم","🏢 البائع":"🏢 بیچنے والا","مستلزمات":"سامان","عرض الكل":"سب دیکھیں","كشف حساب":"اسٹیٹمنٹ","👤 العميل":"👤 گاہک","الدواء *":"دوا *","صنف ناقص":"کم آئٹم","⚠️ تجاوز":"⚠️ حد سے زیادہ","حرارة °م":"درجہ حرارت °C","خط الطول":"طول بلد","📊 الملخص":"📊 ڈیش بورڈ","الأولوية":"ترجیح","الوحدة *":"یونٹ *","بدء الآن":"ابھی شروع کریں","— اختر —":"— منتخب کریں —","✅ اعتماد":"✅ منظوری","سجل الرش":"سپرے لاگ","🗓️ السنة":"🗓️ سال","السعودية":"سعودی عرب","⏭️ تخطيت":"⏭️ چھوڑ دیا","📅 الحضور":"📅 حاضری","خط العرض":"عرض بلد","اضطرارية":"مجبوری","الضريبة:":"ٹیکس:","🖨️ طباعة":"🖨️ پرنٹ","الإجازات":"چھٹیاں","درجة C/D":"درجہ C/D","المبادرة":"پہل","المناوبة":"شفٹ","الحساب *":"اکاؤنٹ *","المهمة *":"ٹاسک *","📱 واتساب":"📱 واٹس ایپ","بدون راتب":"بلا تنخواہ","مسائي (ل)":"شام (L)","📍 العنوان":"📍 پتہ","🗂️ بطاقات":"🗂️ کارڈز","📅 الفترة:":"📅 مدت:","علف نهاري":"دن کا چارہ","الجنسية *":"قومیت *","🛒 التجارة":"🛒 تجارت","المصروفات":"اخراجات","C — مقبول":"C — مناسب","ملف العقد":"معاہدہ فائل","🏡 الأقسام":"🏡 سیکشنز","إقفال سنة":"سال بندش","اسم البنك":"بینک کا نام","علف مسائي":"شام کا چارہ","آفة حشرية":"کیڑوں کی آفت","الطريقة *":"طریقہ *","🔧 الصيانة":"🔧 مرمت","👥 الإدارة":"👥 انتظامیہ","تجهيز أرض":"زمین کی تیاری","وقت الحذف":"حذف کا وقت","الإجمالي:":"کل:","آجل (دين)":"ادھار (قرض)","الاستحقاق":"واجب الادا","💼 التجارة":"💼 تجارت","تسجيل بيع":"فروخت درج کریں","حصاد وجمع":"کٹائی","حفظ السعر":"قیمت محفوظ کریں","حفظ العمل":"کام محفوظ کریں","هذه السنة":"اس سال","نقص تغذية":"غذائی کمی","A — ممتاز":"A — بہترین","تم التحقق":"تصدیق ہو گئی","هذا الشهر":"اس مہینے","صباحي (ل)":"صبح (L)","نوع العقد":"معاہدے کی قسم","⬅ الأقسام":"⬅ سیکشنز","لا مبيعات":"کوئی فروخت نہیں","حفظ الطلب":"درخواست محفوظ کریں","مستحق لنا":"ہمارا واجب","أي تفاصيل":"کوئی تفصیل","الإيرادات":"آمدنی","آخر صيانة":"آخری مرمت","pH التربة":"مٹی کا pH","سجل تجاري":"تجارتی رجسٹر","الخزينة *":"خزانہ *","🌱 الدورات":"🌱 سائیکلز","التنبيهات":"اطلاعات","💲 حفظ سعر":"💲 قیمت محفوظ","دائن (له)":"کریڈٹ (لینا)","حفظ البيع":"فروخت محفوظ کریں","آخر تسجيل":"آخری اندراج","الوظيفة *":"عہدہ *","نوع العلف":"چارے کی قسم","غير مدفوع":"غیر ادا شدہ","كل البنود":"تمام مدیں","علف صباحي":"صبح کا چارہ","شهر الكشف":"اسٹیٹمنٹ ماہ","حفظ السجل":"ریکارڈ محفوظ کریں","علف (كجم)":"چارہ (کلو)","إلى حوض *":"تالاب تک *","📊 المالية":"📊 مالیات","التصنيف *":"زمرہ *","التاريخ *":"تاریخ *","مثال: 2.5":"مثلاً 2.5","صنف العلف":"چارہ آئٹم","حفظ الحوض":"تالاب محفوظ کریں","عدد السمك":"مچھلیوں کی تعداد","صرف السلفة":"پیشگی ادا کریں","تسجيل نفوق":"اموات درج کریں","مدة الخدمة":"مدت ملازمت","🏚️ الحظائر":"🏚️ باڑے","📦 الكشوفات":"📦 اسٹیٹمنٹس"});
 </script>
 <script id="i18nDict3">
-Object.assign(I18N.en,{"🗺️ الخريطة":"🗺️ Map","تاريخ الرش":"Spray date","🏡 المتابعة":"🏡 Follow-up","مصروف جديد":"New expense","لا مصروفات":"No expenses","سعر الكيلو":"Price/kg","هوية وطنية":"National ID","المناسبة *":"Occasion *","✅ تم الحفظ":"✅ Saved","🔠 حجم الخط":"🔠 Font size","رقم المبنى":"Building No.","رقم الهوية":"ID number","حذف المرفق":"Delete attachment","حفظ المعدة":"Save equipment","إشعار دائن":"Credit note","وزن الوحدة":"Unit weight","-- اختر --":"-- Choose --","بحث بالاسم":"Search by name","تقرير سنوي":"Annual report","عدد النافق":"Dead count","آخر 7 أيام":"Last 7 days","كل الأقسام":"All sections",
+Object.assign(I18N.en,{"تاريخ الرش":"Spray date","🏡 المتابعة":"🏡 Follow-up","مصروف جديد":"New expense","لا مصروفات":"No expenses","سعر الكيلو":"Price/kg","هوية وطنية":"National ID","المناسبة *":"Occasion *","✅ تم الحفظ":"✅ Saved","🔠 حجم الخط":"🔠 Font size","رقم المبنى":"Building No.","رقم الهوية":"ID number","حذف المرفق":"Delete attachment","حفظ المعدة":"Save equipment","إشعار دائن":"Credit note","وزن الوحدة":"Unit weight","-- اختر --":"-- Choose --","بحث بالاسم":"Search by name","تقرير سنوي":"Annual report","عدد النافق":"Dead count","آخر 7 أيام":"Last 7 days","كل الأقسام":"All sections",
 "لا توجد أحواض بعد — أضف حوض من النموذج أعلاه":"No ponds yet — add one from the form above",
 "الفواتير الإلكترونية":"E-invoices","ضريبة %":"VAT %",
 "بدون ضريبة:":"Excl. VAT:","· مبلغ الضريبة:":"· VAT amount:",
@@ -3641,7 +3580,7 @@ Object.assign(I18N.en,{"🗺️ الخريطة":"🗺️ Map","تاريخ الر
 "📋 إحصاء المزرعة — الأنواع والأعداد والإنتاج حسب الأقسام":"📋 Farm census — types, counts & production by section",
 "الإنتاج (هذه السنة)":"Production (this year)","إجمالي القسم":"Section total","🌳 الأشجار المعمرة (من سجل الأصول)":"🌳 Perennial trees (from assets log)",
 "🥛 إنتاج الحليب":"🥛 Milk production","🔍 بحث…":"🔍 Search…","⬆️ استيراد بيانات (CSV)":"⬆️ Import data (CSV)","☁️ المزامنة السحابية":"☁️ Cloud sync","كلمة المرور":"Password","☁️ دخول":"☁️ Sign in","☁️ دخول وجلب البيانات":"☁️ Sign in & fetch data","سجل دخول حساب المزرعة السحابي لجلب بياناتك على هذا الجهاز":"Sign in with your farm cloud account to fetch your data on this device","كلمة المرور":"Password","➕ إنشاء حساب سحابي":"➕ Create cloud account","⬆️ رفع الآن":"⬆️ Push now","⬇️ سحب من السحابة":"⬇️ Pull from cloud","🔌 قطع الاتصال":"🔌 Disconnect","☁️ تم الاتصال بالسحابة":"☁️ Connected to cloud","كلمة المرور (6+ أحرف)":"Password (6+ chars)","الإيميل":"Email","بعد الاستيراد، تحقق من الأعداد والأنواع بنظرة وحدة:":"After importing, verify counts and types at a glance:","استيراد بيانات (CSV)":"Import data (CSV)","📄 تحميل القالب":"📄 Download template","📂 اختيار ملف CSV":"📂 Choose CSV file","✅ اعتماد الاستيراد":"✅ Confirm import","نوع البيانات":"Data type","المواشي (جرد بالعدد)":"Livestock (count)","أحواض الأسماك (إنشاء بالجملة)":"Fish ponds (bulk create)","جديد (حوض فاضٍ — بانتظار الإنزال)":"New (empty pond — awaiting stocking)","🧹 مسح ما استُورد سابقاً (جرد/أحواض/اطلاع)":"🧹 Clear previous imports (census/ponds/view)","التقرير الشامل للمزرعة (جرد الأعداد)":"Full farm report (counts stocktake)","بلا تغيير — يُتخطى":"No change — skipped","صف فارغ — يُتخطى":"Empty row — skipped","صف اطلاع — يُتخطى":"Info row — skipped","اطلاع — يُحفظ بتقرير الاطلاع":"Info — saved to the view report","جديد (صنف مخزون)":"New (stock item)","جديد (دورة زراعية)":"New (crop cycle)","تحديث بيانات الحوض":"Pond data update","ناقص: الصنف":"Missing: item","رقم السجل الزراعي (اختياري)":"Agricultural register No. (optional)","سيُحفظ":"Will be saved","التقرير الشامل والإنتاج المتوقع (اطلاع فقط)":"Full report & expected production (view only)","🖨️ التقرير الشامل والإنتاج المتوقع (اطلاع)":"🖨️ Full report & expected production (view)","⚠️ ما فيه تقرير محفوظ — نزّل القالب وعبّيه وارفعه أولاً":"⚠️ No saved report — download, fill and upload the template first","⚠️ هذا ملف Excel (xlsx) — في Excel اختر: حفظ باسم ← CSV UTF-8، ثم ارفعه":"⚠️ This is an Excel file (xlsx) — in Excel choose: Save As → CSV UTF-8, then upload","⚠️ هذا ملف Excel قديم (xls) — احفظه بصيغة CSV ثم ارفعه":"⚠️ Old Excel file (xls) — save it as CSV then upload","⚠️ حوض غير مسجل — يُتخطى":"⚠️ Unregistered pond — skipped","قوالب جاهزة":"Ready templates","⚙️ توزيع المصاريف المشتركة":"⚙️ Shared expense allocation","توزيع المصاريف المشتركة":"Shared expense allocation","✅ تم تسجيل الصيانة وتحدّث موعد المعدة القادم":"✅ Maintenance recorded — equipment next-due updated","إنتاج السنة:":"Year production:","لا بيانات بعد — سجّل الدورات والقطيع والأحواض أولاً":"No data yet — record cycles, herd and ponds first","— لم يُعبأ":"— Not filled","مثال: 1105":"e.g. 1105","📁 المرفقات":"📁 Attachments","صافي الربح":"Net profit","♻️ استعادة":"♻️ Restore","🛠️ التشغيل":"🛠️ Operations","حفظ الدورة":"Save cycle","حالة الصرف":"Payment status","حذف الطلب؟":"Delete request?","🤲 صرف سلفة":"🤲 Pay advance","تسجيل يومي":"Daily record","دورة جديدة":"New cycle","حذف السجل؟":"Delete record?","📒 الحسابات":"📒 Accounting","حفظ القياس":"Save measurement","رقم الحساب":"Account No.","📋 العمليات":"📋 Operations","🏠 الحسابات":"🏠 Accounting","مثال: 0.18":"e.g. 0.18","كل الفترات":"All periods","— شهرياً ≈":"— Monthly ≈","بدون ضريبة":"Tax exempt","زراعة وشتل":"Planting","✅ تم النقل":"✅ Transferred","عدد الرؤوس":"Head count","محدد المدة":"Fixed-term","دورات نشطة":"Active cycles","مثال: 5566":"e.g. 5566","نظافة عامة":"Cleaning","وقت اللقطة":"Snapshot time","وصف الحالة":"Case description","مرض فيروسي":"Viral disease","هامش الربح":"Profit margin","حقوق ملكية":"Equity","علف تراكمي":"Total feed","تغيير قطعة":"Part replacement","غير متوازن":"Unbalanced","اسم المالك":"Owner name","خيرات سايه":"Khayrat Saya","كل الطلبات":"All requests","📑 التقارير":"📑 Reports","إجهاد مائي":"Water stress","— الضريبة:":"— VAT:","المستحق له":"Payable to","⚙️ التشغيل":"⚙️ Operations","رقم الوجبة":"Meal No.","مجموع (50)":"Total (50)","حذف القيد؟":"Delete entry?","غير موزع %":"Unallocated %","كل الحالات":"All statuses","↩️ استعادة":"↩️ Restore","حد التنبيه":"Alert threshold","📝 اليوميات":"📝 Daily log","إشعار مدين":"Debit note","🔁 تم النقل":"🔁 Transferred","سعر الوحدة":"Unit price","حذف العرض؟":"Delete quote?","مرض بكتيري":"Bacterial disease","رقم الجوال":"Mobile No.","🎓 الشهادات":"🎓 Certificates","اسم الشارع":"Street name","صافي الشهر":"Monthly net","قائمة الدخل":"Income statement","حفظ المصروف":"Save expense","حذف المهمة؟":"Delete task?","حذف الحساب؟":"Delete account?","➕ نوع جديد…":"➕ New type…","🔒 أقفلت سنة":"🔒 Year closed","✅ سداد كامل":"✅ Fully paid","نوع المشكلة":"Issue type","💾 حفظ السند":"💾 Save voucher","السعر العام":"Default price","نوع العمل *":"Work type *","توصية الفحص":"Test recommendation","💾 حفظ الجرد":"💾 Save stocktake","✍️ قيد يدوي":"✍️ Manual entry","رقم الوسم *":"Tag No. *","تسليم/إرجاع":"Issue/Return","💾 حفظ القيد":"💾 Save entry","أصناف معدلة":"Adjusted items","صنف العلف *":"Feed item *","مثال: طماطم":"e.g. Tomato","الرقم السري":"PIN","إضافة الأصل":"Add asset","+ إضافة بند":"+ Add line","لم يصرف بعد":"Not paid yet","البند/الوصف":"Item/Description","فترة الأمان":"Safety period","درجة الجودة":"Quality grade","➕ منتج جديد":"➕ New product","مثال: منصور":"e.g. Mansour","السعة (رأس)":"Capacity (head)","⬇️ نسخ الآن":"⬇️ Backup now","حذف المورد؟":"Delete supplier?","تغيير الرقم":"Change PIN","إلى حظيرة *":"To barn *","اسم الحوض *":"Pond name *","نافق تراكمي":"Total mortality","مدين (عليه)":"Debit (owes)","إخراج للرعي":"Out to graze","وصف الأعراض":"Symptoms description","➕ صنف جديد…":"➕ New item…","أيام الركود":"Idle days","صنف المخزون":"Stock item","تعديل الاسم":"Edit name","نسبة النفوق":"Mortality rate","السعر الخاص":"Special price","نوع التعريف":"ID type","شدة الإصابة":"Severity","المبلغ شامل":"Amount incl.","🏡 إضافة قسم":"🏡 Add section","اختر الموظف":"Choose employee","— الإجمالي:":"— Total:","مثال: حوض 1":"e.g. Pond 1","العد الفعلي":"Actual count","حذف المنتج؟":"Delete product?","نوع الصيانة":"Maintenance type","الحد الأدنى":"Minimum","صافي القطيع":"Net herd","كمية الدواء":"Medicine qty","حذف المعدة؟":"Delete equipment?","🛒 تم الشراء":"🛒 Purchased","تحويل العرض":"Convert quote","وجبات اليوم":"Today's meals","عدد الأصناف":"Items count","اعتماد أولي":"Initial approval","اسم المختبر":"Lab name","إنهاء/تنشيط":"End/Activate","قيمة الرصيد":"Balance value","تاريخ الفحص":"Test date","تطبيق اللون":"Apply color","مثال: نعيمي":"e.g. Naimi","مثال: A-101":"e.g. A-101","تحديد كمباع":"Mark as sold","أصناف ناقصة":"Low items","نوع التلقيح":"Breeding type","العلف الكلي":"Total feed","الوزن (كجم)":"Weight (kg)","💰 حفظ البيع":"💰 Save sale","⬆️ رفع شعار":"⬆️ Upload logo","إضافة سريعة":"Quick add","➕ بند جديد…":"➕ New category…","تمت الصيانة":"Maintained","اسم الأصل *":"Asset name *","عدد الوجبات":"Meals count","وصف اختياري":"Optional description","تاريخ الصرف":"Payment date","سجل الدفعات":"Payments log","🔔 التنبيهات":"🔔 Notifications","بذور وشتلات":"Seeds & seedlings","متوسط الوزن":"Avg. weight","تنفيذ النقل":"Execute transfer","نوع العملية":"Operation type","📜 عقد العمل":"📜 Work contract","💾 حفظ العرض":"💾 Save quote","النوع/الغرض":"Type/Purpose","إضافة الصنف":"Add item","نوع الحيوان":"Animal type","حالة السداد":"Payment status","حذف القياس؟":"Delete measurement?","رخصة عمل حر":"Freelance license","يجهز قريباً":"Ready soon","عام للمزرعة":"Farm-wide","مخزون منخفض":"Low stock","صباحي (لتر)":"Morning (L)","مادة عضوية%":"Organic matter %","رسالة مخصصة":"Custom message","🐟 علف اليوم":"🐟 Today's feed","عدد الأحواض":"Ponds count","مستحق علينا":"We owe","السلة فاضية":"Trash is empty","الرطوبة (%)":"Humidity (%)","رقم التعريف":"ID number","💾 حفظ الفحص":"💾 Save test","هامش الربح%":"Margin %","مثال: أغنام":"e.g. Sheep","➕ عميل جديد":"➕ New customer","رقم الآيبان":"IBAN","💸 المصروفات":"💸 Expenses","مسائي (لتر)":"Evening (L)","اسم الصنف *":"Item name *","حذف العميل؟":"Delete customer?","➕ حوض جديد…":"➕ New pond…","طالب الشراء":"Requester","📥 تصدير CSV":"📥 Export CSV","💰 صافي الدخل":"💰 Net income","المخزون فارغ":"Stock is empty","💼 تسليم عهدة":"💼 Issue custody","✅ حفظ الحدود":"✅ Save boundaries","مثال: مكيف 3":"e.g. AC 3","ربحية المنتج":"Product profitability","🌱 دورة جديدة":"🌱 New cycle","العدد المصاب":"Affected count","الربح (⃁)":"Profit (⃁)","إجراء المالك":"Owner action","📍 حفظ الموقع":"📍 Save location","تكلفة الوحدة":"Unit cost","تسجيل الحركة":"Record movement","حفظ الفاتورة":"Save invoice","اسم الحساب *":"Account name *","المبلغ (⃁)":"Amount (⃁)","إضافة المورد":"Add supplier","حذف المصروف؟":"Delete expense?","آجل (للمورد)":"Credit (to supplier)","قيد الانتظار":"Pending","📎 إضافة مرفق":"📎 Add attachment","✅ تم التسجيل":"✅ Recorded","✅ أُضيف حساب":"✅ Account added","👷 إضافة موظف":"👷 Add employee","الرقم الحالي":"Current PIN","نسبة الضريبة":"VAT rate","سعر الوحدة *":"Unit price *","اسم الشارع *":"Street name *","عدد الموظفين":"Employees count","➕ إضافة مورد":"➕ Add supplier","📄 مرفق آخر 1":"📄 Another attachment 1","📊 صافي الربح":"📊 Net profit","➕ مورد جديد…":"➕ New supplier…","وحدة البيع *":"Sale unit *","🌡️ قياس مناخ":"🌡️ Climate reading","الرقم الجديد":"New PIN","❌ رُفض الطلب":"❌ Request rejected","📋 ملخص اليوم":"📋 Today summary","📝 حفظ كمسودة":"📝 Save as draft","➕ إضافة عميل":"➕ Add customer","➕ إضافة منتج":"➕ Add product","اسم المبيد *":"Pesticide name *","نسبة التغذية":"Feeding rate","➕ إضافة موظف":"➕ Add employee","⚠️ يوجد مريض":"⚠️ Sick present"});
-Object.assign(I18N.ur,{"🗺️ الخريطة":"🗺️ نقشہ","تاريخ الرش":"سپرے کی تاریخ","🏡 المتابعة":"🏡 پیروی","مصروف جديد":"نیا خرچ","لا مصروفات":"کوئی اخراجات نہیں","سعر الكيلو":"فی کلو قیمت","هوية وطنية":"قومی شناخت","المناسبة *":"موقع *","✅ تم الحفظ":"✅ محفوظ ہو گیا","🔠 حجم الخط":"🔠 فونٹ سائز","رقم المبنى":"عمارت نمبر","رقم الهوية":"شناختی نمبر","حذف المرفق":"منسلکہ حذف کریں","حفظ المعدة":"مشین محفوظ کریں","إشعار دائن":"کریڈٹ نوٹ","وزن الوحدة":"یونٹ وزن","-- اختر --":"-- منتخب کریں --","بحث بالاسم":"نام سے تلاش","تقرير سنوي":"سالانہ رپورٹ","عدد النافق":"مردہ تعداد","آخر 7 أيام":"آخری 7 دن","كل الأقسام":"تمام سیکشنز",
+Object.assign(I18N.ur,{"تاريخ الرش":"سپرے کی تاریخ","🏡 المتابعة":"🏡 پیروی","مصروف جديد":"نیا خرچ","لا مصروفات":"کوئی اخراجات نہیں","سعر الكيلو":"فی کلو قیمت","هوية وطنية":"قومی شناخت","المناسبة *":"موقع *","✅ تم الحفظ":"✅ محفوظ ہو گیا","🔠 حجم الخط":"🔠 فونٹ سائز","رقم المبنى":"عمارت نمبر","رقم الهوية":"شناختی نمبر","حذف المرفق":"منسلکہ حذف کریں","حفظ المعدة":"مشین محفوظ کریں","إشعار دائن":"کریڈٹ نوٹ","وزن الوحدة":"یونٹ وزن","-- اختر --":"-- منتخب کریں --","بحث بالاسم":"نام سے تلاش","تقرير سنوي":"سالانہ رپورٹ","عدد النافق":"مردہ تعداد","آخر 7 أيام":"آخری 7 دن","كل الأقسام":"تمام سیکشنز",
 "لا توجد أحواض بعد — أضف حوض من النموذج أعلاه":"ابھی کوئی تالاب نہیں — اوپر فارم سے شامل کریں",
 "الفواتير الإلكترونية":"ای-انوائسز","ضريبة %":"ٹیکس %",
 "بدون ضريبة:":"بغیر ٹیکس:","· مبلغ الضريبة:":"· ٹیکس رقم:",
@@ -3858,8 +3797,8 @@ I18N_PAT.push(
 );
 </script>
 <script id="i18nExact">
-Object.assign(I18N.en,{"المصروفات المسجلة على \"عام (كل المزرعة)\" توزع حسب النسب اللي تحددها لكل بند — والباقي يظهر في عمود \"غير موزع\". المصروفات المسجلة مباشرة على قسم تبقى تكلفة مباشرة عليه.": "Expenses on General (whole farm) are split by your per-category rates — the rest shows under Unallocated. Section-recorded expenses stay direct costs", "💡 اضغط على بند": "💡 Click a category", "فترة الأمان = عدد الأيام الممنوع فيها الحصاد بعد الرش (مكتوبة على عبوة المبيد) — السستم يحذرك تلقائياً": "Safety period = days harvesting is forbidden after spraying (on the pesticide label) — the system warns you automatically", "💡 الكميات (الحليب، المواليد، النفوق، العلف، الحالات المرضية) تُسجَّل في سجلاتها المخصّصة أدناه لضمان دقّة الإحصاءات.": "💡 Quantities (milk, births, deaths, feed, health cases) are recorded in their dedicated logs below for accurate stats.", "تقدير كمية العلف اليومية حسب عدد الرؤوس ومتوسط الوزن والمرحلة (نسبة من وزن الجسم).": "Estimates daily feed by head count, average weight and stage (% of body weight).", "سجّل كل حيوان برقم وسم، ثم اكتب نفس الرقم في خانة \"الحيوان\" بسجلات الصحة/التطعيم/التلقيح ليظهر في ملفه.": "Register each animal with a tag number, then use the same number in health/vaccine/breeding logs to build its profile.", "سجل كل حوض بنوع وعدد السمك عند الإنزال — العدد الحالي ينخصم تلقائياً مع النافق والمحصود": "Register each pond with type and stocking count — current count auto-decreases with mortality and harvest", "المعدلات المناسبة للبلطي: حرارة 25–32°م، أكسجين أعلى من 4 ملجم/لتر، pH بين 6.5–8.5، أمونيا أقل من 0.5 — أي قياس خارج المعدل يظهر بالأحمر": "Tilapia ranges: temp 25–32°C, oxygen above 4 mg/L, pH 6.5–8.5, ammonia below 0.5 — out-of-range readings show red", "🔁 لا عمليات نقل — استخدم النموذج أعلاه لنقل السمك بين الأحواض مع تحديث الأعداد تلقائياً": "🔁 No transfers — use the form above to move fish between ponds with automatic count updates", "الجاهزية تُحسب تلقائياً: حوض \"التسمين\" يصير": "Readiness is automatic: a grow-out pond becomes ready", "إذا آخر متوسط وزن ≥ ٣٥٠ جم، و": "if last average weight ≥ 350 g, and", "إذا معدل النمو يوصله للوزن خلال 60 يوم. سجّل متوسط الوزن دورياً بسجل التغذية ليكون التقدير دقيق.": "if its growth rate reaches sale weight within 60 days. Log average weight regularly for accuracy.", "تقدير عدد السمك اللي يوصل وزن البيع في كل شهر خلال السنة القادمة، حسب معدل النمو الحالي لكل حوض.": "Estimates how many fish reach sale weight each month next year, based on each pond's growth rate.", "— يحسب الصافي تلقائياً (يخصم الغياب والإجازات بدون راتب وأقساط السلف) ثم يسجل المصروف والقيد": "— Net is computed automatically (deducting absence, unpaid leave and advance installments) then posts the expense and entry", "🏖️ لا إجازات مسجلة — إجازات \"بدون راتب\" تُخصم تلقائياً من كشف الرواتب": "🏖️ No leaves recorded — unpaid leaves are auto-deducted from payroll", "عند إضافة أو تعديل الموظف (بداية ونهاية العقد ونوعه وإرفاق الملف). العقود المحددة تنبهك بالملخص قبل انتهائها بثلاثين يوم.": "When adding or editing an employee (contract start, end, type and file). Fixed-term contracts alert you 30 days before expiry.", "المكافأة: نصف راتب شهر عن كل سنة من الخمس الأولى + راتب شهر عن كل سنة بعدها. الاستقالة: أقل من سنتين لا شيء، 2–5 الثلث، 5–10 الثلثان، أكثر من 10 كاملة. استرشادي — راجع محاسبك": "Award: half a month per year for the first five + a full month per year after. Resignation: under 2 years none, 2–5 a third, 5–10 two thirds, over 10 full. Indicative — consult your accountant", "المخزون": "Inventory", "💡 القيود تتولد": "💡 Entries auto-generate", "مبني على تواريخ استحقاق الفواتير الآجلة والرواتب — الفواتير بدون تاريخ استحقاق تظهر \"غير مجدولة\"": "Based on due dates of credit invoices and salaries — invoices without a due date show as Unscheduled", "الترقيم بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات — والحساب الفرعي يبدأ برقم مجموعته (مثلاً 1105 تحت الأصول المتداولة 11)": "Fodex-style numbering: 1 assets, 2 liabilities, 3 equity, 4 revenue, 5 expenses — sub-accounts start with their group digit (e.g. 1105 under current assets 11)", "👤 العميل *": "👤 Customer *", "لتسجيل إيداع أو سحب بين الصندوق والبنك أو رصيد افتتاحي: استخدم سند قبض/صرف أو قيد يدوي من قسم القيود": "For deposits/withdrawals between cash and bank or opening balances: use a receipt/payment voucher or manual entry", "اختيار صنف مخزون يضيف الكمية لرصيده ويوجه السطر لحساب المخزون 1104 تلقائياً — وبدونه اختر حساب المصروف المناسب": "Choosing a stock item adds qty to its balance and routes the line to Inventory 1104 — otherwise pick the right expense account", "الإهلاك بطريقة القسط الثابت: التكلفة ÷ العمر الإنتاجي سنوياً — القيمة الدفترية تتناقص تلقائياً مع الزمن": "Straight-line depreciation: cost ÷ useful life per year — book value declines over time", "قيد الإهلاك: مدين «مصروف الإهلاك 5304» / دائن «مجمع الإهلاك 1202» بقسط الشهر لكل الأصول — مرة واحدة لكل شهر": "Depreciation entry: debit Depreciation expense 5304 / credit Accumulated depreciation 1202 monthly for all assets — once per month", "عد الموجود فعلياً واكتبه — الأصناف اللي تتركها فاضية ما تتغير. الاعتماد يعدل الأرصدة ويسجل قيد تسوية بفروقات القيمة (حساب 5305)": "Count what's physically there — untouched items don't change. Approval adjusts balances and posts a variance entry (account 5305)", "اضغط التقرير ليفتح — واختر الفترة ثم اطبع أو صدّر من داخله": "Click a report to open it — pick the period then print or export from inside", "شهر مقابل شهر، ربحية الأقسام، نمو الإنتاج، المصروفات بالفئة": "Month vs month, section profitability, production growth, expenses by category", "صورة فضائية حقيقية للمزرعة — اضغط على أي علامة لعرض إحصائياتها، واسحبها لوضعها على موقعها الصحيح": "Real satellite view of the farm — click a marker for stats, drag it to its correct position", "💡 اسحب العلامة لتحديد موقع القسم على الخريطة — يُحفظ تلقائياً": "💡 Drag the marker to set the section location — saves automatically", "اختر قسماً ثم اضغط \"ابدأ رسم الحدود\"، ثم انقر على الخريطة لتحديد نقاط الحدود": "Choose a section, click Start drawing bounds, then click the map to add boundary points", "تُستخدم في بنود الفواتير الإلكترونية — الوزن المكافئ اختياري لغير الوزنية، وتعديلها لا يمس الفواتير المحفوظة": "Used in e-invoice lines — equivalent weight optional for non-weight units; editing never touches saved invoices", "1 (تلقائي)": "1 (auto)", "0.001 (تلقائي)": "0.001 (auto)", "🔒 الاعتماد النهائي يكون من قائمة الفواتير بعد مراجعة المسودة — لا إصدار مباشر": "🔒 Final approval happens from the invoices list after reviewing the draft — no direct issuing", "💰 مستحق لنا": "💰 Due to us", "💸 مستحق علينا": "💸 We owe", "⚠️ متأخر": "⚠️ Overdue", "0 مدفوعة": "0 paid", "🧑 الحساب والهوية": "🧑 Account & identity", "1 مالك": "1 owner", "البيانات والرقم السري والقفل وملاك إضافيون": "Data, PIN, lock and additional owners", "🏢 بيانات الشركة": "🏢 Company data", "الاسم والسجل والضريبة والشعار": "Name, CR, VAT and logo", "🎨 المظهر والبنية": "🎨 Appearance & structure", "الافتراضي": "Default", "ألوان الواجهة": "Interface colors", "7 قسم": "7 sections", "إضافة وترتيب أقسام المزرعة": "Add & arrange farm sections", "💾 البيانات والأمان": "💾 Data & security", "المنح والسحب — من هنا حصراً": "Granting & revoking — from here only", "لا نسخ بعد": "No backups yet", "تصدير JSON واللقطات التلقائية": "JSON export & auto snapshots", "♻️ سلة المهملات": "♻️ Trash", "استرجاع آخر المحذوفات": "Restore recent deletions", "تقرير": "Report", "كل عملية باسم منفّذها — من السجلات الفعلية": "Every action by its doer — from actual records", "حذف كل شيء — استخدمه بحذر": "Deletes everything — use with caution", "🔐 الرقم السري للمالك الرئيسي (وقفل الملخص)": "🔐 Main owner PIN (and dashboard lock)", "⏲️ قفل تلقائي بعد خمول (دقائق — 0 لإيقافه)": "⏲️ Auto-lock after idle (minutes — 0 to disable)", "كل مالك إضافي له اسمه ورقم هويته ورقمه السري الخاص، ويدخل بصلاحية كاملة على النظام مثل المالك الرئيسي.": "Each additional owner has their own name, ID and PIN, and signs in with full system access like the main owner.", "اختر تصميم السستم — التبديل فوري وآمن، بياناتك ما تتأثر، وترجع للكلاسيكي بضغطة.": "Pick a design — switching is instant and safe, your data is untouched, and one click returns to classic.", "🌿 الكلاسيكي الأخضر ✓": "🌿 Classic green ✓", "💜 السايدبار البنفسجي": "💜 Purple sidebar", "🌿 السايدبار الأخضر": "🌿 Green sidebar", "🌙 الداكن الفاخر": "🌙 Dark luxe", "🏜️ الترابي المزرعي": "🏜️ Earthy farm", "💧 الواحة الزرقاء": "💧 Blue oasis", "🌴 النخيل الداكن": "🌴 Dark palm", "أضف قسم جديد (مثلاً بيت محمي مكيف 3)، أو عدّل اسم قسم — إعادة التسمية ترحّل كل البيانات القديمة تلقائياً. الحذف ممكن فقط لقسم ما عليه أي بيانات.": "Add a new section (e.g. Cooled greenhouse 3) or rename one — renaming migrates all old data automatically. Deletion only for sections with no data.", "لا شعار": "No logo", "🔢 الموحد (س.ت):": "🔢 Unified (CR):", "🧾 الضريبي:": "🧾 VAT:", "📱 الجوال:": "📱 Mobile:", "🏦 حسابات بنكية:": "🏦 Bank accounts:", "✏️ عدّل من الحقول أدناه — السجل أعلاه يتحدّث فوراً مع كل حرف": "✏️ Edit in the fields below — the record above updates with every keystroke", "🏦 لا حسابات بعد — أضف أول حساب ليظهر أسفل فواتيرك": "🏦 No accounts yet — add the first to show under your invoices", "يظهر في أعلى السستم وفي الفواتير وكشوف الحساب والتقارير": "Appears at the top of the system, on invoices, statements and reports", "👆 اختر موظفاً لعرض صلاحياته — كل مفتاح يُحفظ فور تقليبه": "👆 Pick an employee to view permissions — each switch saves instantly", "كل سجل ينحذف يجي هنا وتقدر تستعيده — تحتفظ بآخر 200 عنصر": "Every deleted record lands here for restore — keeps the last 200", "البيانات محفوظة على هذا الجهاز/المتصفح فقط. صدّر نسخة احتياطية بشكل دوري، وتقدر تنقلها لجهاز ثاني بالاستيراد.": "Data lives on this device/browser only. Export a backup regularly; you can move it to another device via import.", "السستم يأخذ لقطة كاملة من بياناتك تلقائياً كل أسبوع (يحتفظ بآخر 4) — تقدر ترجع لأي لقطة لو صار خطأ كبير": "The system snapshots your data weekly (keeps last 4) — restore any snapshot after a serious mistake", "تقرير مبني من السجلات الفعلية — كل عملية باسم منفّذها من كل أقسام السستم": "A report built from actual records — every action by its doer across the system", "صورة المزرعة كاملة: الأرباح والتنبيهات وقائمة الدخل والأهداف — للمالك": "The whole farm picture: profits, alerts, income statement and goals — for the owner", "تسجيل أعمال اليوم: المهام المسندة، الرش، المواشي (تغذية وأوزان وبيع)، والأسماك": "Recording today's work: assigned tasks, spraying, livestock (feeding, weights, sales) and fish", "شاشة لكل قسم من أقسام المزرعة: دوراته وأعماله وأرقامه": "A screen per farm section: its cycles, works and numbers", "كل زراعة = دورة (حالية أو مخططة للمستقبل) + إسناد المهام + أنواع العمل — والبيع لاحقاً يُنسب للدورة": "Every planting = a cycle (current or planned) + task assignment + work types — later sales attribute to the cycle", "المخزون والجرد والباركود، الصيانة والمعدات، خريطة المزرعة، الجودة وأمراض النباتات وتحليل التربة": "Inventory, stocktake and barcodes, maintenance and equipment, farm map, quality, plant diseases and soil analysis", "الفواتير الإلكترونية (البيع الرسمي: مسودة ← اعتماد ← تُسجل مبيعاً تلقائياً)، سجل المبيعات والديون، العملاء وكشوفهم، الموردون وفواتير الشراء، طلبات الشراء باعتمادها الثلاثي، المنتجات ووحدات البيع، والمدفوعات الآجلة": "E-invoices (official selling: draft → approval → auto-recorded sale), sales & debts log, customers & statements, suppliers & purchase invoices, purchase requests with triple approval, products and sale units", "المصروف التشغيلي (بفاتورته الإلزامية) + المصاريف المتكررة الشهرية ومنها العدادات (كهرباء وماء) بقراءاتها": "Operating expenses (with mandatory invoice) + monthly recurring including meters (electricity & water) with readings", "المحاسبة الكاملة: الأداء والموازنة، القوائم المالية، الضريبة، الأصول، والتقارير المتقدمة — للمالك والمحاسب": "Full accounting: performance & budget, financial statements, tax, assets, and advanced reports — owner & accountant", "الموظفون ورواتبهم وسلفهم وإجازاتهم، الورديات، وتقييم الأداء — للمالك والمحاسب": "Employees, salaries, advances and leaves, shifts, and performance reviews — owner & accountant", "المُلّاك والدخول، منح الصلاحيات، تقرير حركات الموظفين (بالتعديلات والحذف)، بيانات الشركة والشعار، الثيمات، النسخ الاحتياطي واللقطات، والسلة — للمالك": "Owners & login, permissions, employee movements report (with edits & deletions), company data & logo, themes, backups & snapshots, and trash — for the owner", "💡 🔍 = بحث في كل شيء | أي قائمة ناقصها خيار؟ ابحث عن «➕ جديد…» داخلها": "💡 🔍 = search everything | A list missing an option? Look for ➕ New… inside it", "🌱 البداية الصحيحة: منتجات ← دورة ← فاتورة إلكترونية": "🌱 The right start: products → cycle → e-invoice", "مزرعة خيرات سايه © سستم التشغيل — جميع المبالغ بعملة الريال السعودي (⃁)": "Khayrat Saya Farm © Operating System — all amounts in Saudi Riyal", "يُحفظ في قسم المنتجات (التجارة) ويصير متاحاً في كل الدورات والمبيعات.": "Saved in Products (Trade) and becomes available in all cycles and sales.", "الإثنين": "Monday", "الثلاثاء": "Tuesday", "الأربعاء": "Wednesday", "الخميس": "Thursday", "الجمعة": "Friday", "السبت": "Saturday", "الأحد": "Sunday"});
-Object.assign(I18N.ur,{"المصروفات المسجلة على \"عام (كل المزرعة)\" توزع حسب النسب اللي تحددها لكل بند — والباقي يظهر في عمود \"غير موزع\". المصروفات المسجلة مباشرة على قسم تبقى تكلفة مباشرة عليه.": "عام اخراجات آپ کی شرحوں سے تقسیم — باقی غیر مختص میں۔ سیکشن پر درج اخراجات براہ راست لاگت", "💡 اضغط على بند": "💡 مد پر کلک کریں", "فترة الأمان = عدد الأيام الممنوع فيها الحصاد بعد الرش (مكتوبة على عبوة المبيد) — السستم يحذرك تلقائياً": "حفاظتی مدت = سپرے کے بعد کٹائی ممنوع دن — سسٹم خودکار خبردار کرتا ہے", "💡 الكميات (الحليب، المواليد، النفوق، العلف، الحالات المرضية) تُسجَّل في سجلاتها المخصّصة أدناه لضمان دقّة الإحصاءات.": "💡 مقداریں نیچے مخصوص لاگز میں درج ہوتی ہیں۔", "تقدير كمية العلف اليومية حسب عدد الرؤوس ومتوسط الوزن والمرحلة (نسبة من وزن الجسم).": "سر، اوسط وزن اور مرحلے سے روزانہ چارے کا تخمینہ۔", "سجّل كل حيوان برقم وسم، ثم اكتب نفس الرقم في خانة \"الحيوان\" بسجلات الصحة/التطعيم/التلقيح ليظهر في ملفه.": "ہر جانور ٹیگ نمبر سے درج کریں، وہی نمبر صحت/ویکسین لاگز میں لکھیں۔", "سجل كل حوض بنوع وعدد السمك عند الإنزال — العدد الحالي ينخصم تلقائياً مع النافق والمحصود": "ہر تالاب قسم اور تعداد سے درج کریں — موجودہ تعداد خودکار کم ہوتی ہے", "المعدلات المناسبة للبلطي: حرارة 25–32°م، أكسجين أعلى من 4 ملجم/لتر، pH بين 6.5–8.5، أمونيا أقل من 0.5 — أي قياس خارج المعدل يظهر بالأحمر": "تلاپیا حدود: حرارت 25–32°C، آکسیجن 4+ mg/L، pH 6.5–8.5 — باہر سرخ", "🔁 لا عمليات نقل — استخدم النموذج أعلاه لنقل السمك بين الأحواض مع تحديث الأعداد تلقائياً": "🔁 کوئی منتقلی نہیں — اوپر فارم سے مچھلی منتقل کریں", "الجاهزية تُحسب تلقائياً: حوض \"التسمين\" يصير": "تیاری خودکار: پرورش تالاب تیار بنتا ہے", "إذا آخر متوسط وزن ≥ ٣٥٠ جم، و": "اگر آخری اوسط وزن ≥ 350 گرام، اور", "إذا معدل النمو يوصله للوزن خلال 60 يوم. سجّل متوسط الوزن دورياً بسجل التغذية ليكون التقدير دقيق.": "اگر نمو 60 دن میں فروخت وزن تک پہنچے۔ وزن باقاعدہ درج کریں۔", "تقدير عدد السمك اللي يوصل وزن البيع في كل شهر خلال السنة القادمة، حسب معدل النمو الحالي لكل حوض.": "اگلے سال ہر ماہ فروخت وزن تک پہنچنے والی مچھلیوں کا تخمینہ۔", "— يحسب الصافي تلقائياً (يخصم الغياب والإجازات بدون راتب وأقساط السلف) ثم يسجل المصروف والقيد": "— خالص خودکار (غیر حاضری، بلا تنخواہ چھٹی اور اقساط منہا) پھر خرچ و اندراج", "🏖️ لا إجازات مسجلة — إجازات \"بدون راتب\" تُخصم تلقائياً من كشف الرواتب": "🏖️ کوئی چھٹی درج نہیں — بلا تنخواہ چھٹی پے رول سے خودکار منہا", "عند إضافة أو تعديل الموظف (بداية ونهاية العقد ونوعه وإرفاق الملف). العقود المحددة تنبهك بالملخص قبل انتهائها بثلاثين يوم.": "ملازم شامل/ترمیم پر (معاہدہ آغاز، اختتام، قسم، فائل)۔ مقررہ معاہدے 30 دن پہلے خبردار کرتے ہیں۔", "المكافأة: نصف راتب شهر عن كل سنة من الخمس الأولى + راتب شهر عن كل سنة بعدها. الاستقالة: أقل من سنتين لا شيء، 2–5 الثلث، 5–10 الثلثان، أكثر من 10 كاملة. استرشادي — راجع محاسبك": "انعام: پہلے پانچ سال نصف ماہ فی سال + بعد میں پورا ماہ۔ استعفیٰ: 2 سال سے کم کچھ نہیں، 2–5 تہائی، 5–10 دو تہائی، 10+ مکمل۔ رہنما — اکاؤنٹنٹ سے پوچھیں", "المخزون": "اسٹاک", "💡 القيود تتولد": "💡 اندراجات خودکار بنتے ہیں", "مبني على تواريخ استحقاق الفواتير الآجلة والرواتب — الفواتير بدون تاريخ استحقاق تظهر \"غير مجدولة\"": "ادھار انوائسز اور تنخواہوں کی تاریخوں پر مبنی — بغیر تاریخ غیر شیڈول", "الترقيم بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات — والحساب الفرعي يبدأ برقم مجموعته (مثلاً 1105 تحت الأصول المتداولة 11)": "نمبرنگ: 1 اثاثے، 2 واجبات، 3 ایکویٹی، 4 آمدنی، 5 اخراجات", "👤 العميل *": "👤 گاہک *", "لتسجيل إيداع أو سحب بين الصندوق والبنك أو رصيد افتتاحي: استخدم سند قبض/صرف أو قيد يدوي من قسم القيود": "نقد و بینک کے درمیان جمع/نکاسی یا ابتدائی بیلنس: واؤچر یا دستی اندراج", "اختيار صنف مخزون يضيف الكمية لرصيده ويوجه السطر لحساب المخزون 1104 تلقائياً — وبدونه اختر حساب المصروف المناسب": "اسٹاک آئٹم منتخب کرنا مقدار شامل کر کے لائن اکاؤنٹ 1104 کو دیتا ہے", "الإهلاك بطريقة القسط الثابت: التكلفة ÷ العمر الإنتاجي سنوياً — القيمة الدفترية تتناقص تلقائياً مع الزمن": "سیدھی لائن فرسودگی: لاگت ÷ کارآمد عمر سالانہ", "قيد الإهلاك: مدين «مصروف الإهلاك 5304» / دائن «مجمع الإهلاك 1202» بقسط الشهر لكل الأصول — مرة واحدة لكل شهر": "فرسودگی اندراج: ڈیبٹ 5304 / کریڈٹ 1202 ماہانہ — ہر ماہ ایک بار", "عد الموجود فعلياً واكتبه — الأصناف اللي تتركها فاضية ما تتغير. الاعتماد يعدل الأرصدة ويسجل قيد تسوية بفروقات القيمة (حساب 5305)": "جو موجود ہے گنیں — خالی چھوڑے نہیں بدلتے۔ منظوری بیلنس درست کر کے فرق اندراج کرتی ہے", "اضغط التقرير ليفتح — واختر الفترة ثم اطبع أو صدّر من داخله": "رپورٹ کھولنے کے لیے دبائیں — مدت منتخب کر کے پرنٹ/ایکسپورٹ", "شهر مقابل شهر، ربحية الأقسام، نمو الإنتاج، المصروفات بالفئة": "ماہ بمقابلہ ماہ، سیکشن منافع، پیداوار نمو، زمرہ اخراجات", "صورة فضائية حقيقية للمزرعة — اضغط على أي علامة لعرض إحصائياتها، واسحبها لوضعها على موقعها الصحيح": "فارم کی سیٹلائٹ تصویر — نشان دبائیں یا گھسیٹیں", "💡 اسحب العلامة لتحديد موقع القسم على الخريطة — يُحفظ تلقائياً": "💡 نشان گھسیٹ کر مقام مقرر کریں — خودکار محفوظ", "اختر قسماً ثم اضغط \"ابدأ رسم الحدود\"، ثم انقر على الخريطة لتحديد نقاط الحدود": "سیکشن منتخب کریں، حدود بنانا دبائیں، نقشے پر پوائنٹس لگائیں", "تُستخدم في بنود الفواتير الإلكترونية — الوزن المكافئ اختياري لغير الوزنية، وتعديلها لا يمس الفواتير المحفوظة": "ای-انوائس لائنوں میں مستعمل — ترمیم محفوظ انوائسز کو نہیں چھوتی", "1 (تلقائي)": "1 (خودکار)", "0.001 (تلقائي)": "0.001 (خودکار)", "🔒 الاعتماد النهائي يكون من قائمة الفواتير بعد مراجعة المسودة — لا إصدار مباشر": "🔒 حتمی منظوری انوائس فہرست سے مسودہ جائزے کے بعد", "💰 مستحق لنا": "💰 ہمارا واجب", "💸 مستحق علينا": "💸 ہم پر واجب", "⚠️ متأخر": "⚠️ تاخیر", "0 مدفوعة": "0 ادا", "🧑 الحساب والهوية": "🧑 اکاؤنٹ و شناخت", "1 مالك": "1 مالک", "البيانات والرقم السري والقفل وملاك إضافيون": "ڈیٹا، نمبر، لاک و اضافی مالکان", "🏢 بيانات الشركة": "🏢 کمپنی ڈیٹا", "الاسم والسجل والضريبة والشعار": "نام، رجسٹر، ٹیکس و لوگو", "🎨 المظهر والبنية": "🎨 ظاہری شکل", "الافتراضي": "طے شدہ", "ألوان الواجهة": "انٹرفیس رنگ", "7 قسم": "7 سیکشن", "إضافة وترتيب أقسام المزرعة": "فارم سیکشنز شامل و ترتیب", "💾 البيانات والأمان": "💾 ڈیٹا و سیکیورٹی", "المنح والسحب — من هنا حصراً": "اجازتیں — صرف یہاں سے", "لا نسخ بعد": "ابھی بیک اپ نہیں", "تصدير JSON واللقطات التلقائية": "JSON ایکسپورٹ و سنیپ شاٹس", "♻️ سلة المهملات": "♻️ ردی", "استرجاع آخر المحذوفات": "حالیہ حذف شدہ بحال کریں", "تقرير": "رپورٹ", "كل عملية باسم منفّذها — من السجلات الفعلية": "ہر عمل کرنے والے کے نام — اصل ریکارڈ سے", "حذف كل شيء — استخدمه بحذر": "سب کچھ حذف — احتیاط سے", "🔐 الرقم السري للمالك الرئيسي (وقفل الملخص)": "🔐 مرکزی مالک نمبر (و ڈیش بورڈ لاک)", "⏲️ قفل تلقائي بعد خمول (دقائق — 0 لإيقافه)": "⏲️ غیر فعالی کے بعد آٹو لاک (منٹ — 0 بند)", "كل مالك إضافي له اسمه ورقم هويته ورقمه السري الخاص، ويدخل بصلاحية كاملة على النظام مثل المالك الرئيسي.": "ہر اضافی مالک اپنے نام، شناخت اور نمبر سے مکمل رسائی کے ساتھ داخل ہوتا ہے۔", "اختر تصميم السستم — التبديل فوري وآمن، بياناتك ما تتأثر، وترجع للكلاسيكي بضغطة.": "ڈیزائن منتخب کریں — فوری اور محفوظ، ڈیٹا متاثر نہیں ہوتا۔", "🌿 الكلاسيكي الأخضر ✓": "🌿 کلاسک سبز ✓", "💜 السايدبار البنفسجي": "💜 جامنی سائیڈبار", "🌿 السايدبار الأخضر": "🌿 سبز سائیڈبار", "🌙 الداكن الفاخر": "🌙 ڈارک لگژری", "🏜️ الترابي المزرعي": "🏜️ مٹیالا فارم", "💧 الواحة الزرقاء": "💧 نیلا نخلستان", "🌴 النخيل الداكن": "🌴 ڈارک کھجور", "أضف قسم جديد (مثلاً بيت محمي مكيف 3)، أو عدّل اسم قسم — إعادة التسمية ترحّل كل البيانات القديمة تلقائياً. الحذف ممكن فقط لقسم ما عليه أي بيانات.": "نیا سیکشن شامل کریں یا نام بدلیں — نام بدلنا پرانا ڈیٹا خودکار منتقل کرتا ہے۔", "لا شعار": "کوئی لوگو نہیں", "🔢 الموحد (س.ت):": "🔢 متحد (رجسٹر):", "🧾 الضريبي:": "🧾 ٹیکس:", "📱 الجوال:": "📱 موبائل:", "🏦 حسابات بنكية:": "🏦 بینک اکاؤنٹس:", "✏️ عدّل من الحقول أدناه — السجل أعلاه يتحدّث فوراً مع كل حرف": "✏️ نیچے خانوں میں ترمیم کریں — اوپر ریکارڈ فوری اپ ڈیٹ", "🏦 لا حسابات بعد — أضف أول حساب ليظهر أسفل فواتيرك": "🏦 ابھی اکاؤنٹ نہیں — پہلا شامل کریں", "يظهر في أعلى السستم وفي الفواتير وكشوف الحساب والتقارير": "سسٹم کے اوپر، انوائسز اور رپورٹس میں ظاہر ہوتا ہے", "👆 اختر موظفاً لعرض صلاحياته — كل مفتاح يُحفظ فور تقليبه": "👆 اجازتیں دیکھنے کو ملازم منتخب کریں — ہر سوئچ فوری محفوظ", "كل سجل ينحذف يجي هنا وتقدر تستعيده — تحتفظ بآخر 200 عنصر": "ہر حذف شدہ ریکارڈ یہاں آتا ہے — آخری 200", "البيانات محفوظة على هذا الجهاز/المتصفح فقط. صدّر نسخة احتياطية بشكل دوري، وتقدر تنقلها لجهاز ثاني بالاستيراد.": "ڈیٹا صرف اس آلے/براؤزر پر ہے۔ باقاعدہ بیک اپ لیں۔", "السستم يأخذ لقطة كاملة من بياناتك تلقائياً كل أسبوع (يحتفظ بآخر 4) — تقدر ترجع لأي لقطة لو صار خطأ كبير": "سسٹم ہفتہ وار سنیپ شاٹ لیتا ہے (آخری 4) — بڑی غلطی پر بحال کریں", "تقرير مبني من السجلات الفعلية — كل عملية باسم منفّذها من كل أقسام السستم": "اصل ریکارڈ سے بنی رپورٹ — ہر عمل کرنے والے کے نام", "صورة المزرعة كاملة: الأرباح والتنبيهات وقائمة الدخل والأهداف — للمالك": "پوری فارم کی تصویر: منافع، اطلاعات، انکم اسٹیٹمنٹ و اہداف — مالک کے لیے", "تسجيل أعمال اليوم: المهام المسندة، الرش، المواشي (تغذية وأوزان وبيع)، والأسماك": "آج کے کام: ٹاسک، سپرے، مویشی اور مچھلیاں", "شاشة لكل قسم من أقسام المزرعة: دوراته وأعماله وأرقامه": "ہر سیکشن کی اسکرین: سائیکل، کام اور اعداد", "كل زراعة = دورة (حالية أو مخططة للمستقبل) + إسناد المهام + أنواع العمل — والبيع لاحقاً يُنسب للدورة": "ہر کاشت = سائیکل + ٹاسک + کام کی اقسام — فروخت بعد میں منسوب", "المخزون والجرد والباركود، الصيانة والمعدات، خريطة المزرعة، الجودة وأمراض النباتات وتحليل التربة": "اسٹاک، گنتی، بارکوڈ، مرمت، نقشہ، معیار و مٹی تجزیہ", "الفواتير الإلكترونية (البيع الرسمي: مسودة ← اعتماد ← تُسجل مبيعاً تلقائياً)، سجل المبيعات والديون، العملاء وكشوفهم، الموردون وفواتير الشراء، طلبات الشراء باعتمادها الثلاثي، المنتجات ووحدات البيع، والمدفوعات الآجلة": "ای-انوائسز (مسودہ ← منظوری ← خودکار فروخت)، فروخت و قرض لاگ، گاہک، سپلائرز، درخواستیں اور پروڈکٹس", "المصروف التشغيلي (بفاتورته الإلزامية) + المصاريف المتكررة الشهرية ومنها العدادات (كهرباء وماء) بقراءاتها": "آپریٹنگ خرچ (لازمی انوائس) + ماہانہ متکرر بشمول میٹر", "المحاسبة الكاملة: الأداء والموازنة، القوائم المالية، الضريبة، الأصول، والتقارير المتقدمة — للمالك والمحاسب": "مکمل اکاؤنٹنگ: کارکردگی، گوشوارے، ٹیکس، اثاثے، رپورٹس — مالک و اکاؤنٹنٹ", "الموظفون ورواتبهم وسلفهم وإجازاتهم، الورديات، وتقييم الأداء — للمالك والمحاسب": "ملازمین، تنخواہیں، پیشگی، چھٹیاں، شفٹیں، جائزے — مالک و اکاؤنٹنٹ", "المُلّاك والدخول، منح الصلاحيات، تقرير حركات الموظفين (بالتعديلات والحذف)، بيانات الشركة والشعار، الثيمات، النسخ الاحتياطي واللقطات، والسلة — للمالك": "مالکان و لاگ ان، اجازتیں، حرکات رپورٹ، کمپنی ڈیٹا، تھیمز، بیک اپ اور ردی — مالک کے لیے", "💡 🔍 = بحث في كل شيء | أي قائمة ناقصها خيار؟ ابحث عن «➕ جديد…» داخلها": "💡 🔍 = ہر چیز میں تلاش | فہرست میں آپشن کم؟ ➕ نیا… تلاش کریں", "🌱 البداية الصحيحة: منتجات ← دورة ← فاتورة إلكترونية": "🌱 صحیح آغاز: پروڈکٹس ← سائیکل ← ای-انوائس", "مزرعة خيرات سايه © سستم التشغيل — جميع المبالغ بعملة الريال السعودي (⃁)": "خیرات سایہ فارم © آپریٹنگ سسٹم — تمام رقوم سعودی ریال (⃁) میں", "يُحفظ في قسم المنتجات (التجارة) ويصير متاحاً في كل الدورات والمبيعات.": "پروڈکٹس (تجارت) میں محفوظ اور ہر جگہ دستیاب۔", "الإثنين": "پیر", "الثلاثاء": "منگل", "الأربعاء": "بدھ", "الخميس": "جمعرات", "الجمعة": "جمعہ", "السبت": "ہفتہ", "الأحد": "اتوار"});
+Object.assign(I18N.en,{"المصروفات المسجلة على \"عام (كل المزرعة)\" توزع حسب النسب اللي تحددها لكل بند — والباقي يظهر في عمود \"غير موزع\". المصروفات المسجلة مباشرة على قسم تبقى تكلفة مباشرة عليه.": "Expenses on General (whole farm) are split by your per-category rates — the rest shows under Unallocated. Section-recorded expenses stay direct costs", "💡 اضغط على بند": "💡 Click a category", "فترة الأمان = عدد الأيام الممنوع فيها الحصاد بعد الرش (مكتوبة على عبوة المبيد) — السستم يحذرك تلقائياً": "Safety period = days harvesting is forbidden after spraying (on the pesticide label) — the system warns you automatically", "💡 الكميات (الحليب، المواليد، النفوق، العلف، الحالات المرضية) تُسجَّل في سجلاتها المخصّصة أدناه لضمان دقّة الإحصاءات.": "💡 Quantities (milk, births, deaths, feed, health cases) are recorded in their dedicated logs below for accurate stats.", "تقدير كمية العلف اليومية حسب عدد الرؤوس ومتوسط الوزن والمرحلة (نسبة من وزن الجسم).": "Estimates daily feed by head count, average weight and stage (% of body weight).", "سجّل كل حيوان برقم وسم، ثم اكتب نفس الرقم في خانة \"الحيوان\" بسجلات الصحة/التطعيم/التلقيح ليظهر في ملفه.": "Register each animal with a tag number, then use the same number in health/vaccine/breeding logs to build its profile.", "سجل كل حوض بنوع وعدد السمك عند الإنزال — العدد الحالي ينخصم تلقائياً مع النافق والمحصود": "Register each pond with type and stocking count — current count auto-decreases with mortality and harvest", "المعدلات المناسبة للبلطي: حرارة 25–32°م، أكسجين أعلى من 4 ملجم/لتر، pH بين 6.5–8.5، أمونيا أقل من 0.5 — أي قياس خارج المعدل يظهر بالأحمر": "Tilapia ranges: temp 25–32°C, oxygen above 4 mg/L, pH 6.5–8.5, ammonia below 0.5 — out-of-range readings show red", "🔁 لا عمليات نقل — استخدم النموذج أعلاه لنقل السمك بين الأحواض مع تحديث الأعداد تلقائياً": "🔁 No transfers — use the form above to move fish between ponds with automatic count updates", "الجاهزية تُحسب تلقائياً: حوض \"التسمين\" يصير": "Readiness is automatic: a grow-out pond becomes ready", "إذا آخر متوسط وزن ≥ ٣٥٠ جم، و": "if last average weight ≥ 350 g, and", "إذا معدل النمو يوصله للوزن خلال 60 يوم. سجّل متوسط الوزن دورياً بسجل التغذية ليكون التقدير دقيق.": "if its growth rate reaches sale weight within 60 days. Log average weight regularly for accuracy.", "تقدير عدد السمك اللي يوصل وزن البيع في كل شهر خلال السنة القادمة، حسب معدل النمو الحالي لكل حوض.": "Estimates how many fish reach sale weight each month next year, based on each pond's growth rate.", "— يحسب الصافي تلقائياً (يخصم الغياب والإجازات بدون راتب وأقساط السلف) ثم يسجل المصروف والقيد": "— Net is computed automatically (deducting absence, unpaid leave and advance installments) then posts the expense and entry", "🏖️ لا إجازات مسجلة — إجازات \"بدون راتب\" تُخصم تلقائياً من كشف الرواتب": "🏖️ No leaves recorded — unpaid leaves are auto-deducted from payroll", "عند إضافة أو تعديل الموظف (بداية ونهاية العقد ونوعه وإرفاق الملف). العقود المحددة تنبهك بالملخص قبل انتهائها بثلاثين يوم.": "When adding or editing an employee (contract start, end, type and file). Fixed-term contracts alert you 30 days before expiry.", "المكافأة: نصف راتب شهر عن كل سنة من الخمس الأولى + راتب شهر عن كل سنة بعدها. الاستقالة: أقل من سنتين لا شيء، 2–5 الثلث، 5–10 الثلثان، أكثر من 10 كاملة. استرشادي — راجع محاسبك": "Award: half a month per year for the first five + a full month per year after. Resignation: under 2 years none, 2–5 a third, 5–10 two thirds, over 10 full. Indicative — consult your accountant", "المخزون": "Inventory", "💡 القيود تتولد": "💡 Entries auto-generate", "مبني على تواريخ استحقاق الفواتير الآجلة والرواتب — الفواتير بدون تاريخ استحقاق تظهر \"غير مجدولة\"": "Based on due dates of credit invoices and salaries — invoices without a due date show as Unscheduled", "الترقيم بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات — والحساب الفرعي يبدأ برقم مجموعته (مثلاً 1105 تحت الأصول المتداولة 11)": "Fodex-style numbering: 1 assets, 2 liabilities, 3 equity, 4 revenue, 5 expenses — sub-accounts start with their group digit (e.g. 1105 under current assets 11)", "👤 العميل *": "👤 Customer *", "لتسجيل إيداع أو سحب بين الصندوق والبنك أو رصيد افتتاحي: استخدم سند قبض/صرف أو قيد يدوي من قسم القيود": "For deposits/withdrawals between cash and bank or opening balances: use a receipt/payment voucher or manual entry", "اختيار صنف مخزون يضيف الكمية لرصيده ويوجه السطر لحساب المخزون 1104 تلقائياً — وبدونه اختر حساب المصروف المناسب": "Choosing a stock item adds qty to its balance and routes the line to Inventory 1104 — otherwise pick the right expense account", "الإهلاك بطريقة القسط الثابت: التكلفة ÷ العمر الإنتاجي سنوياً — القيمة الدفترية تتناقص تلقائياً مع الزمن": "Straight-line depreciation: cost ÷ useful life per year — book value declines over time", "قيد الإهلاك: مدين «مصروف الإهلاك 5304» / دائن «مجمع الإهلاك 1202» بقسط الشهر لكل الأصول — مرة واحدة لكل شهر": "Depreciation entry: debit Depreciation expense 5304 / credit Accumulated depreciation 1202 monthly for all assets — once per month", "عد الموجود فعلياً واكتبه — الأصناف اللي تتركها فاضية ما تتغير. الاعتماد يعدل الأرصدة ويسجل قيد تسوية بفروقات القيمة (حساب 5305)": "Count what's physically there — untouched items don't change. Approval adjusts balances and posts a variance entry (account 5305)", "اضغط التقرير ليفتح — واختر الفترة ثم اطبع أو صدّر من داخله": "Click a report to open it — pick the period then print or export from inside", "شهر مقابل شهر، ربحية الأقسام، نمو الإنتاج، المصروفات بالفئة": "Month vs month, section profitability, production growth, expenses by category", "صورة فضائية حقيقية للمزرعة — اضغط على أي علامة لعرض إحصائياتها، واسحبها لوضعها على موقعها الصحيح": "Real satellite view of the farm — click a marker for stats, drag it to its correct position", "💡 اسحب العلامة لتحديد موقع القسم على الخريطة — يُحفظ تلقائياً": "💡 Drag the marker to set the section location — saves automatically", "اختر قسماً ثم اضغط \"ابدأ رسم الحدود\"، ثم انقر على الخريطة لتحديد نقاط الحدود": "Choose a section, click Start drawing bounds, then click the map to add boundary points", "تُستخدم في بنود الفواتير الإلكترونية — الوزن المكافئ اختياري لغير الوزنية، وتعديلها لا يمس الفواتير المحفوظة": "Used in e-invoice lines — equivalent weight optional for non-weight units; editing never touches saved invoices", "1 (تلقائي)": "1 (auto)", "0.001 (تلقائي)": "0.001 (auto)", "🔒 الاعتماد النهائي يكون من قائمة الفواتير بعد مراجعة المسودة — لا إصدار مباشر": "🔒 Final approval happens from the invoices list after reviewing the draft — no direct issuing", "💰 مستحق لنا": "💰 Due to us", "💸 مستحق علينا": "💸 We owe", "⚠️ متأخر": "⚠️ Overdue", "0 مدفوعة": "0 paid", "🧑 الحساب والهوية": "🧑 Account & identity", "1 مالك": "1 owner", "البيانات والرقم السري والقفل وملاك إضافيون": "Data, PIN, lock and additional owners", "🏢 بيانات الشركة": "🏢 Company data", "الاسم والسجل والضريبة والشعار": "Name, CR, VAT and logo", "🎨 المظهر والبنية": "🎨 Appearance & structure", "الافتراضي": "Default", "ألوان الواجهة": "Interface colors", "7 قسم": "7 sections", "إضافة وترتيب أقسام المزرعة": "Add & arrange farm sections", "💾 البيانات والأمان": "💾 Data & security", "المنح والسحب — من هنا حصراً": "Granting & revoking — from here only", "لا نسخ بعد": "No backups yet", "تصدير JSON واللقطات التلقائية": "JSON export & auto snapshots", "♻️ سلة المهملات": "♻️ Trash", "استرجاع آخر المحذوفات": "Restore recent deletions", "تقرير": "Report", "كل عملية باسم منفّذها — من السجلات الفعلية": "Every action by its doer — from actual records", "حذف كل شيء — استخدمه بحذر": "Deletes everything — use with caution", "🔐 الرقم السري للمالك الرئيسي (وقفل الملخص)": "🔐 Main owner PIN (and dashboard lock)", "⏲️ قفل تلقائي بعد خمول (دقائق — 0 لإيقافه)": "⏲️ Auto-lock after idle (minutes — 0 to disable)", "كل مالك إضافي له اسمه ورقم هويته ورقمه السري الخاص، ويدخل بصلاحية كاملة على النظام مثل المالك الرئيسي.": "Each additional owner has their own name, ID and PIN, and signs in with full system access like the main owner.", "اختر تصميم السستم — التبديل فوري وآمن، بياناتك ما تتأثر، وترجع للكلاسيكي بضغطة.": "Pick a design — switching is instant and safe, your data is untouched, and one click returns to classic.", "🌿 الكلاسيكي الأخضر ✓": "🌿 Classic green ✓", "💜 السايدبار البنفسجي": "💜 Purple sidebar", "🌿 السايدبار الأخضر": "🌿 Green sidebar", "🌙 الداكن الفاخر": "🌙 Dark luxe", "🏜️ الترابي المزرعي": "🏜️ Earthy farm", "💧 الواحة الزرقاء": "💧 Blue oasis", "🌴 النخيل الداكن": "🌴 Dark palm", "أضف قسم جديد (مثلاً بيت محمي مكيف 3)، أو عدّل اسم قسم — إعادة التسمية ترحّل كل البيانات القديمة تلقائياً. الحذف ممكن فقط لقسم ما عليه أي بيانات.": "Add a new section (e.g. Cooled greenhouse 3) or rename one — renaming migrates all old data automatically. Deletion only for sections with no data.", "لا شعار": "No logo", "🔢 الموحد (س.ت):": "🔢 Unified (CR):", "🧾 الضريبي:": "🧾 VAT:", "📱 الجوال:": "📱 Mobile:", "🏦 حسابات بنكية:": "🏦 Bank accounts:", "✏️ عدّل من الحقول أدناه — السجل أعلاه يتحدّث فوراً مع كل حرف": "✏️ Edit in the fields below — the record above updates with every keystroke", "🏦 لا حسابات بعد — أضف أول حساب ليظهر أسفل فواتيرك": "🏦 No accounts yet — add the first to show under your invoices", "يظهر في أعلى السستم وفي الفواتير وكشوف الحساب والتقارير": "Appears at the top of the system, on invoices, statements and reports", "👆 اختر موظفاً لعرض صلاحياته — كل مفتاح يُحفظ فور تقليبه": "👆 Pick an employee to view permissions — each switch saves instantly", "كل سجل ينحذف يجي هنا وتقدر تستعيده — تحتفظ بآخر 200 عنصر": "Every deleted record lands here for restore — keeps the last 200", "البيانات محفوظة على هذا الجهاز/المتصفح فقط. صدّر نسخة احتياطية بشكل دوري، وتقدر تنقلها لجهاز ثاني بالاستيراد.": "Data lives on this device/browser only. Export a backup regularly; you can move it to another device via import.", "السستم يأخذ لقطة كاملة من بياناتك تلقائياً كل أسبوع (يحتفظ بآخر 4) — تقدر ترجع لأي لقطة لو صار خطأ كبير": "The system snapshots your data weekly (keeps last 4) — restore any snapshot after a serious mistake", "تقرير مبني من السجلات الفعلية — كل عملية باسم منفّذها من كل أقسام السستم": "A report built from actual records — every action by its doer across the system", "صورة المزرعة كاملة: الأرباح والتنبيهات وقائمة الدخل والأهداف — للمالك": "The whole farm picture: profits, alerts, income statement and goals — for the owner", "تسجيل أعمال اليوم: المهام المسندة، الرش، المواشي (تغذية وأوزان وبيع)، والأسماك": "Recording today's work: assigned tasks, spraying, livestock (feeding, weights, sales) and fish", "شاشة لكل قسم من أقسام المزرعة: دوراته وأعماله وأرقامه": "A screen per farm section: its cycles, works and numbers", "كل زراعة = دورة (حالية أو مخططة للمستقبل) + إسناد المهام + أنواع العمل — والبيع لاحقاً يُنسب للدورة": "Every planting = a cycle (current or planned) + task assignment + work types — later sales attribute to the cycle", "المخزون والجرد والباركود، الصيانة والمعدات، الجودة وأمراض النباتات وتحليل التربة": "Inventory, stocktake and barcodes, maintenance and equipment, farm map, quality, plant diseases and soil analysis", "الفواتير الإلكترونية (البيع الرسمي: مسودة ← اعتماد ← تُسجل مبيعاً تلقائياً)، سجل المبيعات والديون، العملاء وكشوفهم، الموردون وفواتير الشراء، طلبات الشراء باعتمادها الثلاثي، المنتجات ووحدات البيع، والمدفوعات الآجلة": "E-invoices (official selling: draft → approval → auto-recorded sale), sales & debts log, customers & statements, suppliers & purchase invoices, purchase requests with triple approval, products and sale units", "المصروف التشغيلي (بفاتورته الإلزامية) + المصاريف المتكررة الشهرية ومنها العدادات (كهرباء وماء) بقراءاتها": "Operating expenses (with mandatory invoice) + monthly recurring including meters (electricity & water) with readings", "المحاسبة الكاملة: الأداء والموازنة، القوائم المالية، الضريبة، الأصول، والتقارير المتقدمة — للمالك والمحاسب": "Full accounting: performance & budget, financial statements, tax, assets, and advanced reports — owner & accountant", "الموظفون ورواتبهم وسلفهم وإجازاتهم، الورديات، وتقييم الأداء — للمالك والمحاسب": "Employees, salaries, advances and leaves, shifts, and performance reviews — owner & accountant", "المُلّاك والدخول، منح الصلاحيات، تقرير حركات الموظفين (بالتعديلات والحذف)، بيانات الشركة والشعار، الثيمات، النسخ الاحتياطي واللقطات، والسلة — للمالك": "Owners & login, permissions, employee movements report (with edits & deletions), company data & logo, themes, backups & snapshots, and trash — for the owner", "💡 🔍 = بحث في كل شيء | أي قائمة ناقصها خيار؟ ابحث عن «➕ جديد…» داخلها": "💡 🔍 = search everything | A list missing an option? Look for ➕ New… inside it", "🌱 البداية الصحيحة: منتجات ← دورة ← فاتورة إلكترونية": "🌱 The right start: products → cycle → e-invoice", "مزرعة خيرات سايه © سستم التشغيل — جميع المبالغ بعملة الريال السعودي (⃁)": "Khayrat Saya Farm © Operating System — all amounts in Saudi Riyal", "يُحفظ في قسم المنتجات (التجارة) ويصير متاحاً في كل الدورات والمبيعات.": "Saved in Products (Trade) and becomes available in all cycles and sales.", "الإثنين": "Monday", "الثلاثاء": "Tuesday", "الأربعاء": "Wednesday", "الخميس": "Thursday", "الجمعة": "Friday", "السبت": "Saturday", "الأحد": "Sunday"});
+Object.assign(I18N.ur,{"المصروفات المسجلة على \"عام (كل المزرعة)\" توزع حسب النسب اللي تحددها لكل بند — والباقي يظهر في عمود \"غير موزع\". المصروفات المسجلة مباشرة على قسم تبقى تكلفة مباشرة عليه.": "عام اخراجات آپ کی شرحوں سے تقسیم — باقی غیر مختص میں۔ سیکشن پر درج اخراجات براہ راست لاگت", "💡 اضغط على بند": "💡 مد پر کلک کریں", "فترة الأمان = عدد الأيام الممنوع فيها الحصاد بعد الرش (مكتوبة على عبوة المبيد) — السستم يحذرك تلقائياً": "حفاظتی مدت = سپرے کے بعد کٹائی ممنوع دن — سسٹم خودکار خبردار کرتا ہے", "💡 الكميات (الحليب، المواليد، النفوق، العلف، الحالات المرضية) تُسجَّل في سجلاتها المخصّصة أدناه لضمان دقّة الإحصاءات.": "💡 مقداریں نیچے مخصوص لاگز میں درج ہوتی ہیں۔", "تقدير كمية العلف اليومية حسب عدد الرؤوس ومتوسط الوزن والمرحلة (نسبة من وزن الجسم).": "سر، اوسط وزن اور مرحلے سے روزانہ چارے کا تخمینہ۔", "سجّل كل حيوان برقم وسم، ثم اكتب نفس الرقم في خانة \"الحيوان\" بسجلات الصحة/التطعيم/التلقيح ليظهر في ملفه.": "ہر جانور ٹیگ نمبر سے درج کریں، وہی نمبر صحت/ویکسین لاگز میں لکھیں۔", "سجل كل حوض بنوع وعدد السمك عند الإنزال — العدد الحالي ينخصم تلقائياً مع النافق والمحصود": "ہر تالاب قسم اور تعداد سے درج کریں — موجودہ تعداد خودکار کم ہوتی ہے", "المعدلات المناسبة للبلطي: حرارة 25–32°م، أكسجين أعلى من 4 ملجم/لتر، pH بين 6.5–8.5، أمونيا أقل من 0.5 — أي قياس خارج المعدل يظهر بالأحمر": "تلاپیا حدود: حرارت 25–32°C، آکسیجن 4+ mg/L، pH 6.5–8.5 — باہر سرخ", "🔁 لا عمليات نقل — استخدم النموذج أعلاه لنقل السمك بين الأحواض مع تحديث الأعداد تلقائياً": "🔁 کوئی منتقلی نہیں — اوپر فارم سے مچھلی منتقل کریں", "الجاهزية تُحسب تلقائياً: حوض \"التسمين\" يصير": "تیاری خودکار: پرورش تالاب تیار بنتا ہے", "إذا آخر متوسط وزن ≥ ٣٥٠ جم، و": "اگر آخری اوسط وزن ≥ 350 گرام، اور", "إذا معدل النمو يوصله للوزن خلال 60 يوم. سجّل متوسط الوزن دورياً بسجل التغذية ليكون التقدير دقيق.": "اگر نمو 60 دن میں فروخت وزن تک پہنچے۔ وزن باقاعدہ درج کریں۔", "تقدير عدد السمك اللي يوصل وزن البيع في كل شهر خلال السنة القادمة، حسب معدل النمو الحالي لكل حوض.": "اگلے سال ہر ماہ فروخت وزن تک پہنچنے والی مچھلیوں کا تخمینہ۔", "— يحسب الصافي تلقائياً (يخصم الغياب والإجازات بدون راتب وأقساط السلف) ثم يسجل المصروف والقيد": "— خالص خودکار (غیر حاضری، بلا تنخواہ چھٹی اور اقساط منہا) پھر خرچ و اندراج", "🏖️ لا إجازات مسجلة — إجازات \"بدون راتب\" تُخصم تلقائياً من كشف الرواتب": "🏖️ کوئی چھٹی درج نہیں — بلا تنخواہ چھٹی پے رول سے خودکار منہا", "عند إضافة أو تعديل الموظف (بداية ونهاية العقد ونوعه وإرفاق الملف). العقود المحددة تنبهك بالملخص قبل انتهائها بثلاثين يوم.": "ملازم شامل/ترمیم پر (معاہدہ آغاز، اختتام، قسم، فائل)۔ مقررہ معاہدے 30 دن پہلے خبردار کرتے ہیں۔", "المكافأة: نصف راتب شهر عن كل سنة من الخمس الأولى + راتب شهر عن كل سنة بعدها. الاستقالة: أقل من سنتين لا شيء، 2–5 الثلث، 5–10 الثلثان، أكثر من 10 كاملة. استرشادي — راجع محاسبك": "انعام: پہلے پانچ سال نصف ماہ فی سال + بعد میں پورا ماہ۔ استعفیٰ: 2 سال سے کم کچھ نہیں، 2–5 تہائی، 5–10 دو تہائی، 10+ مکمل۔ رہنما — اکاؤنٹنٹ سے پوچھیں", "المخزون": "اسٹاک", "💡 القيود تتولد": "💡 اندراجات خودکار بنتے ہیں", "مبني على تواريخ استحقاق الفواتير الآجلة والرواتب — الفواتير بدون تاريخ استحقاق تظهر \"غير مجدولة\"": "ادھار انوائسز اور تنخواہوں کی تاریخوں پر مبنی — بغیر تاریخ غیر شیڈول", "الترقيم بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات — والحساب الفرعي يبدأ برقم مجموعته (مثلاً 1105 تحت الأصول المتداولة 11)": "نمبرنگ: 1 اثاثے، 2 واجبات، 3 ایکویٹی، 4 آمدنی، 5 اخراجات", "👤 العميل *": "👤 گاہک *", "لتسجيل إيداع أو سحب بين الصندوق والبنك أو رصيد افتتاحي: استخدم سند قبض/صرف أو قيد يدوي من قسم القيود": "نقد و بینک کے درمیان جمع/نکاسی یا ابتدائی بیلنس: واؤچر یا دستی اندراج", "اختيار صنف مخزون يضيف الكمية لرصيده ويوجه السطر لحساب المخزون 1104 تلقائياً — وبدونه اختر حساب المصروف المناسب": "اسٹاک آئٹم منتخب کرنا مقدار شامل کر کے لائن اکاؤنٹ 1104 کو دیتا ہے", "الإهلاك بطريقة القسط الثابت: التكلفة ÷ العمر الإنتاجي سنوياً — القيمة الدفترية تتناقص تلقائياً مع الزمن": "سیدھی لائن فرسودگی: لاگت ÷ کارآمد عمر سالانہ", "قيد الإهلاك: مدين «مصروف الإهلاك 5304» / دائن «مجمع الإهلاك 1202» بقسط الشهر لكل الأصول — مرة واحدة لكل شهر": "فرسودگی اندراج: ڈیبٹ 5304 / کریڈٹ 1202 ماہانہ — ہر ماہ ایک بار", "عد الموجود فعلياً واكتبه — الأصناف اللي تتركها فاضية ما تتغير. الاعتماد يعدل الأرصدة ويسجل قيد تسوية بفروقات القيمة (حساب 5305)": "جو موجود ہے گنیں — خالی چھوڑے نہیں بدلتے۔ منظوری بیلنس درست کر کے فرق اندراج کرتی ہے", "اضغط التقرير ليفتح — واختر الفترة ثم اطبع أو صدّر من داخله": "رپورٹ کھولنے کے لیے دبائیں — مدت منتخب کر کے پرنٹ/ایکسپورٹ", "شهر مقابل شهر، ربحية الأقسام، نمو الإنتاج، المصروفات بالفئة": "ماہ بمقابلہ ماہ، سیکشن منافع، پیداوار نمو، زمرہ اخراجات", "صورة فضائية حقيقية للمزرعة — اضغط على أي علامة لعرض إحصائياتها، واسحبها لوضعها على موقعها الصحيح": "فارم کی سیٹلائٹ تصویر — نشان دبائیں یا گھسیٹیں", "💡 اسحب العلامة لتحديد موقع القسم على الخريطة — يُحفظ تلقائياً": "💡 نشان گھسیٹ کر مقام مقرر کریں — خودکار محفوظ", "اختر قسماً ثم اضغط \"ابدأ رسم الحدود\"، ثم انقر على الخريطة لتحديد نقاط الحدود": "سیکشن منتخب کریں، حدود بنانا دبائیں، نقشے پر پوائنٹس لگائیں", "تُستخدم في بنود الفواتير الإلكترونية — الوزن المكافئ اختياري لغير الوزنية، وتعديلها لا يمس الفواتير المحفوظة": "ای-انوائس لائنوں میں مستعمل — ترمیم محفوظ انوائسز کو نہیں چھوتی", "1 (تلقائي)": "1 (خودکار)", "0.001 (تلقائي)": "0.001 (خودکار)", "🔒 الاعتماد النهائي يكون من قائمة الفواتير بعد مراجعة المسودة — لا إصدار مباشر": "🔒 حتمی منظوری انوائس فہرست سے مسودہ جائزے کے بعد", "💰 مستحق لنا": "💰 ہمارا واجب", "💸 مستحق علينا": "💸 ہم پر واجب", "⚠️ متأخر": "⚠️ تاخیر", "0 مدفوعة": "0 ادا", "🧑 الحساب والهوية": "🧑 اکاؤنٹ و شناخت", "1 مالك": "1 مالک", "البيانات والرقم السري والقفل وملاك إضافيون": "ڈیٹا، نمبر، لاک و اضافی مالکان", "🏢 بيانات الشركة": "🏢 کمپنی ڈیٹا", "الاسم والسجل والضريبة والشعار": "نام، رجسٹر، ٹیکس و لوگو", "🎨 المظهر والبنية": "🎨 ظاہری شکل", "الافتراضي": "طے شدہ", "ألوان الواجهة": "انٹرفیس رنگ", "7 قسم": "7 سیکشن", "إضافة وترتيب أقسام المزرعة": "فارم سیکشنز شامل و ترتیب", "💾 البيانات والأمان": "💾 ڈیٹا و سیکیورٹی", "المنح والسحب — من هنا حصراً": "اجازتیں — صرف یہاں سے", "لا نسخ بعد": "ابھی بیک اپ نہیں", "تصدير JSON واللقطات التلقائية": "JSON ایکسپورٹ و سنیپ شاٹس", "♻️ سلة المهملات": "♻️ ردی", "استرجاع آخر المحذوفات": "حالیہ حذف شدہ بحال کریں", "تقرير": "رپورٹ", "كل عملية باسم منفّذها — من السجلات الفعلية": "ہر عمل کرنے والے کے نام — اصل ریکارڈ سے", "حذف كل شيء — استخدمه بحذر": "سب کچھ حذف — احتیاط سے", "🔐 الرقم السري للمالك الرئيسي (وقفل الملخص)": "🔐 مرکزی مالک نمبر (و ڈیش بورڈ لاک)", "⏲️ قفل تلقائي بعد خمول (دقائق — 0 لإيقافه)": "⏲️ غیر فعالی کے بعد آٹو لاک (منٹ — 0 بند)", "كل مالك إضافي له اسمه ورقم هويته ورقمه السري الخاص، ويدخل بصلاحية كاملة على النظام مثل المالك الرئيسي.": "ہر اضافی مالک اپنے نام، شناخت اور نمبر سے مکمل رسائی کے ساتھ داخل ہوتا ہے۔", "اختر تصميم السستم — التبديل فوري وآمن، بياناتك ما تتأثر، وترجع للكلاسيكي بضغطة.": "ڈیزائن منتخب کریں — فوری اور محفوظ، ڈیٹا متاثر نہیں ہوتا۔", "🌿 الكلاسيكي الأخضر ✓": "🌿 کلاسک سبز ✓", "💜 السايدبار البنفسجي": "💜 جامنی سائیڈبار", "🌿 السايدبار الأخضر": "🌿 سبز سائیڈبار", "🌙 الداكن الفاخر": "🌙 ڈارک لگژری", "🏜️ الترابي المزرعي": "🏜️ مٹیالا فارم", "💧 الواحة الزرقاء": "💧 نیلا نخلستان", "🌴 النخيل الداكن": "🌴 ڈارک کھجور", "أضف قسم جديد (مثلاً بيت محمي مكيف 3)، أو عدّل اسم قسم — إعادة التسمية ترحّل كل البيانات القديمة تلقائياً. الحذف ممكن فقط لقسم ما عليه أي بيانات.": "نیا سیکشن شامل کریں یا نام بدلیں — نام بدلنا پرانا ڈیٹا خودکار منتقل کرتا ہے۔", "لا شعار": "کوئی لوگو نہیں", "🔢 الموحد (س.ت):": "🔢 متحد (رجسٹر):", "🧾 الضريبي:": "🧾 ٹیکس:", "📱 الجوال:": "📱 موبائل:", "🏦 حسابات بنكية:": "🏦 بینک اکاؤنٹس:", "✏️ عدّل من الحقول أدناه — السجل أعلاه يتحدّث فوراً مع كل حرف": "✏️ نیچے خانوں میں ترمیم کریں — اوپر ریکارڈ فوری اپ ڈیٹ", "🏦 لا حسابات بعد — أضف أول حساب ليظهر أسفل فواتيرك": "🏦 ابھی اکاؤنٹ نہیں — پہلا شامل کریں", "يظهر في أعلى السستم وفي الفواتير وكشوف الحساب والتقارير": "سسٹم کے اوپر، انوائسز اور رپورٹس میں ظاہر ہوتا ہے", "👆 اختر موظفاً لعرض صلاحياته — كل مفتاح يُحفظ فور تقليبه": "👆 اجازتیں دیکھنے کو ملازم منتخب کریں — ہر سوئچ فوری محفوظ", "كل سجل ينحذف يجي هنا وتقدر تستعيده — تحتفظ بآخر 200 عنصر": "ہر حذف شدہ ریکارڈ یہاں آتا ہے — آخری 200", "البيانات محفوظة على هذا الجهاز/المتصفح فقط. صدّر نسخة احتياطية بشكل دوري، وتقدر تنقلها لجهاز ثاني بالاستيراد.": "ڈیٹا صرف اس آلے/براؤزر پر ہے۔ باقاعدہ بیک اپ لیں۔", "السستم يأخذ لقطة كاملة من بياناتك تلقائياً كل أسبوع (يحتفظ بآخر 4) — تقدر ترجع لأي لقطة لو صار خطأ كبير": "سسٹم ہفتہ وار سنیپ شاٹ لیتا ہے (آخری 4) — بڑی غلطی پر بحال کریں", "تقرير مبني من السجلات الفعلية — كل عملية باسم منفّذها من كل أقسام السستم": "اصل ریکارڈ سے بنی رپورٹ — ہر عمل کرنے والے کے نام", "صورة المزرعة كاملة: الأرباح والتنبيهات وقائمة الدخل والأهداف — للمالك": "پوری فارم کی تصویر: منافع، اطلاعات، انکم اسٹیٹمنٹ و اہداف — مالک کے لیے", "تسجيل أعمال اليوم: المهام المسندة، الرش، المواشي (تغذية وأوزان وبيع)، والأسماك": "آج کے کام: ٹاسک، سپرے، مویشی اور مچھلیاں", "شاشة لكل قسم من أقسام المزرعة: دوراته وأعماله وأرقامه": "ہر سیکشن کی اسکرین: سائیکل، کام اور اعداد", "كل زراعة = دورة (حالية أو مخططة للمستقبل) + إسناد المهام + أنواع العمل — والبيع لاحقاً يُنسب للدورة": "ہر کاشت = سائیکل + ٹاسک + کام کی اقسام — فروخت بعد میں منسوب", "المخزون والجرد والباركود، الصيانة والمعدات، الجودة وأمراض النباتات وتحليل التربة": "اسٹاک، گنتی، بارکوڈ، مرمت، نقشہ، معیار و مٹی تجزیہ", "الفواتير الإلكترونية (البيع الرسمي: مسودة ← اعتماد ← تُسجل مبيعاً تلقائياً)، سجل المبيعات والديون، العملاء وكشوفهم، الموردون وفواتير الشراء، طلبات الشراء باعتمادها الثلاثي، المنتجات ووحدات البيع، والمدفوعات الآجلة": "ای-انوائسز (مسودہ ← منظوری ← خودکار فروخت)، فروخت و قرض لاگ، گاہک، سپلائرز، درخواستیں اور پروڈکٹس", "المصروف التشغيلي (بفاتورته الإلزامية) + المصاريف المتكررة الشهرية ومنها العدادات (كهرباء وماء) بقراءاتها": "آپریٹنگ خرچ (لازمی انوائس) + ماہانہ متکرر بشمول میٹر", "المحاسبة الكاملة: الأداء والموازنة، القوائم المالية، الضريبة، الأصول، والتقارير المتقدمة — للمالك والمحاسب": "مکمل اکاؤنٹنگ: کارکردگی، گوشوارے، ٹیکس، اثاثے، رپورٹس — مالک و اکاؤنٹنٹ", "الموظفون ورواتبهم وسلفهم وإجازاتهم، الورديات، وتقييم الأداء — للمالك والمحاسب": "ملازمین، تنخواہیں، پیشگی، چھٹیاں، شفٹیں، جائزے — مالک و اکاؤنٹنٹ", "المُلّاك والدخول، منح الصلاحيات، تقرير حركات الموظفين (بالتعديلات والحذف)، بيانات الشركة والشعار، الثيمات، النسخ الاحتياطي واللقطات، والسلة — للمالك": "مالکان و لاگ ان، اجازتیں، حرکات رپورٹ، کمپنی ڈیٹا، تھیمز، بیک اپ اور ردی — مالک کے لیے", "💡 🔍 = بحث في كل شيء | أي قائمة ناقصها خيار؟ ابحث عن «➕ جديد…» داخلها": "💡 🔍 = ہر چیز میں تلاش | فہرست میں آپشن کم؟ ➕ نیا… تلاش کریں", "🌱 البداية الصحيحة: منتجات ← دورة ← فاتورة إلكترونية": "🌱 صحیح آغاز: پروڈکٹس ← سائیکل ← ای-انوائس", "مزرعة خيرات سايه © سستم التشغيل — جميع المبالغ بعملة الريال السعودي (⃁)": "خیرات سایہ فارم © آپریٹنگ سسٹم — تمام رقوم سعودی ریال (⃁) میں", "يُحفظ في قسم المنتجات (التجارة) ويصير متاحاً في كل الدورات والمبيعات.": "پروڈکٹس (تجارت) میں محفوظ اور ہر جگہ دستیاب۔", "الإثنين": "پیر", "الثلاثاء": "منگل", "الأربعاء": "بدھ", "الخميس": "جمعرات", "الجمعة": "جمعہ", "السبت": "ہفتہ", "الأحد": "اتوار"});
 I18N_PAT.push(
 {re:/^([٠-٩]{1,2})‏\/([٠-٩]{1,2})‏\/([٠-٩]{4})$/,en:"$1/$2/$3",ur:"$1/$2/$3"},
 {re:/^([٠-٩]{1,2})‏\/([٠-٩]{1,2})‏\/([٠-٩]{4}) — ([٠-٩]{1,2})‏\/([٠-٩]{1,2})‏\/([٠-٩]{4})$/,en:"$1/$2/$3 — $4/$5/$6",ur:"$1/$2/$3 — $4/$5/$6"},
@@ -4596,7 +4535,7 @@ function showCardTab(cardId){
 let CURRENT_USER = null;
 function isOwner(){ return CURRENT_USER && CURRENT_USER.type==="owner"; }
 // تابات تشغيلية — مفتوحة بالافتراضي للموظفين (يمكن إغلاقها)
-const PERM_TABS = [["secs","🏡 المتابعة"],["cycles","🌱 الدورات"],["quality","⭐ الجودة"],["farmmap","🗺️ الخريطة"],["maintenance","🔧 الصيانة"],["diseases","🌿 أمراض النباتات"],["purchasereq","📋 طلبات الشراء"],["stockcheck","🔍 الجرد الدوري"],["soiltest","🧪 تحليل التربة"]];
+const PERM_TABS = [["secs","🏡 المتابعة"],["cycles","🌱 الدورات"],["quality","⭐ الجودة"],["maintenance","🔧 الصيانة"],["diseases","🌿 أمراض النباتات"],["purchasereq","📋 طلبات الشراء"],["stockcheck","🔍 الجرد الدوري"],["soiltest","🧪 تحليل التربة"]];
 // تابات مالية وحساسة — مغلقة بالافتراضي (يجب منحها صراحةً)
 const PERM_FINANCIAL = [["prod","🧺 الإنتاج والمبيعات"],["exp","💸 المصروفات"],["inv","📦 المخزون والمعدات"],["sup","🚚 الموردين"],["cust","🤝 العملاء"],["products","🏷️ المنتجات"],["quotes","📋 عروض الأسعار"],["invoices","🧾 الفواتير"],["deferred","⏰ المدفوعات الآجلة"],["units","📏 وحدات البيع"]];
 // تابات المالك فقط — لا تُمنح لأي موظف
@@ -5052,7 +4991,7 @@ function applyRole(){
   const act = document.querySelector("nav button.active");
   const firstAllowed = act && canTab(act.dataset.tab)
     ? act.dataset.tab
-    : (["dash","daily","trade","cycles","secs","quality","farmmap","maintenance","diseases","soiltest","emp","acct"].find(canTab)||"daily");
+    : (["dash","daily","trade","cycles","secs","quality","maintenance","diseases","soiltest","emp","acct"].find(canTab)||"daily");
   showTab(firstAllowed);
   try{ fillSelects(); }catch(e){ console.error("fillSelects:",e); }
   try{ applyLogo(); }catch(e){}
@@ -5124,7 +5063,14 @@ async function cloudGateNewFarm(){
     await cloudSignup(em,pw);
     await __credStore(em,pw);
     sessionStorage.setItem("ksAuthed","1");
-    try{ if(!localStorage.getItem(KEY)) localStorage.setItem(KEY, JSON.stringify(blank())); }catch(e){}
+    try{
+      if(!localStorage.getItem(KEY)){
+        const _d=blank();
+        const _nm=String(prompt("👤 اسمك (الأدمن الرئيسي — يظهر في السجلات والتقارير):")||"").trim();
+        if(_nm) _d.settings.adminName=_nm;
+        localStorage.setItem(KEY, JSON.stringify(_d));
+      }
+    }catch(e){}
     location.reload();
   }catch(e){ if(msg)msg.textContent="❌ "+(e.message||"فشل إنشاء الحساب"); }
 }
@@ -5212,7 +5158,13 @@ function bootLogin(){
       cloudGateShow(); return;
     }
     /* حساب المالك */
-    CURRENT_USER={type:"owner", name: DB.settings.ownerName || "المالك"};
+    let __nm=DB.settings.adminName || DB.settings.ownerName || "";
+    if(!__nm){
+      try{ __nm=String(prompt("👤 اكتب اسمك (الأدمن الرئيسي — يظهر في السجلات والتقارير):")||"").trim(); }catch(e){}
+      if(__nm){ DB.settings.adminName=__nm; try{ save(); }catch(e){} }
+    }
+    if(!__nm){ try{ __nm=String((cloudSess()||{}).email||"").split("@")[0]; }catch(e){} }
+    CURRENT_USER={type:"owner", name: __nm||"👤"};
     sessionStorage.setItem("ksUser",JSON.stringify(CURRENT_USER));
     try{ cloudStatusUI(); setTimeout(cloudBootCheck,1200); }catch(e){}
     applyRole(); return;
@@ -5245,7 +5197,6 @@ function showTab(t){
   if(t==="settings"){ try{renderSettings();}catch(e){} renderTrash(); renderThemePick(); try{stView("hub");}catch(e){} }
   if(t==="acct"){ try{ acctRenderAll(); }catch(e){} acctGoHub(); }
   if(t==="secs") renderSecView();
-  if(t==="farmmap"){ setTimeout(renderFarmMap,50); }
   if(t==="diseases"){ renderDiseases(); }
   if(t==="shifts"){ renderShifts(); }
   if(t==="performance"){ renderPerformance(); }
@@ -10436,6 +10387,7 @@ function renderCompanySummary(){
 function fillCompanyInfo(){
   try{ renderCompanySummary(); renderBankAccts(); }catch(e){}
   const s=DB.settings, g=id=>document.getElementById(id);
+  const _an=g("adminNameInp"); if(_an && !_an.matches(":focus")) _an.value=s.adminName||s.ownerName||"";
   const map={companyNameInp:s.companyName, companyNameEnInp:s.companyNameEn, taxNoInp:s.taxNo, unifiedNoInp:(s.unifiedNo||s.crNo), coPhone:s.coPhone, agrNoInp:s.agrNo,
     coStreet:(s.coStreet||s.nationalAddress||""), coBldg:s.coBldg, coAddl:s.coAddl, coCity:s.coCity,
     coRegion:s.coRegion, coCountry:s.coCountry, coZip:s.coZip};
@@ -10528,7 +10480,6 @@ function csvEmpMoves(){
 function renderSettings(){
   fillCompanyInfo();
   const s = DB.settings;
-  const n = document.getElementById("cmpOwnerName");    if(n) n.value = s.ownerName||"";
   const oe = document.getElementById("ownerIsEmp");     if(oe){ oe.checked = !!s.ownerIsEmp; toggleOwnerEmp(); }
   const oes = document.getElementById("ownerEmpSel");
   if(oes){ oes.innerHTML = DB.employees.map(e=>`<option value="${e.id}"${e.id===s.ownerEmpId?" selected":""}>${e.name}</option>`).join(""); }
@@ -10584,6 +10535,16 @@ async function cloudRegisterLegal(){
     await cloudAuthFetch("/rest/v1/farm_legal?on_conflict=farm_id",{method:"POST",
       headers:{Prefer:prov?"resolution=merge-duplicates":"resolution=ignore-duplicates"},
       body:JSON.stringify([{farm_id:cloudFarmId(), tax_no:t, cr_no:c, updated_at:new Date().toISOString()}])});
+  }catch(e){}
+}
+function saveAdminName(v){
+  DB.settings.adminName=String(v||"").trim(); save();
+  try{
+    if(CURRENT_USER && CURRENT_USER.type==="owner"){
+      CURRENT_USER.name=DB.settings.adminName||String((cloudSess()||{}).email||"").split("@")[0]||"👤";
+      userName.textContent=CURRENT_USER.name;
+      sessionStorage.setItem("ksUser",JSON.stringify(CURRENT_USER));
+    }
   }catch(e){}
 }
 function saveCompanyInfo(showToast){
@@ -10982,7 +10943,7 @@ function permFillSelect(){
 }
 const PERM_DESC={
   secs:"بطاقات الأقسام وأعدادها للاطلاع",cycles:"تسجيل الدورات والمهام وأنواع العمل",quality:"تسجيل جودة الحصاد",
-  farmmap:"خريطة المزرعة",maintenance:"سجل صيانة المعدات وتنبيهاتها",diseases:"سجل أمراض النباتات والمعالجة",
+  maintenance:"سجل صيانة المعدات وتنبيهاتها",diseases:"سجل أمراض النباتات والمعالجة",
   soiltest:"فحوصات التربة",purchasereq:"تقديم طلبات الشراء ومتابعتها",stockcheck:"العد الفعلي في الجرد الدوري",
   prod:"سجل المبيعات ومتابعة الديون والدفعات",exp:"تسجيل المصروفات بمرفقاتها والمتكررات",inv:"المخزون والمعدات وحركاتها",
   sup:"الموردون وفواتير الشراء",cust:"سجل العملاء والراكدين",products:"تعريف المنتجات وأسعارها",
@@ -11012,7 +10973,7 @@ function permLoadEmp(){
       <b style="font-size:.85rem${danger?";color:#791F1F":""}">${title}</b><div style="margin-top:4px">${inner}</div></div>`;
   const secIcons={"الزراعة المكشوفة":"🌿","المشتل":"🌱"};
   const secsHtml=SECTIONS.map(sc=>row("tab","sec_"+sc,(sc===FISH_SECTION?"🐟":sc==="قسم المواشي"?"🐄":(secIcons[sc]||"🏠")),sc,"التسجيل الميداني في هذا القسم",!!(p.tabs&&p.tabs["sec_"+sc]===true))).join("");
-  const opsKeys=["secs","cycles","quality","farmmap","maintenance","diseases","soiltest"];
+  const opsKeys=["secs","cycles","quality","maintenance","diseases","soiltest"];
   const tradeKeys=["prod","exp","inv","sup","cust","products","purchasereq","stockcheck","quotes","invoices","deferred","units"];
   const mk=k=>row("tab",k,(PERM_LBL[k]||k).split(" ")[0],(PERM_LBL[k]||k).split(" ").slice(1).join(" "),PERM_DESC[k],!!(p.tabs&&p.tabs[k]===true));
   const mkD=k=>row("tab",k,(PERM_LBL[k]||k).split(" ")[0],(PERM_LBL[k]||k).split(" ").slice(1).join(" "),PERM_DESC[k],!!(p.tabs&&p.tabs[k]===true),true);
@@ -11889,289 +11850,6 @@ function postDep(){
 
 
 
-/* ====== خريطة المزرعة الفضائية (Leaflet) ====== */
-let farmLeafMap = null;
-let farmLeafMarkers = {};
-const FARM_LAT = 22.2415032, FARM_LNG = 39.667973;
-const FARM_COLORS = ["#16a34a","#2563eb","#d97706","#dc2626","#7c3aed","#0891b2","#0d9488","#ea580c"];
-
-function farmMapFail(){
-  const el=document.getElementById("farmMapLeaflet"); if(!el) return;
-  el.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;background:#f8fafc;text-align:center;padding:20px">
-    <div style="font-size:2.2rem">🌐</div>
-    <div style="font-weight:700;color:#334155">تعذّر تحميل الخريطة</div>
-    <div style="color:#64748b;font-size:.85rem;max-width:360px">جرّبنا التحميل من ثلاث شبكات توزيع مختلفة وفشلت كلها. لو إنترنتك شغّال، فالغالب جدار حماية أو DNS يحجب مواقع المكتبات (cdnjs / unpkg / jsdelivr) — جرّب شبكة أخرى أو غيّر DNS.</div>
-    <button class="btn secondary" onclick="retryFarmMap()">🔄 إعادة المحاولة</button>
-  </div>`;
-}
-function retryFarmMap(){
-  const old=document.getElementById("lfJs"); if(old) old.remove();
-  window.__lfCdn=0; window.__lfTries=0;
-  const el=document.getElementById("farmMapLeaflet"); if(el) el.innerHTML="";
-  renderFarmMap();
-}
-function renderFarmMap(){
-  const el=document.getElementById("farmMapLeaflet"); if(!el) return;
-  if(!window.L){
-    if(!farmLeafMap && !el.querySelector(".leaflet-container") && !el.textContent.trim())
-      el.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;background:#f8fafc">⏳ جارٍ تحميل الخريطة…</div>';
-    const LF_CDNS=[
-      ["https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css","https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"],
-      ["https://unpkg.com/leaflet@1.9.4/dist/leaflet.css","https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"],
-      ["https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css","https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"]
-    ];
-    if(window.__lfCdn===undefined) window.__lfCdn=0;
-    if(!document.getElementById("lfJs")){
-      if(window.__lfCdn>=LF_CDNS.length){ farmMapFail(); return; }
-      const src=LF_CDNS[window.__lfCdn];
-      window.__lfTries=0;
-      const oldCss=document.getElementById("lfCss"); if(oldCss) oldCss.remove();
-      const lnk=document.createElement("link");
-      lnk.id="lfCss"; lnk.rel="stylesheet"; lnk.href=src[0];
-      document.head.appendChild(lnk);
-      const scr=document.createElement("script");
-      scr.id="lfJs"; scr.src=src[1];
-      scr.onload=()=>{ const e2=document.getElementById("farmMapLeaflet"); if(e2 && !e2.querySelector(".leaflet-container")) e2.innerHTML=""; initLeafletMap(); };
-      scr.onerror=()=>{ scr.remove(); window.__lfCdn++; renderFarmMap(); };
-      document.head.appendChild(scr);
-    } else {
-      window.__lfTries=(window.__lfTries||0)+1;
-      if(window.__lfTries>40){ farmMapFail(); return; }
-      setTimeout(renderFarmMap, 200);
-    }
-    return;
-  }
-  const e3=document.getElementById("farmMapLeaflet");
-  if(e3 && !e3.querySelector(".leaflet-container")) e3.innerHTML="";
-  initLeafletMap();
-}
-
-function initLeafletMap(){
-  const el=document.getElementById("farmMapLeaflet"); if(!el) return;
-  if(!window.L){ setTimeout(initLeafletMap,200); return; }
-  if(farmLeafMap){
-    try{ farmLeafMap.invalidateSize(); }catch(e){}
-    updateFarmMarkers();
-    return;
-  }
-  farmLeafMap = L.map("farmMapLeaflet",{zoomControl:true, maxBoundsViscosity:1.0}).setView([FARM_LAT,FARM_LNG],16);
-  // حصر العرض على نطاق المزرعة فقط (≈ 900م لكل اتجاه) ومنع التصغير خارجها
-  const _farmBounds=L.latLngBounds([FARM_LAT-0.008, FARM_LNG-0.011],[FARM_LAT+0.008, FARM_LNG+0.011]);
-  farmLeafMap.setMaxBounds(_farmBounds);
-  farmLeafMap.setMinZoom(15);
-  setTimeout(()=>{ try{ farmLeafMap.invalidateSize(); }catch(e){} }, 300);
-
-  // طبقة OpenStreetMap (تعمل دائماً)
-  const osmLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
-    attribution:"© OpenStreetMap", maxZoom:19
-  });
-  // طبقة الصور الفضائية Esri
-  const esriLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{
-    attribution:"© Esri World Imagery", maxZoom:19, maxNativeZoom:17
-  });
-  // طبقة أسماء المواقع (تُضاف فوق Esri)
-  const esriLabels = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{
-    attribution:"", maxZoom:19, maxNativeZoom:17, opacity:0.8
-  });
-
-  // افتراضي: الصور الفضائية
-  esriLayer.addTo(farmLeafMap);
-  esriLabels.addTo(farmLeafMap);
-
-  // زر التبديل بين الخرائط
-  L.control.layers(
-    {"🛰️ صور فضائية": esriLayer, "🗺️ خريطة الشوارع": osmLayer},
-    {"أسماء المواقع": esriLabels},
-    {position:"topright", collapsed:false}
-  ).addTo(farmLeafMap);
-
-  updateFarmMarkers();
-  renderBoundaries();
-  renderEquipMarkers();
-  // Populate boundary section select
-  const bSel=document.getElementById('boundarySecSel');
-  if(bSel&&bSel.options.length<=1){ SECTIONS.forEach(s=>bSel.innerHTML+=`<option value="${s}">${s}</option>`); }
-  // Populate equipment item select
-  const eqSel=document.getElementById('eqLocItem');
-  if(eqSel&&eqSel.options.length<=1){ (DB.inventory||[]).filter(i=>['معدة','مركبة','جرار'].some(t=>i.category?.includes(t))).forEach(i=>eqSel.innerHTML+=`<option value="${i.name}">${i.name}</option>`); }
-  renderEqLocTable();
-}
-
-/* ---- Boundary Drawing ---- */
-let _drawBoundaryPoints=[], _drawBoundaryMarkers=[], _drawBoundaryMode=false, _drawPreviewLine=null;
-function startDrawBoundary(){
-  const sec=document.getElementById('boundarySecSel')?.value;
-  if(!sec){ toast('⚠️ اختر قسماً أولاً'); return; }
-  if(!farmLeafMap){ toast('⚠️ الخريطة غير جاهزة'); return; }
-  _drawBoundaryMode=true; _drawBoundaryPoints=[]; _drawBoundaryMarkers=[];
-  if(_drawPreviewLine){ _drawPreviewLine.remove(); _drawPreviewLine=null; }
-  document.getElementById('btnStartBoundary').style.display='none';
-  document.getElementById('btnFinishBoundary').style.display='';
-  document.getElementById('btnCancelBoundary').style.display='';
-  document.getElementById('boundaryHint').textContent='انقر على الخريطة لإضافة نقاط الحدود (3 نقاط على الأقل)، ثم اضغط "حفظ الحدود"';
-  farmLeafMap.on('click', _onBoundaryClick);
-  farmLeafMap.getContainer().style.cursor='crosshair';
-}
-function _onBoundaryClick(e){
-  if(!_drawBoundaryMode) return;
-  _drawBoundaryPoints.push([e.latlng.lat, e.latlng.lng]);
-  const m=L.circleMarker(e.latlng,{radius:6,color:'#e74c3c',fillColor:'#e74c3c',fillOpacity:1}).addTo(farmLeafMap);
-  m.bindTooltip(`${_drawBoundaryPoints.length}`,{permanent:true,className:'',direction:'top'});
-  _drawBoundaryMarkers.push(m);
-  if(_drawPreviewLine) _drawPreviewLine.remove();
-  if(_drawBoundaryPoints.length>=2){
-    _drawPreviewLine=L.polygon(_drawBoundaryPoints,{color:'#e74c3c',weight:2,dashArray:'5,5',fillOpacity:0.15}).addTo(farmLeafMap);
-  }
-  document.getElementById('boundaryHint').textContent=`${_drawBoundaryPoints.length} نقطة — ${_drawBoundaryPoints.length>=3?'يمكنك حفظ الحدود الآن أو إضافة المزيد':'أضف نقطة أخرى على الأقل'}`;
-}
-function finishDrawBoundary(){
-  const sec=document.getElementById('boundarySecSel')?.value;
-  if(!sec||_drawBoundaryPoints.length<3){ toast('⚠️ تحتاج 3 نقاط على الأقل'); return; }
-  cancelDrawBoundary(true);
-  if(!DB.sectionBoundaries) DB.sectionBoundaries={};
-  DB.sectionBoundaries[sec]=_drawBoundaryPoints;
-  save(); renderBoundaries(); toast('✅ تم حفظ حدود '+sec);
-}
-function cancelDrawBoundary(keep=false){
-  _drawBoundaryMode=false;
-  farmLeafMap.off('click',_onBoundaryClick);
-  farmLeafMap.getContainer().style.cursor='';
-  if(!keep){ _drawBoundaryMarkers.forEach(m=>m.remove()); if(_drawPreviewLine){_drawPreviewLine.remove();_drawPreviewLine=null;} }
-  else { _drawBoundaryMarkers.forEach(m=>m.remove()); }
-  _drawBoundaryPoints=[]; _drawBoundaryMarkers=[];
-  document.getElementById('btnStartBoundary').style.display='';
-  document.getElementById('btnFinishBoundary').style.display='none';
-  document.getElementById('btnCancelBoundary').style.display='none';
-  document.getElementById('boundaryHint').textContent='اختر قسماً ثم اضغط "ابدأ رسم الحدود"، ثم انقر على الخريطة لتحديد نقاط الحدود';
-}
-function clearBoundary(){
-  const sec=document.getElementById('boundarySecSel')?.value;
-  if(!sec){ toast('⚠️ اختر قسماً'); return; }
-  if(!confirm(`حذف حدود قسم ${sec}؟`)) return;
-  delete DB.sectionBoundaries[sec]; save(); renderBoundaries(); toast('🗑️ تم حذف الحدود');
-}
-let _boundaryLayers={};
-function renderBoundaries(){
-  if(!farmLeafMap||!window.L) return;
-  Object.values(_boundaryLayers).forEach(l=>{ try{l.remove();}catch(e){} }); _boundaryLayers={};
-  if(!DB.sectionBoundaries) return;
-  Object.entries(DB.sectionBoundaries).forEach(([sec,pts],i)=>{
-    const color=FARM_COLORS[SECTIONS.indexOf(sec)%FARM_COLORS.length]||'#2ecc71';
-    const poly=L.polygon(pts,{color,fillColor:color,fillOpacity:0.2,weight:2})
-      .bindTooltip(sec,{permanent:true,direction:'center',className:''}).addTo(farmLeafMap);
-    _boundaryLayers[sec]=poly;
-  });
-}
-
-/* ---- Equipment Location ---- */
-let _pickingEquip=false;
-function pickEquipOnMap(){
-  if(!farmLeafMap){ toast('⚠️ الخريطة غير جاهزة — افتح تاب الخريطة أولاً'); return; }
-  _pickingEquip=true;
-  farmLeafMap.getContainer().style.cursor='crosshair';
-  toast('📍 انقر على الخريطة لتحديد موقع المعدة');
-  farmLeafMap.once('click',function(e){
-    document.getElementById('eqLocLat').value=e.latlng.lat.toFixed(6);
-    document.getElementById('eqLocLng').value=e.latlng.lng.toFixed(6);
-    farmLeafMap.getContainer().style.cursor=''; _pickingEquip=false;
-    toast('✅ تم تحديد الموقع — اضغط "حفظ الموقع"');
-  });
-}
-function saveEquipLocation(e){
-  e.preventDefault();
-  const name=document.getElementById('eqLocName').value||document.getElementById('eqLocItem').value;
-  const lat=parseFloat(document.getElementById('eqLocLat').value);
-  const lng=parseFloat(document.getElementById('eqLocLng').value);
-  if(!name||isNaN(lat)||isNaN(lng)){ toast('⚠️ أدخل الاسم والإحداثيات'); return; }
-  if(!DB.equipmentLocations) DB.equipmentLocations=[];
-  const existing=DB.equipmentLocations.findIndex(x=>x.name===name);
-  const entry={id:existing>=0?DB.equipmentLocations[existing].id:uid(), name, lat, lng, status:document.getElementById('eqLocStatus').value, updatedAt:new Date().toISOString()};
-  if(existing>=0) DB.equipmentLocations[existing]=entry;
-  else DB.equipmentLocations.push(entry);
-  save(); renderEquipMarkers(); renderEqLocTable(); e.target.reset(); toast('✅ تم حفظ موقع '+name);
-}
-let _equipMarkers={};
-function renderEquipMarkers(){
-  if(!farmLeafMap||!window.L) return;
-  Object.values(_equipMarkers).forEach(m=>{ try{m.remove();}catch(e){} }); _equipMarkers={};
-  (DB.equipmentLocations||[]).forEach(eq=>{
-    const color=eq.status==='active'?'#27ae60':eq.status==='maintenance'?'#e74c3c':'#95a5a6';
-    const icon=L.divIcon({className:'',html:`<div style="background:${color};color:#fff;padding:4px 8px;border-radius:14px;font-size:11px;font-family:Tahoma;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.4)">🚜 ${eq.name}</div>`,iconAnchor:[0,0]});
-    const m=L.marker([eq.lat,eq.lng],{icon,draggable:true}).addTo(farmLeafMap);
-    m.bindPopup(`<b>${eq.name}</b><br>الحالة: ${eq.status}<br>آخر تحديث: ${(eq.updatedAt||'').slice(0,10)}<br><button onclick="deleteEquipLoc('${eq.id}')" style="background:#e74c3c;color:#fff;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;margin-top:4px">🗑️ حذف</button>`);
-    m.on('dragend',function(ev){
-      eq.lat=ev.target.getLatLng().lat; eq.lng=ev.target.getLatLng().lng;
-      eq.updatedAt=new Date().toISOString(); save(); renderEqLocTable(); toast('📍 تم تحديث موقع '+eq.name);
-    });
-    _equipMarkers[eq.id]=m;
-  });
-}
-function deleteEquipLoc(id){ if(!confirm('حذف؟')) return; DB.equipmentLocations=DB.equipmentLocations.filter(x=>x.id!==id); save(); renderEquipMarkers(); renderEqLocTable(); }
-function renderEqLocTable(){
-  const tbody=document.getElementById('eqLocTbody'); if(!tbody) return;
-  const statusLabel={active:'✅ نشط',idle:'⏸️ معطل',maintenance:'🔧 صيانة'};
-  tbody.innerHTML=(DB.equipmentLocations||[]).length?(DB.equipmentLocations||[]).map(eq=>`<tr>
-    <td>${eq.name}</td><td>${eq.lat?.toFixed(5)||'—'}</td><td>${eq.lng?.toFixed(5)||'—'}</td>
-    <td>${statusLabel[eq.status]||eq.status}</td>
-    <td style="display:flex;gap:4px">
-      <button onclick="focusEquip('${eq.id}')" style="background:var(--green);color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">📍 عرض</button>
-      <button onclick="deleteEquipLoc('${eq.id}')" style="background:var(--red);color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">🗑️</button>
-    </td>
-  </tr>`).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--muted)">لا توجد معدات مسجلة</td></tr>';
-}
-function focusEquip(id){ const eq=DB.equipmentLocations?.find(x=>x.id===id); if(eq&&farmLeafMap) farmLeafMap.setView([eq.lat,eq.lng],16); }
-
-function updateFarmMarkers(){
-  if(!farmLeafMap||!window.L) return;
-  Object.values(farmLeafMarkers).forEach(m=>{ try{m.remove();}catch(e){} });
-  farmLeafMarkers={};
-  const positions=DB.settings.sectionPositions||{};
-  const n=SECTIONS.length;
-  const cols=Math.ceil(Math.sqrt(n));
-  SECTIONS.forEach((sec,i)=>{
-    const row=Math.floor(i/cols), col=i%cols;
-    const dlat=(row-Math.floor(Math.sqrt(n)/2))*0.0007;
-    const dlng=(col-cols/2+0.5)*0.0009;
-    const pos=positions[sec]?positions[sec]:[FARM_LAT+dlat, FARM_LNG+dlng];
-    const color=FARM_COLORS[i%FARM_COLORS.length];
-    const active=DB.cycles.filter(c=>c.section===sec&&c.status==="جارية").length;
-    const rev=DB.harvests.filter(h=>{const c=DB.cycles.find(x=>x.id===h.cycleId);return c&&c.section===sec;}).reduce((s,h)=>s+h.total,0);
-    const icon=L.divIcon({
-      className:"",
-      html:`<div style="background:${color};color:#fff;padding:2px 7px;border-radius:12px;font-size:9px;font-family:Tahoma,Arial;font-weight:bold;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.85);cursor:pointer;text-align:center;direction:rtl">
-        ${SECT_SHORT[sec]||sec}<br><span style="font-size:7.5px;opacity:.9">${active} دورة | ${fmtSR(rev)}</span></div>`,
-      iconAnchor:[0,0]
-    });
-    const marker=L.marker(pos,{icon,draggable:true}).addTo(farmLeafMap);
-    marker.on("click",()=>showSectionInfo(sec));
-    marker.on("dragend",()=>{
-      const ll=marker.getLatLng();
-      if(!DB.settings.sectionPositions) DB.settings.sectionPositions={};
-      DB.settings.sectionPositions[sec]=[ll.lat,ll.lng];
-      save(); toast("📍 حُفظ موقع «"+sec+"»");
-    });
-    farmLeafMarkers[sec]=marker;
-  });
-}
-function showSectionInfo(sec){
-  const info=document.getElementById("farmMapInfo"); if(!info) return;
-  const cycles=DB.cycles.filter(c=>c.section===sec);
-  const active=cycles.filter(c=>c.status==="جارية");
-  const harvests=DB.harvests.filter(h=>{const c=DB.cycles.find(x=>x.id===h.cycleId);return c&&c.section===sec;});
-  const rev=harvests.reduce((s,h)=>s+h.total,0);
-  const exp=DB.expenses.filter(x=>x.section===sec).reduce((s,x)=>s+x.amount,0);
-  info.style.display="block";
-  info.innerHTML=`<h3 style="margin:0 0 8px">📍 ${sec}</h3>
-    <div style="display:flex;gap:16px;flex-wrap:wrap">
-      <div><b>الدورات النشطة:</b> ${active.length}</div>
-      <div><b>إجمالي الدورات:</b> ${cycles.length}</div>
-      <div><b>إجمالي المبيعات:</b> ${fmtSR(rev)}</div>
-      <div><b>إجمالي التكاليف:</b> ${fmtSR(exp)}</div>
-      <div><b>الربح:</b> <span style="color:${rev-exp>=0?"#166534":"#dc2626"}">${fmtSR(rev-exp)}</span></div>
-    </div>
-    ${active.map(c=>`<div style="margin-top:6px;padding:6px;background:#fff;border-radius:6px;font-size:.85rem">🌱 ${prodName(c.productId)} — زُرعت ${c.plantDate}</div>`).join("")}`;
-}
-
 /* ====== مراقبة الجودة ====== */
 function renderQuality(){
   const sel=document.getElementById("qCycle");
@@ -12323,7 +12001,6 @@ function initAll(){
   try{ renderQuality(); }catch(e){}
   try{ renderMaintenance(); }catch(e){}
   try{ renderBudget(); }catch(e){}
-  try{ setTimeout(renderFarmMap,300); }catch(e){}
 }
 /* ====== المواشي ====== */
 function getLivestock(){ if(Array.isArray(DB.livestock)) DB.livestock=null; return DB.livestock||(DB.livestock={dailyReports:[],animals:[],milkLogs:[],birthDeathLogs:[],healthLogs:[],vaccines:[],breeding:[],individuals:[],feedLogs:[],weightLogs:[],barns:[],barnTransfers:[],medicines:[],medUses:[]}); }

@@ -2157,6 +2157,15 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     </div>
   </div>
 
+  <div id="acct_apv" style="display:none">
+    <h2>🧾 اعتماد الإدخالات</h2>
+    <p class="muted" style="margin-bottom:10px">كل إدخالات التجارة تدخل السجلات فورًا بحالة «⏳ بانتظار الاعتماد». راجعها هنا: ✅ اعتماد يثبّت · 🔄 إرجاع للتصحيح يبقيها حية مع ملاحظة تصل للمنشئ · ❌ رفض يسحبها كليًا لسجل المرفوضات (محظور إذا كان عليها حركات لاحقة).</p>
+    <div class="row no-print" style="margin-bottom:8px;gap:8px">
+      <button class="btn small" id="apvTabP" type="button" onclick="window.__apvTab='p';renderApv()">⏳ بانتظار الاعتماد</button>
+      <button class="btn small secondary" id="apvTabR" type="button" onclick="window.__apvTab='rej';renderApv()">🗑️ المرفوضات</button>
+    </div>
+    <div class="card table-wrap"><table id="tblApv"></table></div>
+  </div>
   <div id="acct_coa" style="display:none">
     <h2>🌳 دليل الحسابات</h2>
     <div class="card">
@@ -4205,6 +4214,11 @@ function load(){
       if(d.settings.vatRate===undefined) d.settings.vatRate=15;
       if(!d.settings.taxNo && d.settings.vatNo) d.settings.taxNo=d.settings.vatNo;
       if(!d.settings.companyName && d.settings.sellerName && d.settings.sellerName!=="مزرعة خيرات سايه") d.settings.companyName=d.settings.sellerName;
+      if(!Array.isArray(d.rejects)) d.rejects=[];
+      if(!d.settings.apvInit){
+        ["expenses","purchases","harvests","invMoves"].forEach(k=>(d[k]||[]).forEach(r=>{ if(!r.apv) r.apv="a"; }));
+        d.settings.apvInit=true;
+      }
       if(d.settings.companyName===undefined) d.settings.companyName="";
       if(d.settings.accent!==undefined) delete d.settings.accent;
       if(d.settings.crNo===undefined) d.settings.crNo="";
@@ -4539,7 +4553,7 @@ const PERM_TABS = [["secs","🏡 المتابعة"],["cycles","🌱 الدورا
 // تابات مالية وحساسة — مغلقة بالافتراضي (يجب منحها صراحةً)
 const PERM_FINANCIAL = [["prod","🧺 الإنتاج والمبيعات"],["exp","💸 المصروفات"],["inv","📦 المخزون والمعدات"],["sup","🚚 الموردين"],["cust","🤝 العملاء"],["products","🏷️ المنتجات"],["quotes","📋 عروض الأسعار"],["invoices","🧾 الفواتير"],["deferred","⏰ المدفوعات الآجلة"],["units","📏 وحدات البيع"]];
 // تابات المالك فقط — لا تُمنح لأي موظف
-const PERM_SENSITIVE = [["dash","📊 الملخص"],["acct","📒 الحسابات"],["emp","👷 الموظفين"]];
+const PERM_SENSITIVE = [["dash","📊 الملخص"],["acct","📒 الحسابات"],["apv","🧾 اعتماد الإدخالات"],["emp","👷 الموظفين"]];
 const PERM_ACTS = [["edit","✏️ تعديل إدخالاته"],["del","🗑️ حذف إدخالاته"],["settle","تسجيل سداد العملاء والموردين"]];
 function myPerms(){
   if(!CURRENT_USER || CURRENT_USER.type!=="emp") return null;
@@ -4583,11 +4597,177 @@ function canSettle(){
   const p = myPerms();
   return !p || !p.acts || p.acts.settle!==false;
 }
+/* ====== دورة اعتماد الإدخالات (اعتماد/إرجاع/رفض) ====== */
+const APV_TYPES={exp:"مصروف",pur:"فاتورة شراء",sale:"بيع",inv:"مخزون"};
+function canApprove(){ if(isOwner()) return true; const p=myPerms(); return !!(p&&p.tabs&&p.tabs.apv===true); }
+function apvState(r){ return (r&&r.apv)||"p"; }
+function apvFind(t,id){
+  const arr=t==="exp"?DB.expenses:t==="pur"?DB.purchases:t==="sale"?DB.harvests:DB.invMoves;
+  return arr.find(r=>r.id===id);
+}
+function apvBadge(t,r){
+  const st=apvState(r);
+  if(st==="a") return "";
+  if(st==="rc"){
+    const mine=CURRENT_USER&&(r.employee===CURRENT_USER.name||isOwner());
+    const btn=mine?` <button class="btn small secondary" style="padding:1px 8px" title="بعد التصحيح أعد تقديمه للاعتماد" onclick="apvResubmit('${t}','${r.id}')">🔁</button>`:"";
+    return ` <span class="badge warn" title="${String(r.rcNote||"").replace(/"/g,"&quot;")}">🔄 للتصحيح</span>${btn}`;
+  }
+  return ' <span class="badge" style="background:#eef2ff;color:#4338ca" title="بانتظار اعتماد المحاسب">⏳</span>';
+}
+function apvResubmit(t,id){
+  const r=apvFind(t,id); if(!r||apvState(r)!=="rc") return;
+  r.apv="p"; r.rcDone=today();
+  logEdit("🔁 إعادة تقديم إدخال",apvDesc(t,r));
+  save(); toast("🔁 أُعيد تقديمه للاعتماد");
+  try{ renderHarvests(); renderExpenses(); renderPurchases(); }catch(e){}
+  try{ renderApv(); }catch(e){}
+}
+function apvDesc(t,r){
+  if(t==="exp") return "مصروف: "+(r.cat||"")+" — "+(r.section||"")+" — "+fmtSR(r.amount||0);
+  if(t==="pur") return "فاتورة شراء: "+supName(r.supplierId)+" — "+fmtSR(r.amount||0);
+  if(t==="sale"){
+    const c=DB.cycles.find(x=>x.id===r.cycleId);
+    const nm=r.productName||(c?prodName(c.productId):"بيع");
+    return "بيع: "+nm+" "+fmt(r.qty||0)+" — "+fmtSR(r.total||0)+(r.customerId?" — "+custName(r.customerId):"");
+  }
+  const it=DB.inventory.find(x=>x.id===r.itemId);
+  return "إضافة مخزون: "+(it?it.name:"صنف")+" +"+fmt(r.qty||0);
+}
+function apvPendingList(){
+  const L=[];
+  (DB.expenses||[]).forEach(r=>{ const st=apvState(r); if(st!=="a") L.push({t:"exp",r,st}); });
+  (DB.purchases||[]).forEach(r=>{ const st=apvState(r); if(st!=="a") L.push({t:"pur",r,st}); });
+  (DB.harvests||[]).forEach(r=>{ const st=apvState(r); if(st!=="a") L.push({t:"sale",r,st}); });
+  (DB.invMoves||[]).forEach(r=>{ if(String(r.type||"").includes("إضافة")){ const st=apvState(r); if(st!=="a") L.push({t:"inv",r,st}); } });
+  return L.sort((a,b)=>String(b.r.date||"").localeCompare(String(a.r.date||"")));
+}
+function apvDeps(t,r){
+  if(t==="sale"){
+    if(r.fromInvoice||r.invId) return "مصدره فاتورة إلكترونية معتمدة — التصحيح يكون بإشعار دائن لا بالرفض";
+    if((r.payments||[]).length||r.paid) return "سُجل عليه تحصيل/سداد — عالجه أولاً";
+  }
+  if(t==="pur"){
+    if((r.payments||[]).length||r.paid) return "سُجل عليه سداد للمورد — عالجه أولاً";
+    if(r.itemId&&r.qty>0){ const it=DB.inventory.find(x=>x.id===r.itemId); if(!it||it.qty<r.qty) return "انصُرف من الكمية المورَّدة — الرصيد لا يكفي لعكسها"; }
+  }
+  if(t==="inv"){
+    const it=DB.inventory.find(x=>x.id===r.itemId); if(!it||it.qty<r.qty) return "انصُرف من الكمية — الرصيد لا يكفي لعكسها";
+  }
+  if(t==="exp"){
+    if((DB.purchases||[]).some(p2=>p2.expId===r.id)) return "مصروف مولّد من فاتورة شراء — راجِع الفاتورة نفسها";
+    if(r.cat==="رواتب وعمالة") return "مصروف رواتب — يُدار من مسير الرواتب";
+  }
+  return "";
+}
+function apvOk(t,id){
+  if(!canApprove()){ toast("⚠️ الاعتماد بصلاحية المحاسب"); return; }
+  const r=apvFind(t,id); if(!r) return;
+  r.apv="a"; r.apvBy=CURRENT_USER.name; r.apvDate=today(); delete r.rcNote;
+  logEdit("✅ اعتماد إدخال",apvDesc(t,r));
+  save(); toast("✅ اعتُمد");
+  try{ renderApv(); renderHarvests(); renderExpenses(); renderPurchases(); }catch(e){}
+}
+function apvRet(t,id){
+  if(!canApprove()){ toast("⚠️ الاعتماد بصلاحية المحاسب"); return; }
+  const r=apvFind(t,id); if(!r) return;
+  const note=String(prompt("📝 ملاحظة التصحيح للمنشئ (إلزامية):")||"").trim();
+  if(!note){ toast("⚠️ الملاحظة إلزامية للإرجاع"); return; }
+  r.apv="rc"; r.rcNote=note; r.rcBy=CURRENT_USER.name; r.rcDate=today();
+  logEdit("🔄 إرجاع إدخال للتصحيح",apvDesc(t,r)+" — "+note);
+  save(); toast("🔄 أُرجع للتصحيح — سيصل التنبيه للمنشئ");
+  try{ renderApv(); renderHarvests(); renderExpenses(); renderPurchases(); }catch(e){}
+}
+function apvRej(t,id){
+  if(!canApprove()){ toast("⚠️ الاعتماد بصلاحية المحاسب"); return; }
+  const r=apvFind(t,id); if(!r) return;
+  const dep=apvDeps(t,r); if(dep){ alert("⛔ لا يمكن الرفض: "+dep); return; }
+  const reason=String(prompt("❌ سبب الرفض (إلزامي):")||"").trim();
+  if(!reason){ toast("⚠️ السبب إلزامي للرفض"); return; }
+  if(!confirm("رفض الإدخال وسحبه كليًا من السجلات؟")) return;
+  (DB.rejects=DB.rejects||[]).push({id:uid(), t, date:today(), by:CURRENT_USER.name, reason,
+    emp:r.employee||"", desc:apvDesc(t,r), rec:JSON.parse(JSON.stringify(r)),
+    exRec:t==="pur"?JSON.parse(JSON.stringify(DB.expenses.find(x=>x.id===r.expId)||null)):null});
+  if(t==="exp") DB.expenses=DB.expenses.filter(x=>x.id!==id);
+  else if(t==="sale") DB.harvests=DB.harvests.filter(x=>x.id!==id);
+  else if(t==="pur"){
+    if(r.itemId&&r.qty>0){ const it=DB.inventory.find(x=>x.id===r.itemId); if(it){ it.qty-=r.qty;
+      DB.invMoves.push({id:uid(), date:today(), itemId:it.id, type:"صرف", qty:r.qty, employee:CURRENT_USER.name, notes:"عكس رفض فاتورة شراء", apv:"a"}); } }
+    DB.expenses=DB.expenses.filter(x=>x.id!==r.expId);
+    DB.purchases=DB.purchases.filter(x=>x.id!==id);
+  }
+  else if(t==="inv"){
+    const it=DB.inventory.find(x=>x.id===r.itemId); if(it) it.qty-=r.qty;
+    DB.invMoves=DB.invMoves.filter(x=>x.id!==id);
+  }
+  logEdit("❌ رفض إدخال",apvDesc(t,r)+" — "+reason);
+  save(); toast("❌ رُفض وسُجل في المرفوضات");
+  try{ renderApv(); renderHarvests(); renderExpenses(); renderPurchases(); renderInv(); }catch(e){}
+}
+function apvRestore(rid){
+  if(!canApprove()) return;
+  const i=(DB.rejects||[]).findIndex(x=>x.id===rid); if(i<0) return;
+  const R=DB.rejects[i];
+  if(!confirm("استعادة الإدخال المرفوض للسجلات بحالة «بانتظار الاعتماد»؟")) return;
+  const r=R.rec; r.apv="p"; delete r.rcNote;
+  if(R.t==="exp") DB.expenses.push(r);
+  else if(R.t==="sale") DB.harvests.push(r);
+  else if(R.t==="pur"){
+    if(R.exRec) DB.expenses.push(R.exRec);
+    if(r.itemId&&r.qty>0){ const it=DB.inventory.find(x=>x.id===r.itemId); if(it){ it.qty+=r.qty;
+      DB.invMoves.push({id:uid(), date:today(), itemId:it.id, type:"إضافة (شراء/توريد)", qty:r.qty, employee:CURRENT_USER.name, notes:"استعادة فاتورة مرفوضة", apv:"a"}); } }
+    DB.purchases.push(r);
+  }
+  else if(R.t==="inv"){
+    const it=DB.inventory.find(x=>x.id===r.itemId); if(it) it.qty+=r.qty;
+    DB.invMoves.push(r);
+  }
+  DB.rejects.splice(i,1);
+  logEdit("↩️ استعادة إدخال مرفوض",R.desc);
+  save(); toast("↩️ استُعيد بانتظار الاعتماد");
+  try{ renderApv(); renderHarvests(); renderExpenses(); renderPurchases(); renderInv(); }catch(e){}
+}
+function renderApv(){
+  const tbl=document.getElementById("tblApv"); if(!tbl) return;
+  const tab=window.__apvTab||"p";
+  const bP=document.getElementById("apvTabP"), bR=document.getElementById("apvTabR");
+  if(bP) bP.className="btn small"+(tab==="p"?"":" secondary");
+  if(bR) bR.className="btn small"+(tab==="rej"?"":" secondary");
+  if(tab==="rej"){
+    const rows=(DB.rejects||[]).slice().reverse().map(R=>`<tr><td>${R.date}</td><td>${APV_TYPES[R.t]||R.t}</td><td>${R.desc}</td><td>${R.emp||"—"}</td><td>${R.by}</td><td>${R.reason}</td><td><button class="btn small secondary" onclick="apvRestore('${R.id}')">↩️ استعادة</button></td></tr>`).join("");
+    tbl.innerHTML=`<tr><th>التاريخ</th><th>النوع</th><th>البيان</th><th>المنشئ</th><th>رفضه</th><th>السبب</th><th></th></tr>`+(rows||`<tr><td colspan="7" class="muted">لا مرفوضات 🎉</td></tr>`);
+    return;
+  }
+  const can=canApprove();
+  const rows=apvPendingList().map(x=>{
+    const r=x.r;
+    const stb=x.st==="rc"?`<span class="badge warn">🔄 للتصحيح: ${r.rcNote||""}</span>`:`<span class="badge" style="background:#eef2ff;color:#4338ca">⏳ بانتظار</span>`;
+    const acts=can?`<button class="btn small" onclick="apvOk('${x.t}','${r.id}')">✅ اعتماد</button> <button class="btn small secondary" onclick="apvRet('${x.t}','${r.id}')">🔄 إرجاع</button> <button class="btn small secondary" style="border-color:#c66;color:#791F1F" onclick="apvRej('${x.t}','${r.id}')">❌ رفض</button>`:'<span class="muted">بصلاحية المحاسب</span>';
+    return `<tr><td>${r.date||""}</td><td>${APV_TYPES[x.t]}</td><td>${apvDesc(x.t,r)}</td><td>${r.employee||"—"}</td><td>${stb}</td><td style="white-space:nowrap">${acts}</td></tr>`;
+  }).join("");
+  tbl.innerHTML=`<tr><th>التاريخ</th><th>النوع</th><th>البيان</th><th>المنشئ</th><th>الحالة</th><th>إجراءات</th></tr>`+(rows||`<tr><td colspan="6" class="muted">✅ لا إدخالات بانتظار الاعتماد</td></tr>`);
+}
+
 
 /* ===== Notification Bell ===== */
 function buildNotifications(){
   const alerts = [];
   const d = today();
+  /* دورة اعتماد الإدخالات */
+  try{
+    if(typeof canApprove==="function" && canApprove()){
+      const nA=apvPendingList().filter(x=>x.st==="p").length;
+      if(nA) alerts.push({level:"warn", ico:"🧾", title:"إدخالات بانتظار الاعتماد", sub:fmt(nA)+" إدخال — الحسابات ← اعتماد الإدخالات"});
+    }
+    if(CURRENT_USER){
+      apvPendingList().filter(x=>x.st==="rc"&&x.r.employee===CURRENT_USER.name).forEach(x=>{
+        alerts.push({level:"warn", ico:"🔄", title:"أُرجع إدخالك للتصحيح", sub:apvDesc(x.t,x.r)+" — الملاحظة: "+(x.r.rcNote||"")});
+      });
+      (DB.rejects||[]).filter(R=>R.emp===CURRENT_USER.name).slice(-10).forEach(R=>{
+        alerts.push({level:"urgent", ico:"❌", title:"رُفض إدخالك", sub:R.desc+" — السبب: "+R.reason});
+      });
+    }
+  }catch(e){}
 
   // دورات متأخرة (تجاوزت تاريخ الحصاد)
   DB.cycles.filter(c=>c.status==="نشطة" && c.harvestDate && c.harvestDate < d).forEach(c=>{
@@ -7100,7 +7280,7 @@ function renderHarvests(){
     return `<tr><td>${h.date}</td><td><b>${c?prodName(c.productId):(h.productName||"؟")}</b>${_orph?' <span class="badge warn" title="لا تدخل في ربحية الأقسام">⚠️ بلا دورة</span> <button class="edt" title="ربط بدورة" onclick="linkHarvestCycle(\''+h.id+'\')">🔗</button>':''}</td><td>${c?c.section:(h.section||"؟")}</td>
       <td>${fmt(h.qty)} ${h.unit||"كجم"}</td><td>${h.unpriced?"—":fmtSR(h.price)}</td><td class="pos">${h.unpriced?'<span class="badge warn">بانتظار التسعير</span>':fmtSR(h.total)}</td>
       <td>${h.customerId?custName(h.customerId):"نقدي"}</td>
-      <td>${h.paid?'<span class="badge active">مدفوع'+(h.paidDate?" "+h.paidDate:"")+'</span>'
+      <td>${apvBadge('sale',h)}${h.paid?'<span class="badge active">مدفوع'+(h.paidDate?" "+h.paidDate:"")+'</span>'
         : hPaidAmt(h)>0?'<span class="badge warn">جزئي — باقي '+fmt(hRemain(h))+'</span> <button class="btn small secondary" onclick="payHarvest(\''+h.id+'\')">دفعة</button>'
         :'<span class="badge danger">آجل</span> <button class="btn small secondary" onclick="payHarvest(\''+h.id+'\')">دفعة</button> <button class="btn small secondary" onclick="markPaid(\''+h.id+'\')">سداد</button>'}</td>
       <td>${h.employee||""}</td>
@@ -7190,7 +7370,7 @@ function renderExpenses(){
     const cyc = x.cycleId ? DB.cycles.find(c=>c.id===x.cycleId) : null;
     return `<tr><td>${x.date}</td><td><b>${x.cat}</b></td><td>${x.section}</td>
      <td>${cyc?prodName(cyc.productId):"—"}</td>
-     <td class="neg">${fmtSR(x.amount)}</td><td>${x.employee||""}</td><td>${x.notes||""}</td>
+     <td class="neg">${fmtSR(x.amount)}</td><td>${x.employee||""}${apvBadge('exp',x)}</td><td>${x.notes||""}</td>
      <td>${(x.invFile||x.invFileRef)?`<button class="edt" title="عرض الفاتورة" onclick="viewExpFile('${x.id}')">📎</button>`:""}${canEdit(x.employee)?`<button class="edt" onclick="editExpense('${x.id}')">✏️</button>`:""}${canDelete(x.employee)?`<button class="del" onclick="delExpense('${x.id}')">🗑️</button>`:""}</td></tr>`;
   }).join("");
   tblExpenses.innerHTML =
@@ -8603,7 +8783,7 @@ function renderPurchases(){
   const rows = DB.purchases.slice().reverse().map(p=>
     `<tr><td>${p.date}</td><td><b>${supName(p.supplierId)}</b></td><td>${p.cat}</td><td>${p.desc||"—"}</td>
      <td class="neg">${fmtSR(p.amount)}</td>
-     <td>${p.paid?'<span class="badge active">مدفوع</span>':'<span class="badge danger">آجل</span> <button class="btn small secondary" onclick="markPurchasePaid(\''+p.id+'\')">سداد</button>'}</td>
+     <td>${apvBadge('pur',p)}${p.paid?'<span class="badge active">مدفوع</span>':'<span class="badge danger">آجل</span> <button class="btn small secondary" onclick="markPurchasePaid(\''+p.id+'\')">سداد</button>'}</td>
      <td>${p.employee||""}</td>
      <td>${canEdit(p.employee)?`<button class="edt" onclick="editPurchase('${p.id}')">✏️</button>`:""}${canDelete(p.employee)?`<button class="del" onclick="delPurchase('${p.id}')">🗑️</button>`:""}</td></tr>`).join("");
   tblPurchases.innerHTML = `<tr><th>التاريخ</th><th>المورد</th><th>البند</th><th>الوصف</th><th>المبلغ</th><th>السداد</th><th>الموظف</th><th></th></tr>`
@@ -9669,7 +9849,7 @@ function autoEntries(from, to){
 }
 const ACCT_TITLES={ov:"🏠 النظرة العامة والتدفق",coa:"🌳 دليل الحسابات",bank:"🏦 البنوك والنقد",jr:"✍️ القيود اليومية",gl:"📖 دفتر الأستاذ",stmt:"👤 كشف حساب عميل",inc:"📅 قائمة الدخل",yr:"🗓️ التقرير السنوي",tb:"⚖️ ميزان المراجعة",bs:"🏛️ المركز المالي",purch:"🚚 المشتريات وفواتيرها",fa:"🏢 الأصول الثابتة",invm:"📦 إدارة المخزون",hr:"💵 مسير الرواتب",tax:"🧾 إقرار الضريبة",perf:"📊 الموازنة والأداء",alloc:"⚙️ توزيع المصاريف المشتركة على الأقسام",adv:"📈 التقارير المتقدمة",prof:"📊 ربحية المنتج",cv:"🤝 العملاء والموردون والذمم",rpt:"📑 التقارير"};
 function acctSec(s){
-  const all = ["ov","coa","bank","jr","gl","stmt","inc","yr","tb","bs","purch","fa","invm","hr","tax","perf","cv","rpt","adv","prof","alloc"];
+  const all = ["ov","coa","bank","jr","gl","stmt","inc","yr","tb","bs","purch","fa","invm","hr","tax","perf","cv","rpt","adv","prof","alloc","apv"];
   all.forEach(k=>{
     const el = document.getElementById("acct_"+k);
     const btn = document.getElementById("sb_"+k);
@@ -9680,6 +9860,7 @@ function acctSec(s){
   const bb=document.getElementById("acctBackBar"); if(bb) bb.style.display="flex";
   if(window.__acctCur && window.__acctCur!==s) window.__acctPrev=window.__acctCur;
   window.__acctCur=s;
+  if(s==="apv"){ try{ renderApv(); }catch(e){} }
   if(s==="coa"){ try{ renderAccounts(); renderAcctSelects(); }catch(e){} }
   if(s==="purch"){ try{ renderAcPurch(); }catch(e){} }
   if(s==="inc"){ try{ renderIncomeAcct(); }catch(e){} }
@@ -9738,7 +9919,7 @@ function acctSecBack(){
 }
 function acctGoHub(){
   window.__acctPrev=null; window.__acctCur=null;
-  ["ov","coa","bank","jr","gl","stmt","inc","yr","tb","bs","purch","fa","invm","hr","tax","perf","cv","rpt","adv","prof"].forEach(k=>{
+  ["ov","coa","bank","jr","gl","stmt","inc","yr","tb","bs","purch","fa","invm","hr","tax","perf","cv","rpt","adv","prof","apv"].forEach(k=>{
     const el=document.getElementById("acct_"+k); if(el) el.style.display="none";
   });
   const bb=document.getElementById("acctBackBar"); if(bb) bb.style.display="none";
@@ -9847,6 +10028,7 @@ function renderAcctHub(){
     <h2 style="margin-bottom:10px">🧾 العمليات اليومية</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:18px">
       ${op("jr","✍️","القيود والسندات")}
+      ${op("apv","🧾","اعتماد الإدخالات")}
     </div>
     <h2 style="margin-bottom:10px">📚 السجلات والإدارة</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:18px">
@@ -10179,6 +10361,7 @@ function renderCV(){
     + (supRows || `<tr><td colspan="3" class="muted">✅ لا مستحقات للموردين</td></tr>`);
 }
 function acctRenderAll(){
+  try{ renderApv(); }catch(e){}
   [renderAcctSelects,renderAccounts,renderJournals,renderTrial,renderLedger,
    renderOverview,renderBS,renderBank,renderAcSales,renderAcPurch,
    renderFA,renderTax,renderHR,renderHrAll,renderInvM,renderPerf,renderCV,renderCustStatement,renderIncomeAcct,renderAnnualAcct,fillPerfGoals,renderBudget,renderReports,renderProfitability
@@ -10967,6 +11150,7 @@ const PERM_DESC={
   invoices:"الفواتير الإلكترونية: مسودة واعتماد وإشعارات",deferred:"المدفوعات الآجلة",units:"وحدات البيع وأوزانها",
   dash:"لوحة المالك: الأرباح والتنبيهات والتقارير الحية",acct:"الدفاتر والقوائم والضريبة + الاعتماد الأولي للطلبات",
   emp:"الموارد البشرية: الملفات والرواتب والحضور (منح الصلاحيات يبقى لك)",
+  apv:"مراجعة إدخالات التجارة: اعتماد/إرجاع للتصحيح/رفض — للمحاسب (تتطلب صلاحية الحسابات معها)",
   edit:"بدونها: يسجل ولا يستطيع تعديل إدخالاته",del:"بدونها: لا يستطيع حذف أي إدخال — حتى إدخالاته هو",settle:"قبض وتحصيل ديون العملاء وسداد الموردين"};
 const PERM_LBL=Object.fromEntries([...PERM_TABS,...PERM_FINANCIAL,...PERM_SENSITIVE,...PERM_ACTS]);
 function permLoadEmp(){
@@ -10999,7 +11183,7 @@ function permLoadEmp(){
     grpCard("📝 أقسام اليوميات — وين يسجل ميدانياً",secsHtml)
     +grpCard("⚙️ التشغيل",opsKeys.map(mk).join(""))
     +grpCard("💼 التجارة",tradeKeys.map(mk).join(""))
-    +grpCard("🔐 حساسة — امنحها بوعي",["dash","acct","emp"].map(mkD).join("")+["edit","settle"].map(mkA).join(""),true);
+    +grpCard("🔐 حساسة — امنحها بوعي",["dash","acct","apv","emp"].map(mkD).join("")+["edit","settle"].map(mkA).join(""),true);
 }
 function permToggle(empId,kind,key,el){
   const em=DB.employees.find(e=>e.id===empId); if(!em){ el.checked=!el.checked; return; }

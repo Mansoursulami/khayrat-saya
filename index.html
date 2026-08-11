@@ -10508,19 +10508,8 @@ function csvEmpMoves(){
 function renderSettings(){
   fillCompanyInfo();
   const s = DB.settings;
-  const oe = document.getElementById("ownerIsEmp");     if(oe){ oe.checked = !!s.ownerIsEmp; toggleOwnerEmp(); }
-  const oes = document.getElementById("ownerEmpSel");
-  if(oes){ oes.innerHTML = DB.employees.map(e=>`<option value="${e.id}"${e.id===s.ownerEmpId?" selected":""}>${e.name}</option>`).join(""); }
 }
 
-function fillOwnerFromEmp(){
-  const sel = document.getElementById("ownerEmpSel");
-  if(!sel) return;
-  const em = DB.employees.find(e=>e.id===sel.value);
-  if(!em) return;
-  const n = document.getElementById("ownerName"); if(n) n.value = em.name;
-  const i = document.getElementById("ownerIdNo"); if(i) i.value = em.idNo||"";
-}
 
 
 /* ====== دوال الثيم والمظهر ====== */

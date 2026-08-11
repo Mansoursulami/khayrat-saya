@@ -209,7 +209,14 @@ tr:hover td{background:#fafcfa}
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:760px){.charts{grid-template-columns:1fr}}
 .chart-box{position:relative;height:280px}
-.toast{position:fixed;bottom:20px;right:50%;transform:translateX(50%);background:var(--green-dark);color:#fff;padding:12px 24px;border-radius:12px;font-weight:700;display:none;z-index:99}
+.toast{position:fixed;bottom:20px;right:50%;transform:translateX(50%);background:var(--green-dark);color:#fff;padding:12px 24px;border-radius:12px;font-weight:700;display:none;z-index:9999}
+@media (max-width:840px){.toast{bottom:calc(92px + env(safe-area-inset-bottom))}
+  input,select,textarea,.qsInp{font-size:16px !important}
+  #notifPanel{max-width:94vw}
+}
+#notifPanel .notifItem .txt{min-width:0;flex:1;overflow:hidden}
+#notifPanel .notifItem .txt b,#notifPanel .notifItem .txt span{display:block;overflow:hidden;text-overflow:ellipsis}
+input[type="date"]{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18'><text y='15' font-size='14'>📅</text></svg>");background-repeat:no-repeat;background-position:left 8px center;padding-left:30px}
 .muted{color:var(--muted);font-size:.82rem}
 /* حالات الفراغ المحسّنة */
 td[colspan].muted{padding:28px;text-align:center;font-size:1rem}
@@ -818,7 +825,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <button class="btn small secondary" onclick="copyToday()">📋 ملخص اليوم</button>
         <button class="btn small secondary" onclick="printFarmCensus()">🖨️ التقرير الشامل</button>
         <span style="margin-inline-start:auto;display:flex;gap:6px;align-items:end">
-          <span><label style="font-size:.7rem">تقرير سنوي</label><input type="number" id="ryYear" style="width:90px" min="2020" max="2100"></span>
+          <span><label style="font-size:.7rem">تقرير سنوي</label><input type="number" id="ryYear" placeholder="2026" style="width:90px" min="2020" max="2100"></span>
           <button class="btn small secondary" onclick="printAnnual()">🖨️ طباعة السنة</button>
         </span>
       </div>
@@ -1031,7 +1038,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
   <div class="filters card no-print fpI" data-fp="work">
     <div><label>من</label><input type="date" id="fTkFrom" onchange="renderTasks()"></div>
     <div><label>إلى</label><input type="date" id="fTkTo" onchange="renderTasks()"></div>
-    <div><label>القسم</label><select id="fTkSec" onchange="renderTasks()"></select></div>
+    <div id="fTkSecWrap"><label>القسم</label><select id="fTkSec" onchange="renderTasks()"></select></div>
     <div><label>الموظف</label><input id="fTkEmp" oninput="renderTasks()" placeholder="بحث بالاسم"></div>
     <div style="flex:0"><button class="btn small secondary" onclick="fTkFrom.value='';fTkTo.value='';fTkSec.value='all';fTkEmp.value='';renderTasks()">مسح</button></div>
   </div>
@@ -1543,7 +1550,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     <form onsubmit="addCycle(event)">
       <div class="row">
         <div><label>المنتج * <button type="button" class="btn small secondary" style="padding:2px 10px;font-size:.75rem;margin-inline-start:6px" onclick="openQuickProduct()">➕ منتج جديد</button></label><select id="cyProduct" required></select></div>
-        <div id="cySectionWrap"><label>القسم *</label><select id="cySection" required></select></div>
+        <div id="cySectionWrap"><label>القسم *</label><select id="cySection" required onchange="try{fillCyProducts()}catch(e){}"></select></div>
         <div><label>تاريخ الزراعة / الإنزال *</label><input type="date" id="cyPlant" required></div>
         <div><label>تاريخ بداية المحصول (متوقع)</label><input type="date" id="cyHarvest"></div>
       </div>
@@ -1593,7 +1600,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
 
   <h2>الدورات المسجلة <button class="btn small secondary no-print" onclick="csvCycles()">⬇️ CSV</button></h2>
   <div class="filters card no-print">
-    <div><label>القسم</label><select id="fCySec" onchange="renderCycles()"></select></div>
+    <div id="fCySecWrap"><label>القسم</label><select id="fCySec" onchange="renderCycles()"></select></div>
     <div><label>الحالة</label><select id="fCyStatus" onchange="renderCycles()"><option value="all">الكل</option><option>نشطة</option><option>مخططة</option><option>منتهية</option></select></div>
     <div><label>المنتج</label><input id="fCyProd" oninput="renderCycles()" placeholder="بحث بالاسم"></div>
     <div style="flex:0"><button class="btn small secondary" onclick="fCySec.value='all';fCyStatus.value='all';fCyProd.value='';renderCycles()">مسح</button></div>
@@ -2070,6 +2077,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     <form onsubmit="addProduct(event)">
       <div class="row">
         <div><label>اسم المنتج *</label><input id="prName" required placeholder="مثال: طماطم"></div>
+        <div><label>القسم (اختياري)</label><select id="prSec"></select></div>
         <div><label>الوصف (اختياري)</label><input id="prDesc" placeholder="مثال: صنف بلدي درجة أولى"></div>
         <div><label>التصنيف *</label>
           <select id="prType" required onchange="prTypeSel(this)">
@@ -2087,7 +2095,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <button class="btn" id="prBtn">إضافة</button>
     </form>
   </div>
-  <h2>قائمة المنتجات</h2>
+  <h2>قائمة المنتجات <button class="btn small secondary no-print" onclick="printProducts()">🖨️ طباعة</button> <button class="btn small secondary no-print" onclick="exportProductsCSV()">📥 CSV</button></h2>
   <div class="card table-wrap"><table id="tblProducts"></table></div>
 </div>
 
@@ -3555,7 +3563,7 @@ const __natAlert=window.alert.bind(window), __natConfirm=window.confirm.bind(win
 window.alert=m=>__natAlert(__trString(m));
 window.confirm=m=>__natConfirm(__trString(m));
 window.prompt=(m,d)=>__natPrompt(__trString(m),d);
-function __dateLocale(){ return __lang==="en"?"en-GB":(__lang==="ur"?"ur-PK":"ar-SA"); }
+function __dateLocale(){ return __lang==="en"?"en-GB":(__lang==="ur"?"ur-PK":"ar-SA-u-ca-gregory-nu-latn"); }
 function setSysLang(l){
   __lang = I18N[l]||l==="ar" ? l : "ar";
   document.documentElement.lang=l;
@@ -5436,6 +5444,7 @@ function natQa2(sel){
     }});
 }
 function fillSelects(){
+  try{ const _ry=document.getElementById("ryYear"); if(_ry&&!_ry.value) _ry.value=new Date().getFullYear(); }catch(e){}
   try{ fillNatSelect(); }catch(e){}
   const sec = SECTIONS.map(s=>`<option>${s}</option>`).join("");
   const secAll = `<option value="all">كل الأقسام</option>`+sec;
@@ -5448,7 +5457,9 @@ function fillSelects(){
   exCat.innerHTML = expCatsList().map(c=>`<option>${c}</option>`).join("")+'<option value="__new">➕ بند جديد…</option>';
   qaHook(exCat,el=>qaSelNew(el,"expCat"));
   fExCat.innerHTML = `<option value="all">كل البنود</option>`+expCatsList().map(c=>`<option>${c}</option>`).join("");
-  cyProduct.innerHTML = DB.products.length ? DB.products.map(p=>`<option value="${p.id}">${p.name}${p.type?` (${p.type})`:""}</option>`).join("") : `<option value="">— أضف منتجاً بزر ➕ أعلاه —</option>`;
+  const _ps=document.getElementById("prSec");
+  if(_ps){ const _pv2=_ps.value; _ps.innerHTML='<option value="">عام (كل الأقسام)</option>'+SECTIONS.map(s=>`<option>${s}</option>`).join(""); if(_pv2)_ps.value=_pv2; }
+  fillCyProducts();
   mvItem.innerHTML = (DB.inventory.length
     ? DB.inventory.map(i=>`<option value="${i.id}">${i.name} (متوفر ${fmt(i.qty)} ${i.unit})</option>`).join("")
     : `<option value="">— لا أصناف بعد —</option>`)+'<option value="__new">➕ صنف جديد…</option>';
@@ -5665,6 +5676,7 @@ function selectCycleSec(sec){
   if(typeof cySection!=="undefined"&&cySection){ cySection.value=sec; const w=document.getElementById("cySectionWrap"); if(w) w.style.display="none"; }
   if(typeof agSec!=="undefined"&&agSec){ agSec.value=sec; const aw=document.getElementById("agSecWrap"); if(aw) aw.style.display="none"; }
   if(typeof fCySec!=="undefined"&&fCySec) fCySec.value=sec;
+  try{ document.getElementById("fCySecWrap").style.display="none"; }catch(e){}
   try{ renderCycles(); }catch(e){}
 }
 function backCycleSec(){
@@ -5676,6 +5688,7 @@ function backCycleSec(){
   const w=document.getElementById("cySectionWrap"); if(w) w.style.display="";
   const aw=document.getElementById("agSecWrap"); if(aw) aw.style.display="";
   if(typeof fCySec!=="undefined"&&fCySec) fCySec.value="all";
+  try{ document.getElementById("fCySecWrap").style.display=""; }catch(e){}
   try{ renderCycleSecPicker(); }catch(e){}
 }
 const FP_CFG={
@@ -5716,7 +5729,7 @@ const LV_FORMS=[
  ["tasks","📌","مهامي المسندة"],["daily","📋","التقرير اليومي"],["transfer","🔁","نقل بين الحظائر"],
  ["milk","🥛","الحليب"],["births","🐾","المواليد والنفوق"],["weights","⚖️","الأوزان"],
  ["health","🩺","الصحة والعلاج"],["vaccines","💉","التطعيمات"],["pharmacy","💊","الصيدلية"],
- ["breeding","🐄","التلقيح"],["feed","🌾","التغذية"],["sale","💰","بيع المواشي والحليب"],["structure","⚙️","بنية القسم"]];
+ ["breeding","🐄","التلقيح (الدفع والمضاريع)"],["feed","🌾","التغذية"],["sale","💰","بيع المواشي والحليب"],["structure","⚙️","بنية القسم"]];
 function renderLvFormPicker(){
   const box=document.getElementById("lvFormPicker"); if(!box) return;
   box.innerHTML=`<h2 style="margin-bottom:14px">🐑 قسم المواشي — اختر النموذج</h2>
@@ -5920,6 +5933,11 @@ function editTask(id){
 }
 function delTask(id){ if(confirm("حذف السجل؟")){ const t=DB.tasks.find(x=>x.id===id); trashIt("tasks","عمل يومي",`${t.type} — ${t.date}`,t); DB.tasks=DB.tasks.filter(x=>x.id!==id); save(); renderTasks(); } }
 function renderTasks(){
+  try{
+    const w8=document.getElementById("fTkSecWrap");
+    if(w8) w8.style.display=CUR_DAILY_SEC?"none":"";
+    if(CUR_DAILY_SEC && fTkSec.value!==CUR_DAILY_SEC) fTkSec.value=CUR_DAILY_SEC;
+  }catch(e){}
   const rows = DB.tasks.filter(t=> inRange(t.date,fTkFrom,fTkTo)
       && (fTkSec.value==="all"||t.section===fTkSec.value)
       && (!fTkEmp.value||t.employee.includes(fTkEmp.value.trim())))
@@ -6779,7 +6797,7 @@ function printFarmCensus(){
   ${html||'<p style="color:#888;text-align:center;margin-top:30px">لا بيانات بعد — سجّل الدورات والقطيع والأحواض أولاً</p>'}
   ${strip}
   <p style="text-align:center;font-size:10.5px;color:#888;border-top:1px dashed #ddd;margin-top:14px;padding-top:8px">صدر بتاريخ ${today()} — ${coName} © سستم التشغيل</p>
-  <div class="no-print" style="margin-top:14px;text-align:center"><button onclick="window.print()" style="padding:8px 26px;background:#065f46;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">🖨️ طباعة</button></div>
+  <div class="no-print" style="margin-top:14px;text-align:center"><button onclick="window.print()" style="padding:8px 26px;background:#065f46;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">🖨️ طباعة</button> <button onclick="try{window.close()}catch(e){};history.back()" style="padding:8px 20px;background:#fff;color:#333;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:14px;margin-inline-start:8px">↩️ رجوع</button></div>
   </body></html>`);
   win.document.close();
 }
@@ -6873,7 +6891,7 @@ function printLvReport(){
   <table><tr><th>الموعد</th><th>اللقاح</th><th>الحيوان</th></tr>${vacRows}</table>
   <h2>آخر الأوزان المسجّلة</h2>
   <table><tr><th>الوسم</th><th>الوزن</th><th>التاريخ</th></tr>${wtRows}</table>
-  <button onclick="window.print()" style="margin-top:14px;padding:8px 20px">🖨️ طباعة</button>
+  <button onclick="window.print()" style="margin-top:14px;padding:8px 20px">🖨️ طباعة</button> <button onclick="try{window.close()}catch(e){};history.back()" style="margin-top:14px;padding:8px 16px">↩️ رجوع</button>
   </body></html>`);
   w.document.close();
 }
@@ -7068,6 +7086,7 @@ function saveQuickProduct(){
   DB.products.push(rec);
   save(); fillSelects();
   try{ renderProducts(); }catch(e){}
+  try{fillCyProducts()}catch(e){}
   if(typeof cyProduct!=="undefined"&&cyProduct) cyProduct.value=rec.id;
   /* لو فُتحت من بند فاتورة: حدّث القوائم واختر المنتج الجديد في الصف */
   try{ invRefreshProdSelects(); }catch(e){}
@@ -7099,7 +7118,7 @@ function addCycle(e){
 }
 function editCycle(id){
   const c = DB.cycles.find(x=>x.id===id); if(!c) return;
-  cyProduct.value=c.productId; cySection.value=c.section; cyPlant.value=c.plantDate; cyHarvest.value=c.harvestDate||"";
+  cySection.value=c.section; try{fillCyProducts()}catch(e){} cyProduct.value=c.productId; cyPlant.value=c.plantDate; cyHarvest.value=c.harvestDate||"";
   cyQty.value=c.qtyInfo||""; cyCost.value=c.initCost; cyEmp.value=c.employee; cyNotes.value=c.notes||"";
   EDIT.cycle=id; cyBtn.textContent="💾 حفظ التعديل"; markEditing("cardCycle",true);
 }
@@ -7460,7 +7479,7 @@ function delCustPrice(custId, prodId){
 }
 function renderCustPrices(){
   const sel1=cpCust.value, sel2=cpProd.value;
-  cpCust.innerHTML = DB.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join("") || `<option value="">أضف عميل</option>`;
+  cpCust.innerHTML = DB.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join("") || `<option value="">— لا عملاء بعد: أضفهم من التجارة ← العملاء —</option>`;
   cpProd.innerHTML = DB.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join("");
   if(sel1) cpCust.value=sel1; if(sel2) cpProd.value=sel2;
   const c = DB.customers.find(x=>x.id===cpCust.value);
@@ -7685,17 +7704,21 @@ function __qsOpen(sel, firstChar){
   document.body.appendChild(panel);
   const place=()=>{
     const r=inp.getBoundingClientRect();
-    panel.style.left=r.left+"px";
+    const vv=window.visualViewport;
+    const vTop=vv?vv.offsetTop:0;
+    const vBottom=vv?(vv.offsetTop+vv.height):window.innerHeight;
+    panel.style.left=Math.max(4,r.left)+"px";
     panel.style.width=r.width+"px";
-    const below=window.innerHeight-r.bottom-10;
+    const below=vBottom-r.bottom-10;
     if(below<150 && r.top>below){
       panel.style.top="";
-      panel.style.bottom=(window.innerHeight-r.top+2)+"px";
-      panel.style.maxHeight=Math.max(120,Math.min(230,r.top-12))+"px";
+      const b=Math.max(4, vh-r.top+2);
+      panel.style.bottom=b+"px";
+      panel.style.maxHeight=Math.max(110,Math.min(230,r.top-14))+"px";
     }else{
       panel.style.bottom="";
-      panel.style.top=(r.bottom+2)+"px";
-      panel.style.maxHeight=Math.max(120,Math.min(230,below))+"px";
+      panel.style.top=Math.max(vTop+8,(r.bottom+2))+"px";
+      panel.style.maxHeight=Math.max(110,Math.min(230,below))+"px";
     }
   };
   place();
@@ -8118,7 +8141,7 @@ function printQuote(id){
   </div>`:''}
   <p style="text-align:center;font-size:13px;color:#92400e;background:#fef9c3;border:1px solid #fde68a;border-radius:8px;margin-top:16px;padding:9px">⏳ ${q.valid?`هذا العرض ساري حتى <b>${q.valid}</b> <span style="font-size:10px;color:#b0891f">This quotation is valid until ${q.valid}</span>`:'هذا العرض غير محدد الصلاحية <span style="font-size:10px;color:#b0891f">No expiry date specified</span>'}</p>
   <p style="text-align:center;font-size:11.5px;color:#6b7280;border-top:1px dashed #d1d5db;margin-top:14px;padding-top:9px">شكراً لتعاملكم معنا 🌱 ${coName}${coEn?' — '+coEn:''}</p>
-  <div class="no-print" style="margin-top:14px;text-align:center"><button onclick="window.print()" style="padding:8px 26px;background:#065f46;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">🖨️ طباعة</button></div>
+  <div class="no-print" style="margin-top:14px;text-align:center"><button onclick="window.print()" style="padding:8px 26px;background:#065f46;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">🖨️ طباعة</button> <button onclick="try{window.close()}catch(e){};history.back()" style="padding:8px 20px;background:#fff;color:#333;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:14px;margin-inline-start:8px">↩️ رجوع</button></div>
   </body></html>`);
   win.document.close();
 }
@@ -8881,10 +8904,46 @@ function nextProdNo(){
   DB.settings.prodSeq=(DB.settings.prodSeq||0)+1;
   return "PRD-"+String(DB.settings.prodSeq).padStart(4,"0");
 }
+function exportProductsCSV(){
+  dlCSV([["الرقم","المنتج","التصنيف","الوحدة","وزن الوحدة (كجم)","سعر البيع الافتراضي","القسم"],
+    ...DB.products.map(p2=>[p2.prodNo||"",p2.name,p2.type||"",p2.unit||"",p2.unitW||"",p2.price||0,p2.section||"عام"])],"المنتجات");
+}
+function printProducts(){
+  const rows=DB.products.map(p2=>`<tr><td>${p2.prodNo||""}</td><td><b>${p2.name}</b></td><td>${p2.type||""}</td><td>${p2.unit||""}</td><td>${p2.unitW||"—"}</td><td>${fmt(p2.price||0)} ⃁</td><td>${p2.section||"عام"}</td></tr>`).join("");
+  const w=window.open("","_blank");
+  w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>قائمة المنتجات</title>
+  <style>*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}@page{margin:8mm}
+  body{font-family:Tahoma,Arial;margin:20px;color:#222}h2{color:#065f46;text-align:center;margin:4px 0}
+  .sub{text-align:center;color:#666;font-size:12px;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}th{background:#065f46;color:#fff;padding:7px}td{border:1px solid #ddd;padding:6px;text-align:center}
+  tr:nth-child(even) td{background:#f6faf8}</style></head><body>
+  <h2>${DB.settings.companyName||"مزرعة خيرات سايه"} — قائمة المنتجات</h2>
+  <div class="sub">${today()} · ${fmt(DB.products.length)} منتج</div>
+  <table><tr><th>الرقم</th><th>المنتج</th><th>التصنيف</th><th>الوحدة</th><th>وزن الوحدة</th><th>السعر الافتراضي</th><th>القسم</th></tr>${rows}</table>
+  <div class="no-print" style="margin-top:16px;text-align:center">
+    <button onclick="window.print()" style="padding:8px 26px;background:#065f46;color:#fff;border:none;border-radius:6px;cursor:pointer">🖨️ طباعة</button>
+    <button onclick="try{window.close()}catch(e){};history.back()" style="padding:8px 20px;background:#fff;color:#333;border:1px solid #ccc;border-radius:6px;cursor:pointer;margin-inline-start:8px">↩️ رجوع</button>
+  </div></body></html>`);
+  w.document.close();
+}
+function fillCyProducts(){
+  const el=(typeof cyProduct!=="undefined")?cyProduct:document.getElementById("cyProduct");
+  if(!el) return;
+  const sec=(document.getElementById("cySection")||{}).value||"";
+  const cur=el.value;
+  const list=DB.products.filter(p=>{
+    if(p.section && sec && p.section!==sec) return false;
+    if(sec===FISH_SECTION) return p.type==="أسماك";
+    if(sec) return p.type!=="أسماك";
+    return true;
+  });
+  el.innerHTML = list.length ? list.map(p=>`<option value="${p.id}">${p.name}${p.type?` (${p.type})`:""}</option>`).join("") : `<option value="">— لا منتجات مناسبة لهذا القسم: أضف بزر ➕ —</option>`;
+  if(cur && list.some(p=>p.id===cur)) el.value=cur;
+}
 function addProduct(e){
   e.preventDefault();
   if(!(+prUnitW.value>0)){ toast("⚠️ وزن الوحدة إجباري — للكجم اكتب 1"); return; }
-  const rec = {name:prName.value.trim(), desc:(document.getElementById("prDesc")?.value||"").trim(), type:prType.value, unit:prUnit.value, unitW:+prUnitW.value, price:+prPrice.value||0};
+  const rec = {section:(document.getElementById("prSec")?.value||""), name:prName.value.trim(), desc:(document.getElementById("prDesc")?.value||"").trim(), type:prType.value, unit:prUnit.value, unitW:+prUnitW.value, price:+prPrice.value||0};
   if(EDIT.product){ Object.assign(DB.products.find(x=>x.id===EDIT.product), rec); EDIT.product=null; prBtn.textContent="إضافة"; markEditing("cardProduct",false); }
   else DB.products.push({id:uid(), prodNo:nextProdNo(), ...rec});
   save(); e.target.reset(); fillSelects(); renderProducts(); toast("✅ تم الحفظ");
@@ -9245,7 +9304,7 @@ function renderDash(){
       ${card("#97C459","🌱 دورات نشطة",activeCycles,`<span class="kcS">دورة قائمة الآن</span>`)}
       ${card("#EF9F27","🤝 ديون العملاء",fmtSR(debtTotal),`<span class="kcS">غير مسددة حتى اليوم</span>`)}
     </div>
-    <div class="no-print" style="margin:0 0 12px"><button class="print-rpt-btn" onclick="printFinancialReport()">🖨️ طباعة تقرير مالي</button></div>`;
+    <div class="no-print" style="margin:0 0 12px;text-align:center"><button class="print-rpt-btn" onclick="printFinancialReport()">🖨️ طباعة تقرير مالي</button></div>`;
   }
 
   buildAlerts();
@@ -14173,7 +14232,7 @@ function printInvoice(id){
     ${st.bankAccounts.map(b=>`<p style="margin:4px 0 0"><span style="color:#6b7280">اسم البنك <span style="font-size:9px;color:#9aa39a">Bank</span>:</span> <b>${b.bank}</b>${b.acc?` · <span style="color:#6b7280">رقم الحساب <span style="font-size:9px;color:#9aa39a">Account No</span>:</span> <span dir="ltr">${b.acc}</span>`:''}${b.iban?` · <span style="color:#6b7280">رقم الآيبان <span style="font-size:9px;color:#9aa39a">IBAN</span>:</span> <span dir="ltr">${b.iban}</span>`:''}</p>`).join('')}
   </div>`:''}
   <p style="text-align:center;font-size:11.5px;color:#6b7280;border-top:1px dashed #d1d5db;margin-top:14px;padding-top:9px">شكراً لتعاملكم معنا 🌱 ${coName}${coEn?' — '+coEn:''}</p>
-  <div class="no-print" style="margin-top:14px;text-align:center"><button onclick="window.print()" style="padding:8px 26px;background:#065f46;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">🖨️ طباعة</button></div>
+  <div class="no-print" style="margin-top:14px;text-align:center"><button onclick="window.print()" style="padding:8px 26px;background:#065f46;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">🖨️ طباعة</button> <button onclick="try{window.close()}catch(e){};history.back()" style="padding:8px 20px;background:#fff;color:#333;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:14px;margin-inline-start:8px">↩️ رجوع</button></div>
   <script>new QRCode(document.getElementById("qrcode"),{text:"${qrB64}",width:110,height:110});<\/script>
   </body></html>`);
   win.document.close();

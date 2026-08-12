@@ -213,6 +213,12 @@ tr:hover td{background:#fafcfa}
 @media (max-width:840px){.toast{bottom:calc(92px + env(safe-area-inset-bottom))}
   input,select,textarea,.qsInp{font-size:16px !important}
   #notifPanel{max-width:94vw}
+  input,select,textarea{max-width:100% !important;min-width:0 !important;box-sizing:border-box}
+  input[type="date"],input[type="month"],input[type="time"]{width:100% !important;-webkit-appearance:none;appearance:none;min-height:42px;text-align:right;direction:rtl}
+  .row{flex-wrap:wrap}
+  .row>div{min-width:0 !important}
+  form button+button{margin-top:10px}
+  .card{overflow-x:hidden}
 }
 #notifPanel .notifItem .txt{min-width:0;flex:1;overflow:hidden}
 #notifPanel .notifItem .txt b,#notifPanel .notifItem .txt span{display:block;overflow:hidden;text-overflow:ellipsis}
@@ -825,7 +831,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <button class="btn small secondary" onclick="copyToday()">📋 ملخص اليوم</button>
         <button class="btn small secondary" onclick="printFarmCensus()">🖨️ التقرير الشامل</button>
         <span style="margin-inline-start:auto;display:flex;gap:6px;align-items:end">
-          <span><label style="font-size:.7rem">تقرير سنوي</label><input type="number" id="ryYear" placeholder="2026" style="width:90px" min="2020" max="2100"></span>
+          <span><label style="font-size:.7rem">تقرير سنوي</label><select id="ryYear"></select></span>
           <button class="btn small secondary" onclick="printAnnual()">🖨️ طباعة السنة</button>
         </span>
       </div>
@@ -1039,7 +1045,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     <div><label>من</label><input type="date" id="fTkFrom" onchange="renderTasks()"></div>
     <div><label>إلى</label><input type="date" id="fTkTo" onchange="renderTasks()"></div>
     <div id="fTkSecWrap"><label>القسم</label><select id="fTkSec" onchange="renderTasks()"></select></div>
-    <div><label>الموظف</label><input id="fTkEmp" oninput="renderTasks()" placeholder="بحث بالاسم"></div>
+    <div style="display:none"><label>الموظف</label><input id="fTkEmp" oninput="renderTasks()" placeholder="بحث بالاسم"></div>
     <div style="flex:0"><button class="btn small secondary" onclick="fTkFrom.value='';fTkTo.value='';fTkSec.value='all';fTkEmp.value='';renderTasks()">مسح</button></div>
   </div>
   <div class="card table-wrap fpI" data-fp="work"><table id="tblTasks"></table></div>
@@ -5444,7 +5450,14 @@ function natQa2(sel){
     }});
 }
 function fillSelects(){
-  try{ const _ry=document.getElementById("ryYear"); if(_ry&&!_ry.value) _ry.value=new Date().getFullYear(); }catch(e){}
+  try{
+    const _ry=document.getElementById("ryYear");
+    if(_ry && !_ry.options.length){
+      const _y=new Date().getFullYear();
+      for(let i=_y+1;i>=_y-5;i--){ const o=document.createElement("option"); o.value=i; o.textContent=i; _ry.appendChild(o); }
+      _ry.value=_y;
+    }
+  }catch(e){}
   try{ fillNatSelect(); }catch(e){}
   const sec = SECTIONS.map(s=>`<option>${s}</option>`).join("");
   const secAll = `<option value="all">كل الأقسام</option>`+sec;

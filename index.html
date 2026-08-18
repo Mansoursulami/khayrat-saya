@@ -3047,6 +3047,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         </div>
         <div><label>الطرف (عميل/مورد)</label><input id="defParty" list="defPartyList" placeholder="اسم العميل أو المورد"></div>
         <datalist id="defPartyList"></datalist>
+        <div><label>ربط بفاتورة بيع آجلة (اختياري)</label><select id="defHarvest" onchange="defHarvestPick()"><option value="">— بدون ربط —</option></select></div>
         <div><label>المبلغ (⃁)</label><input type="number" id="defAmount" min="0" step="0.01" required></div>
       </div>
       <div class="row">
@@ -3669,6 +3670,8 @@ Object.assign(I18N.ur,{"⚠️ أدخل اسم الصنف":"⚠️ آئٹم نا
 Object.assign(I18N.en,{"💰 بيع المواشي والحليب":"💰 Livestock & milk sales","💸 المصروفات حسب الفئة":"💸 Expenses by category","مثال: بيت محمي مكيف 3":"e.g. Cooled greenhouse 3","⭐ تقييم أداء الموظفين":"⭐ Employee performance review","المساحة / العدد (وصف)":"Area / Count (description)","تكلفة الوحدة (⃁) *":"Unit cost (⃁) *","✅ وزن البيع المستهدف:":"✅ Target sale weight:","قيمة المخزون والأصناف":"Stock & items value","✅ لا مستحقات للموردين":"✅ No supplier dues","بيانات العميل والصفقة":"Customer & deal data","حد التنبيه (أقل كمية)":"Alert threshold (min qty)","➕ إنشاء فاتورة مبيعات":"➕ Create sales invoice","✅ تم حفظ فاتورة البيع":"✅ Sales invoice saved","📅 تسجيل حضور / انصراف":"📅 Check-in / Check-out","🐟 إجمالي السمك الحالي":"🐟 Current total fish","الموازنة مقابل الفعلي":"Budget vs actual","لا يوجد حيوانات فردية":"No individual animals","📅 طبّق فترة على الكل:":"📅 Apply period to all:","⚠️ القسم موجود مسبقاً":"⚠️ Section already exists","متوسط وزن السمكة (جم)":"Avg fish weight (g)","⏳ جارٍ تحميل الخريطة…":"⏳ Loading map…","🛠️ أنواع العمل اليومي":"🛠️ Daily work types","صافي الضريبة المستحقة":"Net VAT due","خصم على إجمالي المبلغ":"Discount on total","📈 تاريخ فحوصات التربة":"📈 Soil tests history","✅ حُدّثت حالة المهمة:":"✅ Task status updated:","إجمالي مبيعات المواشي":"Total livestock sales","عدد السمك عند الإنزال":"Fish count at stocking","آخر الإدخالات المالية":"Recent financial entries","مستحق لنا (عميل مدين)":"Owed to us (debtor)","✅ تم تقديم طلب الشراء":"✅ Purchase request submitted","🔁 مصاريف متكررة شهرية":"🔁 Monthly recurring expenses","📋 سجل استخدام الأدوية":"📋 Medicine usage log","الإنتاج المتوقع (كجم)":"Expected yield (kg)","🚚 المشتريات وفواتيرها":"🚚 Purchases & invoices","✅ لا ديون على العملاء":"✅ No customer debts","سجل النقل بين الأحواض":"Pond transfers log","🔑 استعادة كلمة المرور":"🔑 Password recovery","⚠️ اختر حوضين مختلفين":"⚠️ Choose two different ponds","لا توجد قياسات مطابقة":"No matching readings","💧 قياسات مياه الأحواض":"💧 Pond water readings","🔁 نقل سمك بين الأحواض":"🔁 Fish transfer between ponds","تاريخ انتهاء الصلاحية":"Expiry date","عدد الوجبات اليومية *":"Daily meals count *","🐟 موقف الأحواض اليومي":"🐟 Daily ponds status","🪪 صورة الهوية/الإقامة":"🪪 ID/Iqama photo","⚠️ لا توجد أصول ثابتة":"⚠️ No fixed assets","متوسط وزن الرأس (كجم)":"Avg weight/head (kg)","✅ حُفظت بيانات الشركة":"✅ Company data saved","🐾 سجل المواليد والنفوق":"🐾 Births & deaths log","لماذا تحتاج هذا الصنف؟":"Why do you need this item?","🏢 إدارة الأصول الثابتة":"🏢 Fixed assets management","🔍 مسح باركود (اختياري)":"🔍 Scan barcode (optional)","🌱 الدورات — اختر القسم":"🌱 Cycles — choose section","⚠️ اختر الحظيرة الوجهة":"⚠️ Choose destination barn","لا توجد قيود في الفترة":"No entries in period","⚠️ أدخل البيانات كاملة":"⚠️ Enter all data","كبير جداً (لكبار السن)":"Extra large","⚠️ اختر الحظيرة المصدر":"⚠️ Choose source barn","📋 تم نسخ ملخص العمليات":"📋 Summary copied","مثال: مزرعة خيرات سايه":"e.g. Khayrat Saya Farm","الكمية المضافة للمخزون":"Qty added to stock","لا توجد مهام مسندة بعد":"No tasks assigned yet","لا يوجد عملاء راكدون 🎉":"No dormant customers 🎉","تاريخ الولادة المتوقّع":"Expected birth date","💾 حفظ واعتماد الفاتورة":"💾 Save & approve invoice","⚠️ عبي التاريخ والبيان":"⚠️ Fill date & description","إغلاق الحظائر وتأمينها":"Close & secure barns","🐄 سجل التلقيح والتكاثر":"🐄 Breeding log","بداية المحصول المتوقعة":"Expected harvest start","إجمالي الالتزام الشهري":"Total monthly commitment","⚠️ المورد موجود بالسجل":"⚠️ Supplier already exists","مثال: خروف / حليب طازج":"e.g. Lamb / Fresh milk","إجمالي الرواتب الشهرية":"Total monthly salaries","💾 حفظ واختيار للفاتورة":"💾 Save & pick for invoice","✅ تم حفظ بيانات المالك":"✅ Owner data saved","📊 تحليل ربحية المنتجات":"📊 Product profitability analysis","⚠️ المنتج مسجّل مسبقاً":"⚠️ Product already exists","رقم الهوية / الإقامة *":"ID / Iqama No. *","صافي الربح / (الخسارة)":"Net profit / (loss)","— بدون إضافة للمخزون —":"— No stock addition —","نسبة الربح من المبيعات":"Profit % of sales","لا حضور مسجل هذا الشهر":"No attendance this month","الراتب الشهري (⃁) *":"Monthly salary (⃁) *","الرقم الضريبي (15 رقم)":"VAT No. (15 digits)","🔍 الجرد الدوري للمخزون":"🔍 Periodic stocktake","⬅ مركز الموارد البشرية":"⬅ HR hub","📒 سجل المبيعات والديون":"📒 Sales & debts log","🏆 أفضل المنتجات مبيعاً":"🏆 Best sellers","➕ إنشاء فاتورة مشتريات":"➕ Create purchase invoice","🎯 تقدم الأهداف الشهرية":"🎯 Monthly goals progress","✅ تم حفظ فاتورة الشراء":"✅ Purchase invoice saved","المبيعات (ضريبة خارجة)":"Sales (output VAT)","مثال: مضخة مياه رئيسية":"e.g. Main water pump","دفتر الأستاذ (أي حساب)":"Ledger (any account)","⚠️ أدخل التاريخ والاسم":"⚠️ Enter date & name","✅ تم إنشاء كشف الرواتب":"✅ Payroll generated","🌱 أداء الدورات الزراعية":"🌱 Crop cycles performance","لا توجد حركات في الفترة":"No movements in period","⚠️ أدخل اسم/رقم الحظيرة":"⚠️ Enter barn name/No.","🧮 حاسبة العليقة اليومية":"🧮 Daily ration calculator","📲 فتح روابط واتساب للكل":"📲 Open WhatsApp for all","📝 اليوميات — اختر القسم":"📝 Daily log — choose section","🥛 إنتاج الحليب (30 يوم)":"🥛 Milk production (30 days)","التكلفة المتوقعة (⃁)":"Expected cost (⃁)","👥 إدارة الموارد البشرية":"👥 HR management","مثال: تنظيف فلاتر حوض 2":"e.g. Clean pond 2 filters","— بدون خصم من المخزون —":"— No stock deduction —","📊 النظرة العامة المالية":"📊 Financial overview","حذف ملف العقد المرفق لـ":"Delete contract file of","هدف المبيعات (⃁/شهر)":"Sales target (⃁/month)","⏰ تتبع المدفوعات الآجلة":"⏰ Deferred payments tracking","↩️ تم استعادة لون الثيم":"↩️ Theme color restored","🔥 لا توجد مهام مسندة لك":"🔥 No tasks assigned to you","لا حركات على هذا الحساب":"No movements on this account","السعر لكل وحدة (⃁) *":"Price per unit (⃁) *","✅ تم تسجيل إنتاج الحليب":"✅ Milk production recorded","✅ تم حفظ التقرير اليومي":"✅ Daily report saved","📈 مقارنة الفعلي بالمخطط":"📈 Actual vs planned","لا توجد مهام مسندة لك 👍":"No tasks assigned to you 👍","❌ حدث خطأ، أعد المحاولة":"❌ Error, try again","الأصول الثابتة والإهلاك":"Fixed assets & depreciation","🛒 حُدّدت البطاقة كمباعة":"🛒 Card marked as sold","🕐 جدول مناوبات الموظفين":"🕐 Employee shifts schedule","🐐 بطاقة الحيوان الفردية":"🐐 Individual animal card","أداء المحاصيل / الدورات":"Crops / cycles performance","ملاحظات (سلوك السمك...)":"Notes (fish behavior...)","كشف حركة أي حساب تختاره":"Statement of any account","مرجع الفاتورة الأصلية *":"Original invoice ref *","وحدة جديدة — مثال: شدّة":"New unit — e.g. bundle","💵 النقدية (صندوق + بنك)":"💵 Cash (box + bank)","⚠️ أدخل التاريخ والموظف":"⚠️ Enter date & employee","مستحق علينا (مورد دائن)":"We owe (creditor)","⚖️ متابعة أوزان المواشي":"⚖️ Livestock weights tracking","📋 نسخ الملخص (للواتساب)":"📋 Copy summary (WhatsApp)","الالتزام بالدوام (0-10)":"Punctuality (0-10)","✅ تم التسعير — الإجمالي":"✅ Priced — total","✅ تمت إضافة الأصل الثابت":"✅ Fixed asset added","الاسم المختصر (للتقارير)":"Short name (for reports)","آخر القيود (آلية ويدوية)":"Recent entries (auto & manual)","ملخص المصروفات حسب البند":"Expenses summary by category","📋 التقرير اليومي للمواشي":"📋 Daily livestock report","رش مبيدات / مكافحة حشرات":"Pesticide spray / pest control","اضغط لفتح/إغلاق الموظفين":"Click to open/close employees","✅ تم تسجيل الدفعة للمورد":"✅ Supplier payment recorded","ضريبة القيمة المضافة 15%":"VAT 15%","🗑️ حُذفت المسودة نهائياً":"🗑️ Draft permanently deleted","⚠️ لا توجد حركات للإقفال":"⚠️ No movements to close","مثال: سوق الخضار المركزي":"e.g. Central vegetable market","✅ تم حفظ تعديلات الأقسام":"✅ Sections changes saved","📦 موقف الإنتاج والجاهزية":"📦 Production & readiness status","⚠️ صيانة قريبة أو متأخرة":"⚠️ Maintenance due or overdue","العمر الإنتاجي (سنوات) *":"Useful life (years) *","سعر البيع الافتراضي/وحدة":"Default sale price/unit","التكلفة التقديرية (⃁)":"Estimated cost (⃁)","⚠️ أدخل عدد السمك المباع":"⚠️ Enter fish sold count","⚠️ عبي البيانات الأساسية":"⚠️ Fill basic data","⏳ أعمار مستحقات الموردين":"⏳ Payables aging","مصروفات عامة (غير موزعة)":"General expenses (unallocated)","المبادرة والإبداع (0-10)":"Initiative & creativity (0-10)","✅ تم تسجيل الحالة الصحية":"✅ Health case recorded","⚠️ اختر حظيرتين مختلفتين":"⚠️ Choose two different barns","لا توجد رواتب مصروفة بعد":"No salaries paid yet","سقف المصروفات (⃁/شهر)":"Expenses cap (⃁/month)","⚠️ اسمح بالنوافذ المنبثقة":"⚠️ Allow pop-ups","تاريخ الزراعة / الإنزال *":"Planting / stocking date *","📍 العنوان الوطني (إلزامي)":"📍 National address (required)","السعر الخاص (⃁/وحدة) *":"Special price (⃁/unit) *","⚠️ المهمة مسندة لموظف آخر":"⚠️ Task assigned to another","إدارة الأحواض (عدد السمك)":"Ponds management (fish count)","⚠️ أدخل البريد الإلكتروني":"⚠️ Enter email","مثال: أغنام / عزل / ولادة":"e.g. Sheep / isolation / birthing","🚶 عميل نقدي (بدون بيانات)":"🚶 Cash customer (no data)","— بدون عميل (بيع مباشر) —":"— No customer (direct sale) —","⚠️ الحيوان في نفس الحظيرة":"⚠️ Animal already in this barn","🏢 بيانات الشركة (المزرعة)":"🏢 Company (farm) data","الإنجاز والإنتاجية (0-10)":"Output & productivity (0-10)","🤝 متابعة العملاء الراكدين":"🤝 Dormant customers follow-up","إدارة قوائم نموذج التسجيل":"Manage registration form lists","العنوان الوطني — لم يُعبأ":"National address — not filled","⚠️ لا توجد بيانات للطباعة":"⚠️ No data to print","📌 المهام المسندة للموظفين":"📌 Tasks assigned to employees","🛒 منتجات جاهزة للبيع الآن":"🛒 Products ready for sale","⚠️ أضف سطر واحد على الأقل":"⚠️ Add at least one line","مثال: علف بلطي 30% بروتين":"e.g. Tilapia feed 30% protein","🌱 بدأت الدورة — صارت نشطة":"🌱 Cycle started — now active","سبب النفوق أو وصف المولود":"Death cause or newborn description","لا أعمال مسجلة لهذا القسم":"No works for this section","لا يوجد ملاك إضافيون بعد.":"No additional owners yet.","سبب الرتبة، آفات، أمراض...":"Grade reason, pests, diseases...","⚠️ الاعتماد النهائي للمالك":"⚠️ Final approval is owner's","لا توجد مواعيد خلال 60 يوم":"No due dates within 60 days","🗺️ خريطة المزرعة التفاعلية":"🗺️ Interactive farm map","سعر البيع الافتراضي (⃁)":"Default sale price (⃁)","إضافة لصنف مخزون (اختياري)":"Add to stock item (optional)","🧾 تم حفظ السند كقيد متوازن":"🧾 Voucher saved as balanced entry","💲 أسعار خاصة لعملاء معينين":"💲 Special prices for customers","⚠️ الاعتماد الأولي للمحاسب":"⚠️ Initial approval is accountant's","امسح بالقارئ أو الصق الكود":"Scan or paste the code","📢 إرسال حملة واتساب جماعية":"📢 Send WhatsApp campaign","⚠️ اختر نوع الحيوان المباع":"⚠️ Choose sold animal type","🔄 حركة مخزون (إضافة / صرف)":"🔄 Stock movement (in / out)","⚡ الحفظ تلقائي مع كل مفتاح":"⚡ Auto-saves on every toggle","أولاً: المبيعات حسب المنتج":"First: sales by product","تعبئة الماء وتنظيف الأحواض":"Water refill & pond cleaning","لا حركة في الفترة المختارة":"No movement in selected period","🔧 المعدات والصيانة الدورية":"🔧 Equipment & periodic maintenance","📈 الموازنات والأداء المالي":"📈 Budgets & financial performance","— أضف منتجاً بزر ➕ أعلاه —":"— Add a product with ➕ above —","⚠️ ما لقيت صنف بهذا الكود:":"⚠️ No item with this code:","آخر أعمال الموظفين اليومية":"Recent employee daily works","عبّي الأرقام ويطلع التقدير":"Fill numbers to get estimate","ربط بدورة زراعية (اختياري)":"Link to crop cycle (optional)","ملاحظات (الجرعة، الآفة...)":"Notes (dose, pest...)","تنظيف الحظائر وإزالة الروث":"Barn cleaning & manure removal","⚠️ لا توجد دورة نشطة لمنتج":"⚠️ No active cycle for product","نوع جديد للمجموعة المختارة":"New type for selected group","مثال: مؤسسة الأعلاف المتحدة":"e.g. United Feeds Est.","📝 ملخص العمليات التشغيلية —":"📝 Operations summary —","🏦 الحسابات البنكية والنقدية":"🏦 Bank & cash accounts","كل الأقسام (مجمعة بالأعمدة)":"All sections (grouped columns)","⚠️ أمهات السمك ما لها ترقية":"⚠️ Broodstock can't be promoted","ثانياً: المصروفات حسب البند":"Second: expenses by category","⚠️ البريد الإلكتروني إلزامي":"⚠️ Email required","لا جرعات مستحقة خلال 30 يوم":"No doses due within 30 days","✅ كل الأصناف فوق حد التنبيه":"✅ All items above threshold","🔁 رجعت كل التنبيهات المخفية":"🔁 All hidden alerts restored"});
 Object.assign(I18N.en,{"نوع الري":"Irrigation type","💧 أوتوماتيكي (زر تأكيد يومي)":"💧 Automatic (daily confirm button)","🚿 يدوي (يُسجل كعمل يومي)":"🚿 Manual (logged as daily work)","💧 أوتوماتيكي (زر تأكيد)":"💧 Automatic (confirm button)","🚿 يدوي (عمل يومي)":"🚿 Manual (daily work)","الاسم المختصر":"Short name","عليه بيانات":"Has data","⚠️ القسم عليه بيانات مسجلة — لا يمكن حذفه":"⚠️ Section has recorded data — cannot delete","⚠️ حذف الأقسام للمالك فقط":"⚠️ Only the owner can delete sections"});
 Object.assign(I18N.ur,{"نوع الري":"آبپاشی کی قسم","💧 أوتوماتيكي (زر تأكيد يومي)":"💧 خودکار (روزانہ تصدیقی بٹن)","🚿 يدوي (يُسجل كعمل يومي)":"🚿 دستی (روزانہ کام میں درج)","💧 أوتوماتيكي (زر تأكيد)":"💧 خودکار (تصدیقی بٹن)","🚿 يدوي (عمل يومي)":"🚿 دستی (روزانہ کام)","الاسم المختصر":"مختصر نام","عليه بيانات":"ڈیٹا موجود ہے","⚠️ القسم عليه بيانات مسجلة — لا يمكن حذفه":"⚠️ سیکشن میں ڈیٹا موجود ہے — حذف نہیں ہو سکتا","⚠️ حذف الأقسام للمالك فقط":"⚠️ سیکشن صرف مالک حذف کر سکتا ہے"});
+Object.assign(I18N.en,{"💵 سداد":"💵 Pay","↩️ مردود":"↩️ Return","ربط بفاتورة بيع آجلة (اختياري)":"Link to a credit sale invoice (optional)","— بدون ربط —":"— No link —","محول لفاتورة":"Converted to invoice","🖨️ طباعة":"🖨️ Print","📄 XML":"📄 XML","📱 واتساب":"📱 WhatsApp"});
+Object.assign(I18N.ur,{"💵 سداد":"💵 ادائیگی","↩️ مردود":"↩️ واپسی","ربط بفاتورة بيع آجلة (اختياري)":"ادھار فروخت انوائس سے جوڑیں (اختیاری)","— بدون ربط —":"— بغیر لنک —","محول لفاتورة":"انوائس میں تبدیل","🖨️ طباعة":"🖨️ پرنٹ","📄 XML":"📄 XML","📱 واتساب":"📱 واٹس ایپ"});
 Object.assign(I18N.ur,{"💰 بيع المواشي والحليب":"💰 مویشی و دودھ فروخت","💸 المصروفات حسب الفئة":"💸 زمرہ وار اخراجات","مثال: بيت محمي مكيف 3":"مثلاً ٹھنڈا گرین ہاؤس 3","⭐ تقييم أداء الموظفين":"⭐ ملازمین کارکردگی جائزہ","المساحة / العدد (وصف)":"رقبہ / تعداد (تفصیل)","تكلفة الوحدة (⃁) *":"یونٹ لاگت (⃁) *","✅ وزن البيع المستهدف:":"✅ ہدف فروخت وزن:","قيمة المخزون والأصناف":"اسٹاک و آئٹمز قیمت","✅ لا مستحقات للموردين":"✅ سپلائرز کا کوئی واجب نہیں","بيانات العميل والصفقة":"گاہک و سودا ڈیٹا","حد التنبيه (أقل كمية)":"الرٹ حد (کم از کم)","➕ إنشاء فاتورة مبيعات":"➕ فروخت انوائس بنائیں","✅ تم حفظ فاتورة البيع":"✅ فروخت انوائس محفوظ","📅 تسجيل حضور / انصراف":"📅 حاضری / واپسی درج","🐟 إجمالي السمك الحالي":"🐟 موجودہ کل مچھلی","الموازنة مقابل الفعلي":"بجٹ بمقابلہ اصل","لا يوجد حيوانات فردية":"کوئی انفرادی جانور نہیں","📅 طبّق فترة على الكل:":"📅 سب پر مدت لگائیں:","⚠️ القسم موجود مسبقاً":"⚠️ سیکشن پہلے سے موجود","متوسط وزن السمكة (جم)":"اوسط مچھلی وزن (گرام)","⏳ جارٍ تحميل الخريطة…":"⏳ نقشہ لوڈ ہو رہا…","🛠️ أنواع العمل اليومي":"🛠️ روزانہ کام کی اقسام","صافي الضريبة المستحقة":"خالص واجب ٹیکس","خصم على إجمالي المبلغ":"کل رقم پر رعایت","📈 تاريخ فحوصات التربة":"📈 مٹی ٹیسٹ کی تاریخ","✅ حُدّثت حالة المهمة:":"✅ ٹاسک حالت اپ ڈیٹ:","إجمالي مبيعات المواشي":"کل مویشی فروخت","عدد السمك عند الإنزال":"ڈالتے وقت مچھلی تعداد","آخر الإدخالات المالية":"حالیہ مالی اندراجات","مستحق لنا (عميل مدين)":"ہمارا حق (مقروض گاہک)","✅ تم تقديم طلب الشراء":"✅ خریداری درخواست جمع","🔁 مصاريف متكررة شهرية":"🔁 ماہانہ متکرر اخراجات","📋 سجل استخدام الأدوية":"📋 دوا استعمال لاگ","الإنتاج المتوقع (كجم)":"متوقع پیداوار (کلو)","🚚 المشتريات وفواتيرها":"🚚 خریداری و انوائسز","✅ لا ديون على العملاء":"✅ گاہکوں پر کوئی قرض نہیں","سجل النقل بين الأحواض":"تالاب منتقلی لاگ","🔑 استعادة كلمة المرور":"🔑 پاس ورڈ بحالی","⚠️ اختر حوضين مختلفين":"⚠️ دو مختلف تالاب منتخب کریں","لا توجد قياسات مطابقة":"کوئی مطابق پیمائش نہیں","💧 قياسات مياه الأحواض":"💧 تالاب پانی پیمائشیں","🔁 نقل سمك بين الأحواض":"🔁 تالابوں میں مچھلی منتقلی","تاريخ انتهاء الصلاحية":"میعاد ختم تاریخ","عدد الوجبات اليومية *":"روزانہ کھانے *","🐟 موقف الأحواض اليومي":"🐟 روزانہ تالاب صورتحال","🪪 صورة الهوية/الإقامة":"🪪 شناخت/اقامہ تصویر","⚠️ لا توجد أصول ثابتة":"⚠️ کوئی مستقل اثاثہ نہیں","متوسط وزن الرأس (كجم)":"اوسط وزن فی سر (کلو)","✅ حُفظت بيانات الشركة":"✅ کمپنی ڈیٹا محفوظ","🐾 سجل المواليد والنفوق":"🐾 پیدائش و اموات لاگ","لماذا تحتاج هذا الصنف؟":"یہ آئٹم کیوں چاہیے؟","🏢 إدارة الأصول الثابتة":"🏢 مستقل اثاثہ انتظام","🔍 مسح باركود (اختياري)":"🔍 بارکوڈ اسکین (اختیاری)","🌱 الدورات — اختر القسم":"🌱 سائیکلز — سیکشن منتخب کریں","⚠️ اختر الحظيرة الوجهة":"⚠️ منزل باڑہ منتخب کریں","لا توجد قيود في الفترة":"مدت میں کوئی اندراج نہیں","⚠️ أدخل البيانات كاملة":"⚠️ مکمل ڈیٹا درج کریں","كبير جداً (لكبار السن)":"بہت بڑا","⚠️ اختر الحظيرة المصدر":"⚠️ ماخذ باڑہ منتخب کریں","📋 تم نسخ ملخص العمليات":"📋 خلاصہ کاپی ہو گیا","مثال: مزرعة خيرات سايه":"مثلاً خیرات سایہ فارم","الكمية المضافة للمخزون":"اسٹاک میں اضافہ مقدار","لا توجد مهام مسندة بعد":"ابھی کوئی ٹاسک نہیں","لا يوجد عملاء راكدون 🎉":"کوئی غیر فعال گاہک نہیں 🎉","تاريخ الولادة المتوقّع":"متوقع پیدائش تاریخ","💾 حفظ واعتماد الفاتورة":"💾 انوائس محفوظ و منظور","⚠️ عبي التاريخ والبيان":"⚠️ تاریخ اور بیان بھریں","إغلاق الحظائر وتأمينها":"باڑے بند و محفوظ کریں","🐄 سجل التلقيح والتكاثر":"🐄 افزائش لاگ","بداية المحصول المتوقعة":"متوقع کٹائی آغاز","إجمالي الالتزام الشهري":"کل ماہانہ ذمہ داری","⚠️ المورد موجود بالسجل":"⚠️ سپلائر پہلے سے موجود","مثال: خروف / حليب طازج":"مثلاً دنبہ / تازہ دودھ","إجمالي الرواتب الشهرية":"کل ماہانہ تنخواہیں","💾 حفظ واختيار للفاتورة":"💾 محفوظ و انوائس کے لیے منتخب","✅ تم حفظ بيانات المالك":"✅ مالک ڈیٹا محفوظ","📊 تحليل ربحية المنتجات":"📊 پروڈکٹ منافع تجزیہ","⚠️ المنتج مسجّل مسبقاً":"⚠️ پروڈکٹ پہلے سے موجود","رقم الهوية / الإقامة *":"شناخت / اقامہ نمبر *","صافي الربح / (الخسارة)":"خالص منافع / (نقصان)","— بدون إضافة للمخزون —":"— اسٹاک میں اضافہ نہیں —","نسبة الربح من المبيعات":"فروخت سے منافع %","لا حضور مسجل هذا الشهر":"اس ماہ کوئی حاضری نہیں","الراتب الشهري (⃁) *":"ماہانہ تنخواہ (⃁) *","الرقم الضريبي (15 رقم)":"ٹیکس نمبر (15 ہندسے)","🔍 الجرد الدوري للمخزون":"🔍 وقتاً فوقتاً گنتی","⬅ مركز الموارد البشرية":"⬅ HR مرکز","📒 سجل المبيعات والديون":"📒 فروخت و قرض لاگ","🏆 أفضل المنتجات مبيعاً":"🏆 بہترین فروخت","➕ إنشاء فاتورة مشتريات":"➕ خریداری انوائس بنائیں","🎯 تقدم الأهداف الشهرية":"🎯 ماہانہ اہداف پیش رفت","✅ تم حفظ فاتورة الشراء":"✅ خریداری انوائس محفوظ","المبيعات (ضريبة خارجة)":"فروخت (آؤٹ پٹ ٹیکس)","مثال: مضخة مياه رئيسية":"مثلاً مرکزی واٹر پمپ","دفتر الأستاذ (أي حساب)":"لیجر (کوئی بھی اکاؤنٹ)","⚠️ أدخل التاريخ والاسم":"⚠️ تاریخ اور نام درج کریں","✅ تم إنشاء كشف الرواتب":"✅ پے رول بن گیا","🌱 أداء الدورات الزراعية":"🌱 فصل سائیکل کارکردگی","لا توجد حركات في الفترة":"مدت میں کوئی حرکت نہیں","⚠️ أدخل اسم/رقم الحظيرة":"⚠️ باڑہ نام/نمبر درج کریں","🧮 حاسبة العليقة اليومية":"🧮 روزانہ خوراک کیلکولیٹر","📲 فتح روابط واتساب للكل":"📲 سب کے واٹس ایپ کھولیں","📝 اليوميات — اختر القسم":"📝 روزنامچہ — سیکشن منتخب کریں","🥛 إنتاج الحليب (30 يوم)":"🥛 دودھ پیداوار (30 دن)","التكلفة المتوقعة (⃁)":"متوقع لاگت (⃁)","👥 إدارة الموارد البشرية":"👥 HR انتظام","مثال: تنظيف فلاتر حوض 2":"مثلاً تالاب 2 فلٹر صفائی","— بدون خصم من المخزون —":"— اسٹاک سے منہا نہیں —","📊 النظرة العامة المالية":"📊 مالی جائزہ","حذف ملف العقد المرفق لـ":"معاہدہ فائل حذف برائے","هدف المبيعات (⃁/شهر)":"فروخت ہدف (⃁/ماہ)","⏰ تتبع المدفوعات الآجلة":"⏰ ادھار ادائیگی ٹریکنگ","↩️ تم استعادة لون الثيم":"↩️ تھیم رنگ بحال","🔥 لا توجد مهام مسندة لك":"🔥 آپ کا کوئی ٹاسک نہیں","لا حركات على هذا الحساب":"اس اکاؤنٹ پر کوئی حرکت نہیں","السعر لكل وحدة (⃁) *":"فی یونٹ قیمت (⃁) *","✅ تم تسجيل إنتاج الحليب":"✅ دودھ پیداوار درج","✅ تم حفظ التقرير اليومي":"✅ روزانہ رپورٹ محفوظ","📈 مقارنة الفعلي بالمخطط":"📈 اصل بمقابلہ منصوبہ","لا توجد مهام مسندة لك 👍":"آپ کا کوئی ٹاسک نہیں 👍","❌ حدث خطأ، أعد المحاولة":"❌ خرابی، دوبارہ کوشش کریں","الأصول الثابتة والإهلاك":"مستقل اثاثے و فرسودگی","🛒 حُدّدت البطاقة كمباعة":"🛒 کارڈ فروخت شدہ نشان","🕐 جدول مناوبات الموظفين":"🕐 ملازمین شفٹ شیڈول","🐐 بطاقة الحيوان الفردية":"🐐 انفرادی جانور کارڈ","أداء المحاصيل / الدورات":"فصلوں / سائیکلز کارکردگی","ملاحظات (سلوك السمك...)":"نوٹس (مچھلی رویہ...)","كشف حركة أي حساب تختاره":"کسی بھی اکاؤنٹ کا اسٹیٹمنٹ","مرجع الفاتورة الأصلية *":"اصل انوائس حوالہ *","وحدة جديدة — مثال: شدّة":"نیا یونٹ — مثلاً گٹھا","💵 النقدية (صندوق + بنك)":"💵 نقد (صندوق + بینک)","⚠️ أدخل التاريخ والموظف":"⚠️ تاریخ اور ملازم درج کریں","مستحق علينا (مورد دائن)":"ہم پر واجب (قرض خواہ)","⚖️ متابعة أوزان المواشي":"⚖️ مویشی وزن ٹریکنگ","📋 نسخ الملخص (للواتساب)":"📋 خلاصہ کاپی (واٹس ایپ)","الالتزام بالدوام (0-10)":"وقت کی پابندی (0-10)","✅ تم التسعير — الإجمالي":"✅ قیمت لگ گئی — کل","✅ تمت إضافة الأصل الثابت":"✅ مستقل اثاثہ شامل","الاسم المختصر (للتقارير)":"مختصر نام (رپورٹس)","آخر القيود (آلية ويدوية)":"حالیہ اندراجات (خودکار و دستی)","ملخص المصروفات حسب البند":"مد وار اخراجات خلاصہ","📋 التقرير اليومي للمواشي":"📋 روزانہ مویشی رپورٹ","رش مبيدات / مكافحة حشرات":"سپرے / کیڑے کنٹرول","اضغط لفتح/إغلاق الموظفين":"ملازمین کھولنے/بند کرنے کے لیے دبائیں","✅ تم تسجيل الدفعة للمورد":"✅ سپلائر ادائیگی درج","ضريبة القيمة المضافة 15%":"ویلیو ایڈڈ ٹیکس 15%","🗑️ حُذفت المسودة نهائياً":"🗑️ مسودہ مستقل حذف","⚠️ لا توجد حركات للإقفال":"⚠️ بند کرنے کو کوئی حرکت نہیں","مثال: سوق الخضار المركزي":"مثلاً مرکزی سبزی منڈی","✅ تم حفظ تعديلات الأقسام":"✅ سیکشن تبدیلیاں محفوظ","📦 موقف الإنتاج والجاهزية":"📦 پیداوار و تیاری صورتحال","⚠️ صيانة قريبة أو متأخرة":"⚠️ مرمت قریب یا تاخیر","العمر الإنتاجي (سنوات) *":"کارآمد عمر (سال) *","سعر البيع الافتراضي/وحدة":"طے شدہ فروخت قیمت/یونٹ","التكلفة التقديرية (⃁)":"تخمینی لاگت (⃁)","⚠️ أدخل عدد السمك المباع":"⚠️ فروخت مچھلی تعداد درج کریں","⚠️ عبي البيانات الأساسية":"⚠️ بنیادی ڈیٹا بھریں","⏳ أعمار مستحقات الموردين":"⏳ واجبات کی عمر","مصروفات عامة (غير موزعة)":"عام اخراجات (غیر مختص)","المبادرة والإبداع (0-10)":"پہل و تخلیق (0-10)","✅ تم تسجيل الحالة الصحية":"✅ صحت کیس درج","⚠️ اختر حظيرتين مختلفتين":"⚠️ دو مختلف باڑے منتخب کریں","لا توجد رواتب مصروفة بعد":"ابھی کوئی تنخواہ نہیں دی","سقف المصروفات (⃁/شهر)":"اخراجات حد (⃁/ماہ)","⚠️ اسمح بالنوافذ المنبثقة":"⚠️ پاپ اپ کی اجازت دیں","تاريخ الزراعة / الإنزال *":"کاشت / ڈالنے کی تاریخ *","📍 العنوان الوطني (إلزامي)":"📍 قومی پتہ (لازمی)","السعر الخاص (⃁/وحدة) *":"خاص قیمت (⃁/یونٹ) *","⚠️ المهمة مسندة لموظف آخر":"⚠️ ٹاسک دوسرے ملازم کا ہے","إدارة الأحواض (عدد السمك)":"تالاب انتظام (مچھلی تعداد)","⚠️ أدخل البريد الإلكتروني":"⚠️ ای میل درج کریں","مثال: أغنام / عزل / ولادة":"مثلاً بھیڑ / علیحدگی / پیدائش","🚶 عميل نقدي (بدون بيانات)":"🚶 نقد گاہک (بغیر ڈیٹا)","— بدون عميل (بيع مباشر) —":"— بغیر گاہک (براہ راست) —","⚠️ الحيوان في نفس الحظيرة":"⚠️ جانور اسی باڑے میں ہے","🏢 بيانات الشركة (المزرعة)":"🏢 کمپنی (فارم) ڈیٹا","الإنجاز والإنتاجية (0-10)":"کارکردگی و پیداوار (0-10)","🤝 متابعة العملاء الراكدين":"🤝 غیر فعال گاہک پیروی","إدارة قوائم نموذج التسجيل":"رجسٹریشن فارم فہرستیں","العنوان الوطني — لم يُعبأ":"قومی پتہ — خالی","⚠️ لا توجد بيانات للطباعة":"⚠️ پرنٹ کو کوئی ڈیٹا نہیں","📌 المهام المسندة للموظفين":"📌 ملازمین کے ٹاسک","🛒 منتجات جاهزة للبيع الآن":"🛒 فروخت کے لیے تیار پروڈکٹس","⚠️ أضف سطر واحد على الأقل":"⚠️ کم از کم ایک لائن شامل کریں","مثال: علف بلطي 30% بروتين":"مثلاً تلاپیا چارہ 30% پروٹین","🌱 بدأت الدورة — صارت نشطة":"🌱 سائیکل شروع — اب فعال","سبب النفوق أو وصف المولود":"موت کی وجہ یا نومولود تفصیل","لا أعمال مسجلة لهذا القسم":"اس سیکشن کا کوئی کام نہیں","لا يوجد ملاك إضافيون بعد.":"ابھی کوئی اضافی مالک نہیں۔","سبب الرتبة، آفات، أمراض...":"درجہ وجہ، آفات، بیماریاں...","⚠️ الاعتماد النهائي للمالك":"⚠️ حتمی منظوری مالک کی","لا توجد مواعيد خلال 60 يوم":"60 دن میں کوئی تاریخ نہیں","🗺️ خريطة المزرعة التفاعلية":"🗺️ انٹرایکٹو فارم نقشہ","سعر البيع الافتراضي (⃁)":"طے شدہ فروخت قیمت (⃁)","إضافة لصنف مخزون (اختياري)":"اسٹاک آئٹم میں اضافہ (اختیاری)","🧾 تم حفظ السند كقيد متوازن":"🧾 واؤچر متوازن اندراج محفوظ","💲 أسعار خاصة لعملاء معينين":"💲 مخصوص گاہکوں کے خاص نرخ","⚠️ الاعتماد الأولي للمحاسب":"⚠️ ابتدائی منظوری اکاؤنٹنٹ کی","امسح بالقارئ أو الصق الكود":"اسکین کریں یا کوڈ چسپاں کریں","📢 إرسال حملة واتساب جماعية":"📢 اجتماعی واٹس ایپ مہم","⚠️ اختر نوع الحيوان المباع":"⚠️ فروخت جانور کی قسم منتخب کریں","🔄 حركة مخزون (إضافة / صرف)":"🔄 اسٹاک حرکت (اضافہ / اخراج)","⚡ الحفظ تلقائي مع كل مفتاح":"⚡ ہر سوئچ پر خودکار محفوظ","أولاً: المبيعات حسب المنتج":"اول: پروڈکٹ وار فروخت","تعبئة الماء وتنظيف الأحواض":"پانی بھرنا و تالاب صفائی","لا حركة في الفترة المختارة":"منتخب مدت میں کوئی حرکت نہیں","🔧 المعدات والصيانة الدورية":"🔧 مشینیں و متواتر مرمت","📈 الموازنات والأداء المالي":"📈 بجٹ و مالی کارکردگی","— أضف منتجاً بزر ➕ أعلاه —":"— اوپر ➕ سے پروڈکٹ شامل کریں —","⚠️ ما لقيت صنف بهذا الكود:":"⚠️ اس کوڈ کا کوئی آئٹم نہیں:","آخر أعمال الموظفين اليومية":"ملازمین کے حالیہ کام","عبّي الأرقام ويطلع التقدير":"نمبر بھریں، تخمینہ ملے گا","ربط بدورة زراعية (اختياري)":"فصل سائیکل سے ربط (اختیاری)","ملاحظات (الجرعة، الآفة...)":"نوٹس (خوراک، آفت...)","تنظيف الحظائر وإزالة الروث":"باڑہ صفائی و گوبر ہٹانا","⚠️ لا توجد دورة نشطة لمنتج":"⚠️ پروڈکٹ کا کوئی فعال سائیکل نہیں","نوع جديد للمجموعة المختارة":"منتخب گروپ کی نئی قسم","مثال: مؤسسة الأعلاف المتحدة":"مثلاً متحدہ چارہ ادارہ","📝 ملخص العمليات التشغيلية —":"📝 آپریشنز خلاصہ —","🏦 الحسابات البنكية والنقدية":"🏦 بینک و نقد اکاؤنٹس","كل الأقسام (مجمعة بالأعمدة)":"تمام سیکشنز (کالم وار)","⚠️ أمهات السمك ما لها ترقية":"⚠️ بروڈ اسٹاک ترقی نہیں","ثانياً: المصروفات حسب البند":"دوم: مد وار اخراجات","⚠️ البريد الإلكتروني إلزامي":"⚠️ ای میل لازمی","لا جرعات مستحقة خلال 30 يوم":"30 دن میں کوئی خوراک واجب نہیں","✅ كل الأصناف فوق حد التنبيه":"✅ تمام آئٹمز حد سے اوپر","🔁 رجعت كل التنبيهات المخفية":"🔁 تمام چھپی اطلاعات واپس"});
 </script>
 <script id="i18nDict8">
@@ -4150,7 +4153,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.08-U";
+const KS_VER="v12.08-V";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4783,8 +4786,11 @@ function save(){
   __saveTimer=setTimeout(__persistNow, 300);
   try{ if(typeof updateNavBadge==="function") updateNavBadge(); }catch(e){}
 }
-window.addEventListener("beforeunload", ()=>{ if(__saveTimer){ clearTimeout(__saveTimer); __persistNow(); } });
-document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden" && __saveTimer){ clearTimeout(__saveTimer); __persistNow(); } });
+window.addEventListener("beforeunload", ()=>{ if(__saveTimer){ clearTimeout(__saveTimer); __persistNow(); }
+  try{ if(typeof __cloudTimer!=="undefined"&&__cloudTimer){ clearTimeout(__cloudTimer); __cloudTimer=null; cloudPush(); } }catch(e){} });
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden"){
+  if(__saveTimer){ clearTimeout(__saveTimer); __persistNow(); }
+  try{ if(typeof __cloudTimer!=="undefined"&&__cloudTimer){ clearTimeout(__cloudTimer); __cloudTimer=null; cloudPush(); } }catch(e){} } });
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function fmt(n){ return Number(n||0).toLocaleString("en-US",{maximumFractionDigits:2}); }
 function fmtSR(n){ return fmt(n)+" ⃁"; }
@@ -7543,17 +7549,54 @@ function pPaidAmt(p){
   return a+b;
 }
 function pRemain(p){ return Math.max(0, pGross(p)-pPaidAmt(p)); }
-function nextInvNo(){
-  const n=(DB.settings.invSeq||0)+1;
-  return "INV-"+new Date().getFullYear()+"-"+String(n).padStart(4,"0");
-}
+/* (حُذفت nextInvNo — الترقيم الموحد الوحيد الآن invNextNo عند اعتماد الفاتورة الإلكترونية) */
 function delHarvest(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(confirm("حذف السجل؟")){ const h=DB.harvests.find(x=>x.id===id); const c=DB.cycles.find(x=>x.id===h.cycleId); trashIt("harvests","عملية بيع",`${c?prodName(c.productId):"؟"} ${fmt(h.qty)} كجم — ${h.date}`,h); DB.harvests=DB.harvests.filter(x=>x.id!==id); save(); renderHarvests(); renderCycles(); renderDebts(); } }
+function returnHarvest(id){
+  /* ↩️ مردود مبيعات: غير المدفوعة تُخفَّض مباشرة (ينخفض الدين)، والمدفوعة تُعكس بسجل استرداد سالب (ينخفض الإيراد والضريبة) */
+  if(!canSettle()){ toast("⚠️ ما عندك صلاحية تسجيل المردود"); return; }
+  const h=DB.harvests.find(x=>x.id===id); if(!h) return;
+  if(h.creditNote||h.returnOf||(+h.total||0)<0){ toast("⚠️ هذا سجل عكسي أصلاً"); return; }
+  const maxQ=+h.qty||0; if(maxQ<=0){ toast("⚠️ لا كمية في السجل"); return; }
+  const q=parseFloat(prompt("↩️ كمية المردود (المباع "+fmt(maxQ)+" "+(h.unit||"")+"):", maxQ));
+  if(!q||q<=0) return;
+  if(q>maxQ+0.0001){ toast("⚠️ الكمية أكبر من المباع"); return; }
+  const reason=prompt("سبب المردود (يظهر في السجل):")||"";
+  const ratio=q/maxQ, amt=+(hGross(h)*ratio).toFixed(2), tax=+(((+h.taxAmt||0))*ratio).toFixed(2);
+  DB.returns=DB.returns||[];
+  DB.returns.push({id:uid(), date:today(), harvestId:h.id, qty:q, amount:amt, tax, reason,
+    customerId:h.customerId||"", product:(h.productName||""), employee:(CURRENT_USER||{}).name||""});
+  if(hPaidAmt(h)<=0.005){
+    /* لا دفعات: تخفيض الفاتورة نفسها — الدين والإيراد ينخفضان معاً */
+    h.qty=+(maxQ-q).toFixed(3);
+    if(h.taxAmt!==undefined&&h.taxAmt!==null) h.taxAmt=+(((+h.taxAmt)*(1-ratio))).toFixed(2);
+    h.total=+(((+h.total)*(1-ratio))).toFixed(2);
+    if(h.heads!=null) h.heads=Math.round((+h.heads)*(1-ratio));
+    if(h.qty<=0.0001){ h.qty=0; h.total=0; if(h.taxAmt!=null)h.taxAmt=0; h.paid=true; h.paidDate=today(); h.notes=(h.notes||"")+" — مردود كامل"; }
+    logEdit("↩️ مردود مبيعات (تخفيض)", fmt(q)+" — "+(reason||""));
+  }else{
+    /* مدفوعة (كلياً/جزئياً): سجل استرداد سالب — يعكس الإيراد والضريبة ويعيد رؤوس المواشي للقطيع */
+    DB.harvests.push({id:uid(), date:today(), cycleId:h.cycleId||"", section:h.section||"",
+      productName:"↩️ مردود — "+(h.productName||""), qty:-q, unit:h.unit||"", price:0,
+      total:-amt, taxAmt:(h.taxAmt!=null?-tax:undefined), taxRate:h.taxRate,
+      livestockSale:h.livestockSale||false, saleType:h.saleType||"", animal:h.animal||"",
+      heads:(h.heads!=null?-Math.round((+h.heads)*ratio):undefined),
+      customerId:h.customerId||"", paid:true, returnOf:h.id,
+      employee:(CURRENT_USER||{}).name||"", notes:"↩️ مردود عن بيع "+h.date+(reason?" — "+reason:"")});
+    logEdit("↩️ مردود مبيعات (استرداد)", fmt(q)+" — "+(reason||""));
+  }
+  save(); try{ renderHarvests(); renderDebts(); renderCustomers(); renderCycles(); }catch(e){}
+  toast("↩️ سُجل المردود ("+fmt(q)+") — "+fmt(amt)+" ⃁");
+}
 function markPaid(id){
   if(!canSettle()){ toast("⚠️ ما عندك صلاحية تسجيل السداد"); return; }
   const h=DB.harvests.find(x=>x.id===id); if(!h) return;
   const rem = hRemain(h);
   if(rem>0.005) (h.payments = h.payments||[]).push({date:today(), amt:rem});
   h.paid=true; h.paidDate=today();
+  if(h.invId){ const iv=(DB.invoices||[]).find(x=>x.id===h.invId);
+    if(iv&&iv.status!=='paid'&&iv.status!=='draft'){
+      const sibs=(DB.harvests||[]).filter(x=>x.invId===iv.id&&!x.creditNote);
+      if(sibs.length&&sibs.every(x=>x.paid)){ iv.status='paid'; iv.paidAt=today(); try{renderInvoices();}catch(e){} } } }
   save(); renderHarvests(); renderDebts(); renderCustomers(); toast("✅ سُدد بالكامل ("+fmt(rem)+" ⃁) — وانقيد التحصيل");
 }
 function printHarvestInvoice(id){
@@ -7674,7 +7717,7 @@ function renderHarvests(){
         : hPaidAmt(h)>0?'<span class="badge warn">جزئي — باقي '+fmt(hRemain(h))+'</span> <button class="btn small secondary" onclick="payHarvest(\''+h.id+'\')">دفعة</button>'
         :'<span class="badge danger">آجل</span> <button class="btn small secondary" onclick="payHarvest(\''+h.id+'\')">دفعة</button> <button class="btn small secondary" onclick="markPaid(\''+h.id+'\')">سداد</button>'}</td>
       <td>${h.employee||""}</td>
-      <td>${h.fishSale&&h.unpriced?`<button class="edt" title="تسعير" onclick="priceFishSale('${h.id}')">💲</button>`:""}<button class="edt" title="فاتورة" onclick="printHarvestInvoice('${h.id}')">🖨️</button><button class="edt" title="مشاركة واتساب" onclick="waSale('${h.id}')">💬</button>${h.fromInvoice?`<span class="badge active" title="مولدة من فاتورة">🧾 ${h.invNo||"فاتورة"}</span>`:canEdit(h.employee)?`<button class="del" onclick="delHarvest('${h.id}')">🗑️</button>`:""}</td></tr>`;
+      <td>${h.fishSale&&h.unpriced?`<button class="edt" title="تسعير" onclick="priceFishSale('${h.id}')">💲</button>`:""}${(+h.total||0)>0&&!h.creditNote&&!h.returnOf?`<button class="edt" title="مردود" onclick="returnHarvest('${h.id}')">↩️</button>`:""}<button class="edt" title="فاتورة" onclick="printHarvestInvoice('${h.id}')">🖨️</button><button class="edt" title="مشاركة واتساب" onclick="waSale('${h.id}')">💬</button>${h.fromInvoice?`<span class="badge active" title="مولدة من فاتورة">🧾 ${h.invNo||"فاتورة"}</span>`:canEdit(h.employee)?`<button class="del" onclick="delHarvest('${h.id}')">🗑️</button>`:""}</td></tr>`;
   }).join("");
   tblHarvests.innerHTML =
     `<tr><th>التاريخ</th><th>المنتج</th><th>القسم</th><th>الكمية</th><th>سعر الكيلو</th><th>الإجمالي</th><th>العميل</th><th>السداد</th><th>الموظف</th><th></th></tr>`
@@ -8916,28 +8959,32 @@ function delOrder(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ م
   }
 }
 function orderToInvoice(id){
+  /* 🧾 مسار موحد: الطلب المسبق ينشئ مسودة فاتورة إلكترونية — ترقيم واحد لكل الفواتير عند الاعتماد (متطلب زاتكا) */
   const o = DB.orders.find(x=>x.id===id); if(!o || o.status!=="جديد") return;
+  const _cm=__companyDataMissing();
+  if(_cm.length){ toast("⛔ لا يمكن إنشاء الفاتورة — أكمل بيانات الشركة أولاً: "+_cm.join("، ")); try{ showTab("settings"); stView("company"); }catch(e2){} return; }
   const cyc = DB.cycles.find(c=>c.status==="نشطة" && c.productId===o.productId);
   if(!cyc){ toast("⚠️ لا توجد دورة نشطة لمنتج "+prodName(o.productId)+" — سجّلها أولاً"); return; }
   const prod = DB.products.find(p=>p.id===o.productId);
   const v = prompt("سعر الوحدة لـ "+prodName(o.productId)+" ("+fmt(o.qty)+" "+(o.unit||"كجم")+"):", prod?prod.price:0);
   if(!v || !(+v>0)) return;
-  const net = o.qty*(+v);
-  const r = +(DB.settings.vatRate??15);
-  const tax = net*r/100;
-  const invNo = nextInvNo();
-  DB.settings.invSeq = (DB.settings.invSeq||0)+1;
-  const fx=(cyc.section===FISH_SECTION)?askFishTank(prodName(o.productId)):null;
-  DB.harvests.push({...(fx||{}), id:uid(), cycleId:cyc.id, date:today(), qty:o.qty, unit:o.unit||"كجم",
-    price:+v, total:net, taxRate:r, taxAmt:tax, revAcc:"4101", invNo, invType:"فاتورة ضريبية",
-    due:"", ref:"طلب مسبق "+o.due, customerId:o.customerId, paid:false,
-    employee:CURRENT_USER?CURRENT_USER.name:"", notes:o.notes||""});
-  o.status = "تم التسليم"; o.invoiced=true;
-  save(); renderOrders(); renderHarvests(); renderCycles(); renderDebts();
-  toast("🧾 تحول الطلب لفاتورة "+invNo+" — الإجمالي المستحق "+fmt(net+tax)+" ⃁ شامل الضريبة (آجلة)");
+  const cust=DB.customers.find(c=>c.id===o.customerId);
+  let kg=0; try{ kg=invUnitKg(o.unit||"")||0; }catch(e){}
+  DB.invoices=DB.invoices||[];
+  const inv={id:uid(), no:"", type:"standard", status:"draft", date:today(),
+    custId:o.customerId||"", custName:cust?cust.name:"عميل نقدي", custVat:(cust&&cust.vatNo)||"",
+    dueDate:"", notes:"من طلب مسبق (تسليم "+(o.due||"")+")"+(o.notes?" — "+o.notes:""), refOrder:o.id,
+    items:[{name:prodName(o.productId), desc:"", qty:+o.qty||0, unit:o.unit||"كجم",
+      eqKg:kg?+((+o.qty||0)*kg).toFixed(3):0, price:+v, disc:0, tax:(+(DB.settings.vatRate??15)), cycleId:cyc.id}]};
+  DB.invoices.push(inv);
+  o.status="محول لفاتورة"; o.invId=inv.id;
+  save(); renderOrders();
+  try{ showTab("invoices"); invEditDraft(inv.id); }catch(e){}
+  toast("📝 أُنشئت مسودة فاتورة من الطلب — راجعها واعتمدها (يأخذ رقمه الموحد عند الاعتماد)");
 }
 function orderDone(id){
   const o = DB.orders.find(x=>x.id===id); if(!o) return;
+  if(o.status==="محول لفاتورة"){ toast("🧾 الطلب عليه مسودة فاتورة — اعتمدها أو احذفها من شاشة الفواتير"); return; }
   if(o.invoiced && o.status==="تم التسليم"){ toast("🧾 الطلب مُفوتر — لا يرجع «جديد» (يمنع الفوترة المزدوجة)"); return; }
   o.status = o.status==="جديد" ? "تم التسليم" : "جديد";
   save(); renderOrders(); toast(o.status==="تم التسليم"?"✅ تم تسليم الطلب — سجل البيع من تبويب الإنتاج":"↩️ رجع الطلب جديد");
@@ -14054,6 +14101,7 @@ function renderInvoices(){
         <button onclick="printInvoice('${r.id}')" style="background:var(--border);color:var(--text);border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">🖨️</button>
         <button onclick="waInvoice('${r.id}')" style="background:#25D366;color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">📱</button>
         <button onclick="deleteInvoice('${r.id}')" style="background:var(--red);color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">🗑️</button>`:`
+        ${r.status!=='paid'&&r.type!=='credit'&&r.type!=='debit'?`<button onclick="markInvoicePaid('${r.id}')" style="background:#047857;color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">💵 سداد</button>`:''}
         <button onclick="printInvoice('${r.id}')" style="background:var(--green);color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">🖨️ طباعة</button>
         <button onclick="exportInvoiceXml('${r.id}')" style="background:var(--blue,#3498db);color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">📄 XML</button>
         <button onclick="waInvoice('${r.id}')" style="background:#25D366;color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">📱 واتساب</button>`}
@@ -14157,12 +14205,24 @@ function invPostCredit(inv){ /* الإشعار الدائن: عكس مالي ف�
   inv.creditPosted=true;
   try{ renderHarvests(); renderDebts(); renderCustomers(); }catch(e){}
 }
+function markInvoicePaid(id){
+  if(!canSettle()){ toast("⚠️ ما عندك صلاحية تسجيل السداد"); return; }
+  const inv=(DB.invoices||[]).find(x=>x.id===id); if(!inv||inv.status==='draft'||inv.status==='paid') return;
+  if(!confirm("تسجيل الفاتورة "+(inv.no||"")+" مدفوعة بالكامل؟ (يُسدد بيعها في سجل المبيعات أيضاً)")) return;
+  inv.status='paid'; inv.paidAt=today();
+  (DB.harvests||[]).forEach(h=>{ if(h.invId===inv.id && !h.paid){
+    const rem=hRemain(h); if(rem>0.005)(h.payments=h.payments||[]).push({date:today(),amt:rem});
+    h.paid=true; h.paidDate=today(); } });
+  save(); renderInvoices(); try{ renderHarvests(); renderDebts(); renderCustomers(); }catch(e){}
+  toast("✅ الفاتورة "+(inv.no||"")+" مدفوعة — وسُدد بيعها");
+}
 function approveInvoice(id){
   const r=(DB.invoices||[]).find(x=>x.id===id); if(!r||r.status!=='draft') return;
   if(!confirm('اعتماد الفاتورة وإصدارها نهائياً؟ بعدها لا تُعدَّل ولا تُحذف — تصحيحها بإشعار\nسيُسجَّل البيع تلقائياً في سجل المبيعات')) return;
   if(!r.no) r.no=invNextNo();
   r.status=r.payState||'sent'; r.approvedAt=new Date().toISOString();
   if(r.type==='credit') invPostCredit(r); else invPostSales(r);
+  if(r.refOrder){ const __o=DB.orders.find(x=>x.id===r.refOrder); if(__o){ __o.status="تم التسليم"; __o.invoiced=true; try{renderOrders();}catch(e){} } }
   save(); saveNow(); renderInvoices(); toast('✅ اعتُمدت برقم '+r.no+' وسُجل البيع في السجل');
 }
 function invRefFilter(){
@@ -14734,6 +14794,7 @@ function deleteInvoice(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠�
   if(r.status!=='draft'){ toast('🔒 الفاتورة معتمدة — لا تُحذف نظاماً، أصدر إشعاراً دائناً لإلغائها'); return; }
   DB.invoices=DB.invoices.filter(x=>x.id!==id);
   if(r.refQuote){ const __q=DB.quotes.find(x=>x.id===r.refQuote); if(__q&&__q.invId===id){ __q.status="ساري"; __q.invId=""; try{renderQuotes();}catch(e){} } }
+  if(r.refOrder){ const __o=DB.orders.find(x=>x.id===r.refOrder); if(__o&&__o.invId===id){ __o.status="جديد"; __o.invId=""; try{renderOrders();}catch(e){} } }
   logEdit("🗑️ حذف مسودة فاتورة",(r.custName||"عميل نقدي"));
   save(); saveNow();
   renderInvoices();
@@ -14751,7 +14812,8 @@ function printInvoice(id){
   const taxT=inv.items.reduce((t,i)=>t+invLineTax(i),0);
   const sub=total-taxT;
   function tlv(tag,val){ const enc=new TextEncoder().encode(val); return String.fromCharCode(tag,enc.length,...enc); }
-  const qrB64=btoa(tlv(1,coName)+tlv(2,st.taxNo||'')+tlv(3,inv.date||'')+tlv(4,total.toFixed(2))+tlv(5,taxT.toFixed(2)));
+  const qrTs=(inv.approvedAt&&inv.approvedAt.length>10)?inv.approvedAt:((inv.date||today())+"T00:00:00Z");
+  const qrB64=btoa(tlv(1,coName)+tlv(2,st.taxNo||'')+tlv(3,qrTs)+tlv(4,total.toFixed(2))+tlv(5,taxT.toFixed(2)));
   const ttlAr=inv.type==='credit'?'إشعار دائن':inv.type==='debit'?'إشعار مدين':inv.type==='simplified'?'فاتورة ضريبية مبسطة':'فاتورة ضريبية';
   const ttlEn=inv.type==='credit'?'CREDIT NOTE':inv.type==='debit'?'DEBIT NOTE':inv.type==='simplified'?'SIMPLIFIED TAX INVOICE':'TAX INVOICE';
   const ln=(lbl,en,val)=>val?`<p style="margin:3px 0;font-size:12.5px"><span style="color:#6b7280">${lbl} <span style="font-size:9.5px;color:#9aa39a">${en}</span>:</span> ${val}</p>`:'';
@@ -14809,7 +14871,7 @@ function printInvoice(id){
     <div><div id="qrcode"></div>${inv.notes?`<p style="font-size:11.5px;color:#6b7280;margin:8px 0 0">ملاحظات: ${inv.notes}</p>`:''}</div>
     <table style="border-collapse:collapse;font-size:13px;min-width:270px">
       <tr><td style="padding:4px 10px;color:#555">المجموع قبل الضريبة <span style="font-size:9px;color:#9aa39a">Subtotal</span></td><td style="text-align:left"><b>${sub.toFixed(2)}</b></td></tr>
-      <tr><td style="padding:4px 10px;color:#555">ضريبة القيمة المضافة 15% <span style="font-size:9px;color:#9aa39a">VAT 15%</span></td><td style="text-align:left"><b>${taxT.toFixed(2)}</b></td></tr>
+      <tr><td style="padding:4px 10px;color:#555">ضريبة القيمة المضافة${(()=>{const rs=[...new Set(inv.items.map(i=>+i.tax||0))];return rs.length===1?" "+rs[0]+"%":"";})()} <span style="font-size:9px;color:#9aa39a">${(()=>{const rs=[...new Set(inv.items.map(i=>+i.tax||0))];return rs.length===1?"VAT "+rs[0]+"%":"VAT";})()}</span></td><td style="text-align:left"><b>${taxT.toFixed(2)}</b></td></tr>
       <tr style="background:#065f46;color:#fff"><td style="padding:7px 10px">الإجمالي المستحق <span style="font-size:9px;opacity:.75">Grand Total</span></td><td style="text-align:left;padding:7px 10px;font-size:15.5px"><b>${total.toFixed(2)} ⃁</b></td></tr>
     </table>
   </div>
@@ -14858,6 +14920,12 @@ function renderDeferred(){
       dl.innerHTML+=`<option value="${x.name}">`;
     });
   }
+  const hs=document.getElementById('defHarvest');
+  if(hs){ const cur=hs.value;
+    hs.innerHTML='<option value="">— بدون ربط —</option>'+(DB.harvests||[]).filter(h=>hRemain(h)>0.005&&!h.creditNote)
+      .slice().reverse().slice(0,80)
+      .map(h=>`<option value="${h.id}">${h.date} — ${h.customerId?custName(h.customerId):(h.customer||"نقدي")} (متبقٍ ${fmt(hRemain(h))})</option>`).join('');
+    if(cur&&[...hs.options].some(o=>o.value===cur)) hs.value=cur; }
   const typeF=document.getElementById('defFilterType')?.value||'';
   const statF=document.getElementById('defFilterStatus')?.value||'';
   const today=todayStr();
@@ -14901,10 +14969,18 @@ function renderDeferred(){
     </td>
   </tr>`).join(''):'<tr><td colspan="8" style="text-align:center;color:var(--muted)">لا توجد مدفوعات</td></tr>';
 }
+function defHarvestPick(){ /* اختيار فاتورة يعبي الطرف والمبلغ تلقائياً */
+  const hid=document.getElementById('defHarvest')?.value; if(!hid) return;
+  const h=DB.harvests.find(x=>x.id===hid); if(!h) return;
+  const pn=document.getElementById('defParty'); if(pn&&!pn.value) pn.value=h.customerId?custName(h.customerId):(h.customer||"");
+  const am=document.getElementById('defAmount'); if(am) am.value=hRemain(h).toFixed(2);
+  const tp=document.getElementById('defType'); if(tp) tp.value='receivable';
+}
 function saveDeferred(e){
   e.preventDefault();
   const entry={id:uid(), type:document.getElementById('defType').value, party:document.getElementById('defParty').value,
     amount:document.getElementById('defAmount').value, dueDate:document.getElementById('defDue').value,
+    harvestId:document.getElementById('defHarvest')?.value||"",
     ref:document.getElementById('defRef').value, notes:document.getElementById('defNotes').value, status:'pending'};
   if(!DB.deferredPayments) DB.deferredPayments=[];
   DB.deferredPayments.push(entry); save(); renderDeferred(); e.target.reset(); toast('✅ تم الحفظ');
@@ -14926,6 +15002,12 @@ function markDeferredPaid(id){
     desc:typeTxt+" — "+(receipt?"تحصيل آجل من ":"سداد آجل لـ ")+(r.party||"")+(r.ref?" ("+r.ref+")":""),
     lines, employee:CURRENT_USER?CURRENT_USER.name:"", defId:r.id});
   r.status='paid'; r.paidAt=todayStr(); r.cashAcc=cash;
+  /* 🔗 مرتبط بفاتورة بيع؟ نسدّدها فعلياً حتى لا يزدوج التحصيل مع سجل الديون */
+  if(r.harvestId){ const h=DB.harvests.find(x=>x.id===r.harvestId);
+    if(h&&!h.paid){ const ap=Math.min(amt,hRemain(h));
+      if(ap>0.005)(h.payments=h.payments||[]).push({date:todayStr(),amt:ap});
+      if(hRemain(h)<=0.005){ h.paid=true; h.paidDate=todayStr(); }
+      try{ renderHarvests(); renderDebts(); renderCustomers(); }catch(e){} } }
   save(); renderDeferred();
   try{ renderJournals(); renderTrial(); renderLedger(); renderOverview(); renderBank(); }catch(e){}
   toast("✅ سُجل السداد وأُنشئ "+typeTxt+" على "+(cash==="1101"?"الصندوق":"البنك"));

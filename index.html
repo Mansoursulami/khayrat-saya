@@ -4153,7 +4153,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.08-V";
+const KS_VER="v12.08-W";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4485,7 +4485,11 @@ async function cloudPush(){
     if(r.ok){ DB.settings.lastCloudSync=now; localStorage.setItem(KEY,JSON.stringify(DB)); cloudStatusUI(); }
     else{
       let __m="⚠️ تعذر الرفع ("+r.status+")";
-      try{ const __tx=await r.text(); if(__tx.includes("LEGAL_IDENTITY_LOCKED")){ __m="🔒 رفض السيرفر: الهوية القانونية لا تطابق المسجلة — تواصل مع مزود السستم"; toast(__m); } }catch(e){}
+      try{ const __tx=await r.text();
+        if(__tx.includes("LEGAL_IDENTITY_LOCKED")){ __m="🔒 رفض السيرفر: الهوية القانونية لا تطابق المسجلة — تواصل مع مزود السستم"; toast(__m); }
+        else if(__tx.includes("PLAN_LOCKED")){ __m="🔒 رفض السيرفر: اشتراك المزرعة غير نشط — التعديلات لم تُرفع"; toast(__m); try{ planFetch().then(()=>planApply()); }catch(e2){} }
+        else if(__tx.includes("MEMBER_WRITE_DENIED")){ __m="⛔ رفض السيرفر: التعديل يتجاوز صلاحياتك — لم يُرفع للسحابة"; toast(__m); }
+      }catch(e){}
       cloudStatusUI(__m);
     }
   }catch(e){ cloudStatusUI("📴 بلا اتصال — سيُعاد تلقائياً"); }
@@ -8917,7 +8921,7 @@ async function approveJoin(id,reqName){
   }
   try{
     const r=await cloudAuthFetch("/rest/v1/farm_members?id=eq."+id,{method:"PATCH",body:JSON.stringify({status:"approved",emp_id:empId})});
-    if(r.ok){ toast("✅ اعتُمد الطلب"); renderJoinReqs(); } else toast("⚠️ تعذر الاعتماد ("+r.status+")");
+    if(r.ok){ toast("✅ اعتُمد الطلب"); try{ cloudSyncPerms(empId); }catch(e){} renderJoinReqs(); } else toast("⚠️ تعذر الاعتماد ("+r.status+")");
   }catch(e){ toast("📴 تعذر الاتصال"); }
 }
 async function rejectJoin(id){
@@ -11756,11 +11760,21 @@ function permLoadEmp(){
     +grpCard("💼 التجارة",tradeKeys.map(mk).join(""))
     +grpCard("🔐 حساسة — امنحها بوعي",["dash","acct","apv","emp"].map(mkD).join("")+["edit","settle"].map(mkA).join(""),true);
 }
+async function cloudSyncPerms(empId){
+  /* 🛡️ نسخة الصلاحيات السيرفرية: يقرؤها حارس farm_member_guard عند كل رفع من العضو */
+  try{
+    if(!cloudOn()||!cloudIsFarmOwner()) return;
+    const em=DB.employees.find(e=>e.id===empId); if(!em) return;
+    await cloudAuthFetch("/rest/v1/farm_members?farm_id=eq."+cloudFarmId()+"&emp_id=eq."+encodeURIComponent(empId),
+      {method:"PATCH", body:JSON.stringify({perms: em.perms||{tabs:{},acts:{}}})});
+  }catch(e){}
+}
 function permToggle(empId,kind,key,el){
   const em=DB.employees.find(e=>e.id===empId); if(!em){ el.checked=!el.checked; return; }
   em.perms=em.perms||{tabs:{},acts:{}}; em.perms.tabs=em.perms.tabs||{}; em.perms.acts=em.perms.acts||{};
   if(kind==="tab") em.perms.tabs[key]=el.checked; else em.perms.acts[key]=el.checked;
   save(); saveNow();
+  try{ cloudSyncPerms(empId); }catch(e){}
   const lbl=key.startsWith("sec_")?key.slice(4):(PERM_LBL[key]||key);
   toast((el.checked?"✅ مُنحت: ":"⛔ سُحبت: ")+lbl);
 }

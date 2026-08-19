@@ -4153,7 +4153,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.08-Y";
+const KS_VER="v12.08-Z";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4337,9 +4337,18 @@ function load(){
   return blank();
 }
 let __saveTimer=null, __skipPersist=false;
+function ksDataOwner(){ try{ return localStorage.getItem("ksDataOwner")||""; }catch(e){ return ""; } }
+function ksStampOwner(){ /* 🏷️ ختم ملكية بيانات الجهاز بمعرّف المزرعة — يمنع أي تداخل بين مزرعتين على جهاز واحد */
+  try{ const f=(typeof cloudFarmId==="function")?cloudFarmId():""; if(f) localStorage.setItem("ksDataOwner", f); }catch(e){}
+}
+function ksWipeFarmData(){ /* مسح كامل لأثر المزرعة السابقة من الجهاز */
+  try{ localStorage.removeItem(KEY); localStorage.removeItem("ksFarmSnaps");
+       localStorage.removeItem("ksFarmPlan"); localStorage.removeItem("ksDataOwner"); }catch(e){}
+}
 function __persistNow(){
   __saveTimer=null;
   if(__skipPersist) return;
+  ksStampOwner();
   const json=JSON.stringify(DB);
   try{ localStorage.setItem(KEY, json); }
   catch(e){ /* امتلاء مساحة المتصفح: نضحي باللقطات القديمة قبل أن نفقد الحفظ الرئيسي */
@@ -5506,7 +5515,8 @@ function setTrend(elId, current, previous){
 function logout(){
   if(!confirm("تسجيل الخروج النهائي من هذا الجهاز؟ (الدخول القادم يحتاج إنترنت)\nملاحظة: إغلاق الصفحة وحده يقفل الجلسة ويطلب كلمة المرور عند الفتح")) return;
   sessionStorage.removeItem("ksUser"); sessionStorage.removeItem("ksAuthed");
-  try{ localStorage.removeItem("ksCloudSess"); localStorage.removeItem("ksCredHash"); localStorage.removeItem("ksFarmPlan"); }catch(e){}
+  try{ localStorage.removeItem("ksCloudSess"); localStorage.removeItem("ksCredHash"); }catch(e){}
+  ksWipeFarmData(); /* 🛡️ خروج نهائي = لا يبقى أثر للمزرعة على الجهاز (حماية الأجهزة المشتركة) */
   location.reload();
 }
 function applyEmpNames(){
@@ -5569,7 +5579,14 @@ function applyRole(){
   setTimeout(buildNotifications, 500);
 }
 function cloudGateNeeded(){
-  try{ return !localStorage.getItem(KEY); }catch(e){ return false; }
+  try{
+    if(!localStorage.getItem(KEY)) return true;
+    /* 🛡️ عزل المستأجرين: بيانات على الجهاز تخص مزرعة أخرى ⇒ لا تُعرض أبداً — تُمسح ويُجلب من سحابة المزرعة الحالية */
+    const cur=(typeof cloudFarmId==="function")?cloudFarmId():"";
+    const own=ksDataOwner();
+    if(cur && own && own!==cur){ ksWipeFarmData(); return true; }
+    return false;
+  }catch(e){ return false; }
 }
 function cloudGateShow(){
   const g=document.getElementById("cloudGate"); if(!g) return;
@@ -5662,6 +5679,7 @@ async function cloudGateJoin(){
 async function __gateApply(row){
   const d=row.data||{}; d.settings=d.settings||{}; d.settings.lastCloudSync=row.updated_at;
   localStorage.setItem(KEY, JSON.stringify(d));
+  ksStampOwner();
   location.reload();
 }
 async function cloudGateCheck(){
@@ -5674,7 +5692,9 @@ async function cloudGateCheck(){
       cgShow("pend");
       if(pm)pm.textContent="✅ تم الاعتماد — جارٍ تجهيز الدخول...";
       if(m.emp_id && localStorage.getItem(KEY)){
-        try{ const d=JSON.parse(localStorage.getItem(KEY)); if((d.employees||[]).some(e=>e.id===m.emp_id)){ location.reload(); return; } }catch(e){}
+        const __o=ksDataOwner(), __c=cloudFarmId();
+        if(__o && __c && __o!==__c){ ksWipeFarmData(); }
+        else try{ const d=JSON.parse(localStorage.getItem(KEY)); if((d.employees||[]).some(e=>e.id===m.emp_id)){ ksStampOwner(); location.reload(); return; } }catch(e){}
       }
       const row=await cloudPull(true);
       if(!row){ if(pm)pm.textContent="⚠️ تعذر جلب بيانات المزرعة — جرّب 🔄 بعد قليل"; return; }
@@ -5690,11 +5710,14 @@ async function cloudGateCheck(){
     cgShow("pend"); return;
   }
   /* حساب مالك */
-  if(localStorage.getItem(KEY)){ location.reload(); return; }
+  const __own=ksDataOwner(), __cur=cloudFarmId();
+  if(__own && __cur && __own!==__cur){ ksWipeFarmData(); } /* بيانات مزرعة أخرى على الجهاز */
+  else if(localStorage.getItem(KEY)){ ksStampOwner(); location.reload(); return; }
   const row=await cloudPull(true);
   if(row){ await __gateApply(row); return; }
   /* مزرعة جديدة فاضية — جهّز قاعدة فارغة وادخل */
   try{ localStorage.setItem(KEY, JSON.stringify(blank())); }catch(e){}
+  ksStampOwner();
   location.reload();
 }
 function cloudGateSignout(){ try{ localStorage.removeItem("ksFarmPlan"); }catch(e){} cloudSetSess(null); cgShow("login"); const m=document.getElementById("cgMsg"); if(m)m.textContent=""; }
@@ -8324,13 +8347,19 @@ function removeLogo(){ DB.settings.logo=""; save(); applyLogo(); try{renderCompa
 function logoTag(h){ return DB.settings.logo ? `<img src="${DB.settings.logo}" style="height:${h||60}px;display:block;margin:0 auto 8px">` : ""; }
 
 /* ====== اللقطات الاحتياطية ====== */
-function getSnaps(){ try{ return JSON.parse(localStorage.getItem("ksFarmSnaps")||"[]"); }catch(e){ return []; } }
+function getSnaps(){ try{
+    const all=JSON.parse(localStorage.getItem("ksFarmSnaps")||"[]");
+    const cur=(typeof cloudFarmId==="function")?cloudFarmId():"";
+    if(!cur) return all;
+    /* لقطات مزرعة أخرى لا تُعرض ولا تُستعاد أبداً (اللقطات القديمة بلا وسم تُعتبر للمزرعة الحالية) */
+    return all.filter(s=>!s.farm || s.farm===cur);
+  }catch(e){ return []; } }
 function autoSnap(json){
   try{
     const t=today();
     if(DB.settings && DB.settings.lastAutoSnap===t) return; // لقطة تلقائية مرة واحدة يومياً
     const snaps=getSnaps();
-    snaps.push({ts:new Date().toLocaleString("sv").slice(0,16)+" (تلقائي)", data:json||JSON.stringify(DB)});
+    snaps.push({ts:new Date().toLocaleString("sv").slice(0,16)+" (تلقائي)", farm:(typeof cloudFarmId==="function"?cloudFarmId():""), data:json||JSON.stringify(DB)});
     while(snaps.length>4) snaps.shift();
     localStorage.setItem("ksFarmSnaps", JSON.stringify(snaps));
     if(DB.settings){ DB.settings.lastAutoSnap=t; localStorage.setItem(KEY, JSON.stringify(DB)); }
@@ -8340,7 +8369,7 @@ function autoSnap(json){
 function takeSnap(manual){
   try{
     const snaps = getSnaps();
-    snaps.push({ts:new Date().toLocaleString("sv").slice(0,16), data:JSON.stringify(DB)});
+    snaps.push({ts:new Date().toLocaleString("sv").slice(0,16), farm:(typeof cloudFarmId==="function"?cloudFarmId():""), data:JSON.stringify(DB)});
     while(snaps.length>4) snaps.shift();
     localStorage.setItem("ksFarmSnaps", JSON.stringify(snaps));
     if(manual) toast("📸 تم أخذ اللقطة");
@@ -8358,7 +8387,11 @@ function restoreSnap(i){
     location.reload();
   }catch(e){ toast("❌ فشلت الاستعادة"); }
 }
-function delSnap(i){ if(!isOwner()){ toast("⚠️ للمالك فقط"); return; } const sn=getSnaps(); if(!sn[i])return; if(!confirm("حذف اللقطة "+sn[i].ts+"؟"))return; sn.splice(i,1); localStorage.setItem("ksFarmSnaps",JSON.stringify(sn)); renderSnaps(); toast("🗑️ حُذفت"); }
+function delSnap(i){ if(!isOwner()){ toast("⚠️ للمالك فقط"); return; } const sn=getSnaps(); const s=sn[i]; if(!s)return;
+  if(!confirm("حذف اللقطة "+s.ts+"؟"))return;
+  let all=[]; try{ all=JSON.parse(localStorage.getItem("ksFarmSnaps")||"[]"); }catch(e){}
+  const j=all.findIndex(x=>x.ts===s.ts && x.data===s.data); if(j>=0) all.splice(j,1);
+  localStorage.setItem("ksFarmSnaps",JSON.stringify(all)); renderSnaps(); toast("🗑️ حُذفت"); }
 function renderSnaps(){
   const snaps = getSnaps();
   tblSnaps.innerHTML = `<tr><th>وقت اللقطة</th><th>الحجم</th><th></th></tr>`

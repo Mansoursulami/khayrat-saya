@@ -4153,7 +4153,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.08-X";
+const KS_VER="v12.08-Y";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4445,9 +4445,9 @@ function __ksDenyMsg(tx){
   const t=String(tx||"");
   const m=t.match(/MEMBER_WRITE_DENIED:([a-zA-Z_]+)(?::([a-z_]+))?/);
   const area=m?m[1]:"", kind=m?m[2]:"";
-  const AR={harvests:"سجل مبيعات",expenses:"مصروف",purchases:"فاتورة شراء",invMoves:"حركة مخزون",tasks:"عمل يومي"};
-  if(kind==="edit_other") return "⛔ هذا الـ"+(AR[area]||"سجل")+" سجّله موظف آخر — لا تملك تعديله (لم يُرفع للسحابة)";
-  if(kind==="delete")     return "⛔ لا تملك صلاحية حذف هذا الـ"+(AR[area]||"سجل")+" (لم يُرفع للسحابة)";
+  const AR={harvests:"سجل المبيعات",expenses:"المصروف",purchases:"فاتورة الشراء",invMoves:"حركة المخزون",tasks:"العمل اليومي"};
+  if(kind==="edit_other") return "⛔ "+(AR[area]||"هذا السجل")+" سجّله موظف آخر — لا تملك تعديله (لم يُرفع للسحابة)";
+  if(kind==="delete")     return "⛔ لا تملك صلاحية حذف "+(AR[area]||"هذا السجل")+" (لم يُرفع للسحابة)";
   if(area==="not_member") return "⛔ حسابك غير معتمد في هذه المزرعة — راجع صاحب المزرعة";
   if(area==="settings")   return "⛔ إعدادات المزرعة للمالك فقط — لم تُرفع";
   if(area==="employees"||area==="payroll"||area==="salaries"||area==="advances") return "⛔ بيانات الموظفين والرواتب تتطلب صلاحية «الموظفين» — لم تُرفع";

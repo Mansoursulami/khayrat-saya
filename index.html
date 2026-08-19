@@ -4160,7 +4160,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.09-C";
+const KS_VER="v12.09-D";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4349,7 +4349,7 @@ let __saveTimer=null, __skipPersist=false;
    • قفل الشاشة، تبديل التطبيقات، نافذة ثانية، ترك الجهاز مفتوحاً ⇒ لا شيء إطلاقاً، السستم يظل شغالاً.
    • نافذة ثانية لنفس المزرعة تفتح بلا كلمة مرور وبلا مسح (نبضة حياة تكشف النوافذ الحية).
    • مزرعتان في وقت واحد على جهاز واحد ⇒ ممنوع: منعٌ عند الدخول + تجميد أي نافذة انحرفت هويتها. */
-const KS_BEAT_MS=5000, KS_BEAT_TTL=15000;
+const KS_BEAT_MS=5000, KS_BEAT_TTL=90000;   /* أطول من خنق المتصفح للتبويبات الخلفية ومن أي حوار مفتوح */
 const KS_STALE_MS=30*60000;   /* غياب أطول من نصف ساعة بين إغلاق وفتح ⇒ جلسة جديدة تتطلب دخولاً */
 function __ksHash(x){ let h=5381; x=String(x||""); for(let i=0;i<x.length;i++) h=((h<<5)+h+x.charCodeAt(i))>>>0; return h.toString(36); }
 /* ── هوية الجهاز: اكتشاف تلقائي للجهاز المشترك ── */
@@ -4445,7 +4445,8 @@ function ksWipeFarmData(){ /* مسح كامل لأثر المزرعة الساب
   try{ if(typeof DB!=="undefined" && typeof blank==="function") DB=blank(); }catch(e){}
   try{ localStorage.removeItem(KEY); localStorage.removeItem("ksFarmSnaps");
        localStorage.removeItem("ksFarmPlan"); localStorage.removeItem("ksDataOwner");
-       localStorage.removeItem("ksPend"); }catch(e){}
+       localStorage.removeItem("ksPend");
+       localStorage.removeItem("ksNotifMuted"); localStorage.removeItem("ksNotifSeen"); }catch(e){}
 }
 function __persistNow(){
   __saveTimer=null;
@@ -4573,6 +4574,9 @@ async function cloudPush(){
   __cloudTimer=null;
   if(!cloudOn()||__cloudBusy) return;
   if(typeof ksGuardTab==="function" && !ksGuardTab()) return;   /* 🛑 لا نرفع بهوية مزرعة غير هوية هذه النافذة */
+  try{ if(sessionStorage.getItem("ksAuthed")!=="1") return; }catch(e){}  /* لا رفع قبل اكتمال الدخول */
+  const __fid=cloudFarmId();                                    /* 🔒 تُثبَّت هنا: أي await بعدها قد تُبدّل الجلسة */
+  const __ok=()=>(!ksTabDrift() && cloudFarmId()===__fid);
   const __ps=cloudSess();
   if(__ps&&__ps.uid&&__ps.farmId&&__ps.farmId!==__ps.uid&&__ps.memberStatus!=="approved") return;
   __cloudBusy=true; cloudStatusUI("⏫ يرفع...");
@@ -4584,19 +4588,24 @@ async function cloudPush(){
       const __last=DB.settings.lastCloudSync||"";
       let __needUpsert=!__last;
       if(__last){
-        const rc=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+cloudFarmId()+"&updated_at=eq."+encodeURIComponent(__last),
+        if(!__ok()) throw new Error("KS_IDENTITY_CHANGED");
+        const rc=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+encodeURIComponent(__fid)+"&updated_at=eq."+encodeURIComponent(__last),
           {method:"PATCH", headers:{Prefer:"return=representation"}, body:JSON.stringify({data:DB,updated_at:now})});
         if(rc.ok){
           let rows=[]; try{ rows=await rc.json(); }catch(e){}
           if(rows.length){ r=rc; }
           else{
-            const probe=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+cloudFarmId()+"&select=updated_at");
+            if(!__ok()) throw new Error("KS_IDENTITY_CHANGED");
+            const probe=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+encodeURIComponent(__fid)+"&select=updated_at");
             const pr=probe.ok?await probe.json():[];
             if(!pr.length) __needUpsert=true; /* لا صف بعد — أول رفع */
             else{
               /* نسخة أحدث من جهاز آخر */
               cloudStatusUI("⚠️ نسخة أحدث بالسحابة (جهاز آخر)");
+              if(!__ok()) throw new Error("KS_IDENTITY_CHANGED");
               const keepCloud=confirm("☁️ يوجد تعديل أحدث بالسحابة من جهاز آخر.\n«موافق» = جلب نسخة السحابة الأحدث (تعديلات هذا الجهاز الأخيرة غير المرفوعة ستُستبدل)\n«إلغاء» = رفع نسخة هذا الجهاز فوق السحابة");
+              /* ⏳ الحوار قد يبقى مفتوحاً دقائق: نعيد التحقق بعد إجابته قبل أي كتابة */
+              if(!__ok()) throw new Error("KS_IDENTITY_CHANGED");
               if(keepCloud){ __cloudBusy=false; cloudPullApply(); return; }
               __needUpsert=true; /* المستخدم اختار الدوس صراحة */
             }
@@ -4604,15 +4613,17 @@ async function cloudPush(){
         } else r=rc; /* خطأ فعلي (401/400...) يُعالج أدناه */
       }
       if(!r && __needUpsert){
+        if(!__ok()) throw new Error("KS_IDENTITY_CHANGED");
         r=await cloudAuthFetch("/rest/v1/farm_state",{method:"POST",
           headers:{Prefer:"resolution=merge-duplicates"},
-          body:JSON.stringify([{id:cloudFarmId(),data:DB,updated_at:now}])});
+          body:JSON.stringify([{id:__fid,data:DB,updated_at:now}])});
       }
     }else{
-      r=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+cloudFarmId(),{method:"PATCH",
+      if(!__ok()) throw new Error("KS_IDENTITY_CHANGED");
+      r=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+encodeURIComponent(__fid),{method:"PATCH",
         body:JSON.stringify({data:DB,updated_at:now})});
     }
-    if(r.ok){ DB.settings.lastCloudSync=now; localStorage.setItem(KEY,JSON.stringify(DB)); window.__ksDirty=false; try{ localStorage.removeItem("ksPend"); }catch(e){} cloudStatusUI(); }
+    if(r.ok && __ok()){ DB.settings.lastCloudSync=now; localStorage.setItem(KEY,JSON.stringify(DB)); window.__ksDirty=false; try{ localStorage.removeItem("ksPend"); }catch(e){} cloudStatusUI(); }
     else{
       let __m="⚠️ تعذر الرفع ("+r.status+")";
       try{ const __tx=await r.text();
@@ -4622,25 +4633,43 @@ async function cloudPush(){
       }catch(e){}
       cloudStatusUI(__m);
     }
-  }catch(e){ cloudStatusUI("📴 بلا اتصال — سيُعاد تلقائياً"); }
+  }catch(e){
+    if(String(e&&e.message)==="KS_IDENTITY_CHANGED"){ try{ ksFreeze(); }catch(e2){} cloudStatusUI("⛔ تغيّرت هوية الجلسة — أُلغي الرفع"); }
+    else cloudStatusUI("📴 بلا اتصال — سيُعاد تلقائياً");
+  }
   __cloudBusy=false;
 }
 async function cloudPull(silent){
   if(!cloudOn()) return null;
   try{
-    const r=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+cloudFarmId()+"&select=data,updated_at");
+    const __fid=cloudFarmId();
+    const r=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+encodeURIComponent(__fid)+"&select=id,data,updated_at");
     if(!r.ok) return null;
     const rows=await r.json();
     if(!rows.length){ if(!silent) toast("☁️ لا توجد نسخة بالسحابة بعد — اضغط رفع الآن"); return null; }
+    if(String(rows[0].id||__fid)!==String(__fid)) return null;   /* 🛡️ صف لا يخص هذه المزرعة: يُهمل */
     return rows[0];
   }catch(e){ if(!silent) toast("📴 تعذر الاتصال بالسحابة"); return null; }
 }
+function ksApplyRow(expectFid, row){
+  /* 🛡️ نقطة الكتابة الوحيدة لأي نسخة سحابية: هوية النافذة + هوية الجلسة + معرّف الصف، ثم ختم الملكية */
+  try{
+    if(typeof ksGuardTab==="function" && !ksGuardTab()) return false;
+    const now=cloudFarmId();
+    if(!expectFid || expectFid!==now) return false;
+    if(row && row.id && String(row.id)!==String(expectFid)) return false;
+    const d=(row&&row.data)||{}; d.settings=d.settings||{}; d.settings.lastCloudSync=(row&&row.updated_at)||"";
+    localStorage.setItem(KEY, JSON.stringify(d));
+    ksStampOwner();
+    return true;
+  }catch(e){ return false; }
+}
 async function cloudPullApply(){
+  const __fid=cloudFarmId();
   const row=await cloudPull(); if(!row) return;
   if(!confirm("⬇️ استبدال بيانات هذا الجهاز بنسخة السحابة؟\n(آخر تحديث سحابي: "+String(row.updated_at||"").slice(0,16).replace("T"," ")+")\nيُنصح بتصدير نسخة احتياطية أولاً.")) return;
   cancelPendingSave();
-  const d=row.data||{}; d.settings=d.settings||{}; d.settings.lastCloudSync=row.updated_at;
-  localStorage.setItem(KEY, JSON.stringify(d));
+  if(!ksApplyRow(__fid,row)){ toast("⛔ تغيّرت هوية الجلسة — أُلغيت العملية"); return; }
   toast("✅ سُحبت نسخة السحابة — سيُعاد التحميل");
   setTimeout(()=>location.reload(), 900);
 }
@@ -4656,14 +4685,14 @@ async function cloudBootCheck(){
     }
     if(m && m.status!=="approved"){ try{ cloudGateShow(); }catch(e){} return; } /* معلق: بوابة الانتظار بلا مسح بيانات */
   }
+  const __bfid=cloudFarmId();
   const row=await cloudPull(true); if(!row) return;
   const localT=DB.settings.lastCloudSync||"";
   if(row.updated_at && row.updated_at>localT){
     if(confirm("☁️ توجد نسخة أحدث بالسحابة (من جهاز آخر).\nاستبدال بيانات هذا الجهاز بها؟")){
       cancelPendingSave();
-      const d=row.data||{}; d.settings=d.settings||{}; d.settings.lastCloudSync=row.updated_at;
-      localStorage.setItem(KEY, JSON.stringify(d));
-      location.reload();
+      if(ksApplyRow(__bfid,row)) location.reload();
+      else toast("⛔ تغيّرت هوية الجلسة — أُلغيت العملية");
     }
   }
 }
@@ -4711,7 +4740,8 @@ async function planFetch(){
 async function planRegisterSelf(em){
   try{
     const s=cloudSess(); if(!s||!s.uid) return;
-    let nm=""; try{ nm=(typeof DB!=="undefined"&&DB&&DB.settings&&(DB.settings.companyName||DB.settings.adminName))||""; }catch(e){}
+    /* الاسم من بيانات هذا الجهاز فقط إن كانت تخص هذه المزرعة — وإلا فارغ (لا يتسرب اسم مزرعة سابقة) */
+    let nm=""; try{ if(ksDataOwner()===s.uid) nm=(DB&&DB.settings&&(DB.settings.companyName||DB.settings.adminName))||""; }catch(e){}
     await cloudAuthFetch("/rest/v1/farm_plan?on_conflict=farm_id",{method:"POST",
       headers:{Prefer:"resolution=ignore-duplicates"},
       body:JSON.stringify([{farm_id:s.uid,email:em||s.email||"",name:nm,status:"pending",modules:{}}])});
@@ -4771,6 +4801,10 @@ function planApply(){
 }
 async function planBoot(){
   try{ FARM_PLAN=JSON.parse(localStorage.getItem("ksFarmPlan")||"null"); }catch(e){}
+  /* 🛡️ خطة مزرعة أخرى لا تُطبَّق أبداً (مديولاتها وصلاحيتها تخصها وحدها) */
+  try{ const __f=cloudFarmId();
+       if(FARM_PLAN && __f && String(FARM_PLAN.farm_id||"")!==String(__f)){
+         FARM_PLAN=null; localStorage.removeItem("ksFarmPlan"); } }catch(e){}
   if(FARM_PLAN) planApply();
   if(!cloudOn()) return;
   await planFetch(); planApply();
@@ -4929,7 +4963,14 @@ window.addEventListener("pagehide", ()=>{
   try{ ksFlushOut(); ksBeatDrop(); }catch(e){}
 });
 document.addEventListener("visibilitychange", ()=>{ /* قفل الشاشة/تبديل التطبيق: نحفظ ونرفع فقط — بلا قفل ولا مسح */
-  if(document.visibilityState==="hidden") ksFlushOut(); else ksSeenNow();
+  if(document.visibilityState==="hidden") ksFlushOut();
+  else { ksSeenNow(); try{ if(ksTabDrift()) ksFreeze(); else ksBeatNow(); }catch(e){} }
+});
+/* 🔔 إشعار فوري بين نوافذ الجهاز: تبديل الجلسة أو مسح البيانات يجمّد النافذة اليتيمة في نفس اللحظة */
+window.addEventListener("storage", (e)=>{
+  try{ if(!e || (e.key!=="ksCloudSess" && e.key!=="ksDataOwner")) return;
+    if(ksTabDrift()) ksFreeze();
+  }catch(err){}
 });
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function fmt(n){ return Number(n||0).toLocaleString("en-US",{maximumFractionDigits:2}); }
@@ -5695,7 +5736,8 @@ function cloudGateNeeded(){
     /* 🛡️ عزل المستأجرين: بيانات على الجهاز تخص مزرعة أخرى ⇒ لا تُعرض أبداً — تُمسح ويُجلب من سحابة المزرعة الحالية */
     const cur=(typeof cloudFarmId==="function")?cloudFarmId():"";
     const own=ksDataOwner();
-    if(cur && own && own!==cur){ ksWipeFarmData(); return true; }
+    /* ⚠️ الختم الغائب = ملكية مجهولة (بيانات إصدار قديم أو بقايا) — لا تُتبنّى أبداً */
+    if(cur && own!==cur){ ksWipeFarmData(); return true; }
     return false;
   }catch(e){ return false; }
 }
@@ -5790,9 +5832,7 @@ async function cloudGateJoin(){
   }catch(e){ if(msg)msg.textContent="❌ "+(e.message||"فشل الإرسال"); }
 }
 async function __gateApply(row){
-  const d=row.data||{}; d.settings=d.settings||{}; d.settings.lastCloudSync=row.updated_at;
-  localStorage.setItem(KEY, JSON.stringify(d));
-  ksStampOwner();
+  if(!ksApplyRow(cloudFarmId(), row)){ toast("⛔ تغيّرت هوية الجلسة — أُلغيت العملية"); return; }
   location.reload();
 }
 async function cloudGateCheck(){
@@ -5832,7 +5872,7 @@ async function cloudGateCheck(){
   }
   /* حساب مالك */
   const __own=ksDataOwner(), __cur=cloudFarmId();
-  if(__own && __cur && __own!==__cur){ ksWipeFarmData(); } /* بيانات مزرعة أخرى على الجهاز */
+  if(__cur && __own!==__cur){ ksWipeFarmData(); }   /* مزرعة أخرى أو ملكية مجهولة ⇒ تُمسح ويُجلب الصحيح */
   else if(localStorage.getItem(KEY)){ ksStampOwner(); location.reload(); return; }
   const row=await cloudPull(true);
   if(row){ await __gateApply(row); return; }
@@ -5844,6 +5884,7 @@ async function cloudGateCheck(){
 function cloudGateSignout(){ try{ localStorage.removeItem("ksFarmPlan"); }catch(e){} cloudSetSess(null); cgShow("login"); const m=document.getElementById("cgMsg"); if(m)m.textContent=""; }
 function bootLogin(){
   /* 🔐 جهاز مشترك: جلسة متصفح جديدة ⇒ لا تبقى أي بقايا من المستخدم السابق (حتى لو نسي الخروج) */
+  try{ ksTabBind(); }catch(e){}   /* اربط هوية النافذة أولاً: أي رفع أدناه يجب أن يكون محروساً */
   try{
     if(ksBusyOtherFarm()){ ksFreeze(); return; }        /* مزرعة أخرى مفتوحة الآن في نافذة حية */
     if(ksLiveSameFarm()){
@@ -5862,7 +5903,7 @@ function bootLogin(){
       }
     }
   }catch(e){}
-  try{ ksSharedUI(); ksTabBind(); ksSeenNow(); ksBeatNow();
+  try{ ksSharedUI(); ksSeenNow(); ksBeatNow();
        if(!window.__ksBeatT) window.__ksBeatT=setInterval(function(){ if(ksTabDrift()) ksFreeze(); else ksBeatNow(); }, KS_BEAT_MS);
   }catch(e){}
   /* 🔑 الدخول الموحد: باب واحد بالإيميل للجميع — الهوية تُشتق من الحساب السحابي */
@@ -8494,9 +8535,18 @@ function getSnaps(){ try{
     const all=JSON.parse(localStorage.getItem("ksFarmSnaps")||"[]");
     const cur=(typeof cloudFarmId==="function")?cloudFarmId():"";
     if(!cur) return all;
-    /* لقطات مزرعة أخرى لا تُعرض ولا تُستعاد أبداً (اللقطات القديمة بلا وسم تُعتبر للمزرعة الحالية) */
-    return all.filter(s=>!s.farm || s.farm===cur);
+    /* 🛡️ لقطة بلا وسم = ملكية مجهولة (بقايا إصدار قديم) ⇒ لا تُعرض ولا تُستعاد لأي مزرعة */
+    return all.filter(s=>s.farm===cur);
   }catch(e){ return []; } }
+function ksSaveSnaps(mine){
+  /* تكتب لقطات المزرعة الحالية فقط وتُبقي لقطات المزارع الأخرى كما هي (كانت تُمحى) */
+  try{
+    const cur=(typeof cloudFarmId==="function")?cloudFarmId():"";
+    let all=[]; try{ all=JSON.parse(localStorage.getItem("ksFarmSnaps")||"[]"); }catch(e){}
+    const others=cur?all.filter(x=>x&&x.farm&&x.farm!==cur):[];
+    localStorage.setItem("ksFarmSnaps", JSON.stringify(others.concat(mine)));
+  }catch(e){ throw e; }
+}
 function autoSnap(json){
   try{
     const t=today();
@@ -8504,29 +8554,33 @@ function autoSnap(json){
     const snaps=getSnaps();
     snaps.push({ts:new Date().toLocaleString("sv").slice(0,16)+" (تلقائي)", farm:(typeof cloudFarmId==="function"?cloudFarmId():""), data:json||JSON.stringify(DB)});
     while(snaps.length>4) snaps.shift();
-    localStorage.setItem("ksFarmSnaps", JSON.stringify(snaps));
+    ksSaveSnaps(snaps);
     if(DB.settings){ DB.settings.lastAutoSnap=t; localStorage.setItem(KEY, JSON.stringify(DB)); }
     try{ if(document.getElementById("tblSnaps")) renderSnaps(); }catch(e){}
   }catch(e){}
 }
 function takeSnap(manual){
+  if(typeof ksGuardTab==="function" && !ksGuardTab()) return;
   try{
     const snaps = getSnaps();
     snaps.push({ts:new Date().toLocaleString("sv").slice(0,16), farm:(typeof cloudFarmId==="function"?cloudFarmId():""), data:JSON.stringify(DB)});
     while(snaps.length>4) snaps.shift();
-    localStorage.setItem("ksFarmSnaps", JSON.stringify(snaps));
+    ksSaveSnaps(snaps);
     if(manual) toast("📸 تم أخذ اللقطة");
     renderSnaps();
   }catch(e){ if(manual) toast("❌ مساحة المتصفح ممتلئة — صدّر نسخة JSON بدلاً"); }
 }
 function restoreSnap(i){
+  if(typeof ksGuardTab==="function" && !ksGuardTab()) return;
   const snaps = getSnaps(); const s = snaps[i]; if(!s) return;
+  if(s.farm && typeof cloudFarmId==="function" && cloudFarmId() && s.farm!==cloudFarmId()){ toast("⛔ اللقطة تخص مزرعة أخرى"); return; }
   if(!confirm("⚠️ استعادة لقطة "+s.ts+"؟\nكل التغييرات بعدها بتنحذف. الأفضل تاخذ لقطة جديدة قبل الاستعادة."))return;
   try{
     cancelPendingSave();
     let __d=null; try{ __d=JSON.parse(s.data); }catch(e2){}
     if(__d){ __d.settings=__d.settings||{}; __d.settings.lastCloudSync=""; localStorage.setItem(KEY, JSON.stringify(__d)); }
     else localStorage.setItem(KEY, s.data);
+    ksStampOwner();
     location.reload();
   }catch(e){ toast("❌ فشلت الاستعادة"); }
 }
@@ -11459,12 +11513,15 @@ function legalLocked(){
 async function cloudRegisterLegal(){
   try{
     if(!cloudOn()) return;
+    if(typeof ksGuardTab==="function" && !ksGuardTab()) return;
+    const __fid=cloudFarmId();
+    if(!__fid || ksDataOwner()!==__fid) return;   /* 🛡️ لا نسجّل هوية قانونية من بيانات لا تخص هذه المزرعة */
     const t=DB.settings.taxNo||"", c=DB.settings.unifiedNo||"";
     if(!t && !c) return;
     const prov=!legalLocked();
     await cloudAuthFetch("/rest/v1/farm_legal?on_conflict=farm_id",{method:"POST",
       headers:{Prefer:prov?"resolution=merge-duplicates":"resolution=ignore-duplicates"},
-      body:JSON.stringify([{farm_id:cloudFarmId(), tax_no:t, cr_no:c, updated_at:new Date().toISOString()}])});
+      body:JSON.stringify([{farm_id:__fid, tax_no:t, cr_no:c, updated_at:new Date().toISOString()}])});
   }catch(e){}
 }
 function saveAdminName(v){

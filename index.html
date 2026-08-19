@@ -4153,7 +4153,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.08-W";
+const KS_VER="v12.08-X";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4440,6 +4440,22 @@ function cloudQueuePush(){
   if(__cloudTimer) clearTimeout(__cloudTimer);
   __cloudTimer=setTimeout(cloudPush, 2500);
 }
+function __ksDenyMsg(tx){
+  /* ترجمة رموز رفض السيرفر لرسالة يفهمها الموظف */
+  const t=String(tx||"");
+  const m=t.match(/MEMBER_WRITE_DENIED:([a-zA-Z_]+)(?::([a-z_]+))?/);
+  const area=m?m[1]:"", kind=m?m[2]:"";
+  const AR={harvests:"سجل مبيعات",expenses:"مصروف",purchases:"فاتورة شراء",invMoves:"حركة مخزون",tasks:"عمل يومي"};
+  if(kind==="edit_other") return "⛔ هذا الـ"+(AR[area]||"سجل")+" سجّله موظف آخر — لا تملك تعديله (لم يُرفع للسحابة)";
+  if(kind==="delete")     return "⛔ لا تملك صلاحية حذف هذا الـ"+(AR[area]||"سجل")+" (لم يُرفع للسحابة)";
+  if(area==="not_member") return "⛔ حسابك غير معتمد في هذه المزرعة — راجع صاحب المزرعة";
+  if(area==="settings")   return "⛔ إعدادات المزرعة للمالك فقط — لم تُرفع";
+  if(area==="employees"||area==="payroll"||area==="salaries"||area==="advances") return "⛔ بيانات الموظفين والرواتب تتطلب صلاحية «الموظفين» — لم تُرفع";
+  if(area==="journals")   return "⛔ القيود المحاسبية تتطلب صلاحية «الحسابات» — لم تُرفع";
+  if(area==="invoices")   return "⛔ الفواتير الإلكترونية تتطلب صلاحية «الفواتير» — لم تُرفع";
+  if(area==="trash")      return "⛔ صلاحية الحذف مسحوبة من حسابك — لم يُرفع";
+  return "⛔ رفض السيرفر: التعديل يتجاوز صلاحياتك — لم يُرفع للسحابة";
+}
 async function cloudPush(){
   __cloudTimer=null;
   if(!cloudOn()||__cloudBusy) return;
@@ -4488,7 +4504,7 @@ async function cloudPush(){
       try{ const __tx=await r.text();
         if(__tx.includes("LEGAL_IDENTITY_LOCKED")){ __m="🔒 رفض السيرفر: الهوية القانونية لا تطابق المسجلة — تواصل مع مزود السستم"; toast(__m); }
         else if(__tx.includes("PLAN_LOCKED")){ __m="🔒 رفض السيرفر: اشتراك المزرعة غير نشط — التعديلات لم تُرفع"; toast(__m); try{ planFetch().then(()=>planApply()); }catch(e2){} }
-        else if(__tx.includes("MEMBER_WRITE_DENIED")){ __m="⛔ رفض السيرفر: التعديل يتجاوز صلاحياتك — لم يُرفع للسحابة"; toast(__m); }
+        else if(__tx.includes("MEMBER_WRITE_DENIED")){ __m=__ksDenyMsg(__tx); toast(__m); }
       }catch(e){}
       cloudStatusUI(__m);
     }

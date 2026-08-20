@@ -1679,7 +1679,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     <form onsubmit="addExpense(event)">
       <div class="row">
         <div><label>التاريخ *</label><input type="date" id="exDate" required></div>
-        <div><label>البند *</label><select id="exCat" required></select></div>
+        <div><label>البند *</label><select id="exCat" required onchange="exVatSync()"></select></div>
         <div><label>القسم</label><select id="exSection"></select></div>
         <div><label>المبلغ (⃁) *</label><input type="number" id="exAmount" min="0" step="0.01" required></div>
       </div>
@@ -1687,7 +1687,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <div><label>ربط بدورة زراعية (اختياري)</label><select id="exCycle"></select></div>
         <input id="exEmp" type="hidden">
         <div><label>خاضعة لضريبة القيمة المضافة</label>
-          <select id="exVatable"><option value="1">نعم — فاتورة ضريبية من مورّد مسجَّل</option><option value="0">لا — رسوم حكومية / تأمينات / مورّد غير مسجَّل</option></select></div>
+          <select id="exVatable" onchange="this.dataset.touched='1'"><option value="1">نعم — فاتورة ضريبية من مورّد مسجَّل</option><option value="0">لا — رسوم حكومية / تأمينات / مورّد غير مسجَّل</option></select></div>
         <div><label>ملاحظات</label><input id="exNotes"></div>
         <div><label>📎 فاتورة المصروف (صورة/PDF) *</label><input type="file" id="exFile" accept="image/*,.pdf" required onchange="expFilePick(event,'ex')"><span id="exFileHint" class="muted" style="font-size:.68rem"></span></div>
       </div>
@@ -1873,7 +1873,11 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <div><label>تاريخ انتهاء الهوية / الإقامة</label><input type="date" id="emIdExp"></div>
         <div><label>القسم *</label><select id="emSection" required></select></div>
         <div><label>الراتب الشهري (⃁) *</label><input type="number" id="emSalary" min="0" step="0.01" required></div>
-        <div><label>البدلات الشهرية (⃁)</label><input type="number" id="emAllow" min="0" step="0.01" placeholder="0"></div>
+        <div><label>🏠 بدل السكن (⃁)</label><input type="number" id="emAllowHouse" min="0" step="0.01" placeholder="0" oninput="emAllowSync()" title="يدخل في حساب مكافأة نهاية الخدمة"></div>
+        <div><label>🚗 بدل المواصلات (⃁)</label><input type="number" id="emAllowTrans" min="0" step="0.01" placeholder="0" oninput="emAllowSync()" title="يدخل في حساب مكافأة نهاية الخدمة"></div>
+        <div><label>بدلات أخرى (⃁)</label><input type="number" id="emAllowOther" min="0" step="0.01" placeholder="0" oninput="emAllowSync()" title="لا تدخل في مكافأة نهاية الخدمة"></div>
+        <div><label>إجمالي البدلات الشهرية (⃁)</label><input type="number" id="emAllow" min="0" step="0.01" placeholder="0" readonly style="background:var(--bg)">
+          <span class="muted" style="font-size:.68rem" id="emAllowHint">السكن والمواصلات يدخلان في مكافأة نهاية الخدمة — «أخرى» لا تدخل</span></div>
         <div><label>الجوال *</label><input id="emPhone" inputmode="tel" required></div>
         <div><label>البريد الإلكتروني *</label><input type="email" id="emEmail" inputmode="email" placeholder="name@example.com" required></div>
         <div><label>📜 بداية العقد</label><input type="date" id="emCnStart"></div>
@@ -1994,6 +1998,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
 
     <div id="hr_eos" style="display:none">
       <div class="card"><h3>🧮 حاسبة تصفية نهاية الخدمة (نظام العمل السعودي)</h3>
+        <div id="eosBasisNote" style="background:var(--green-light);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:.85rem"></div>
         <div class="row">
           <div><label>الموظف *</label><select id="eosEmp" onchange="eosFill()"></select></div>
           <div><label>تاريخ المباشرة *</label><input type="date" id="eosStart"></div>
@@ -2416,6 +2421,14 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <p class="muted" style="margin-bottom:8px">الاسم والرقم الضريبي مصدرهما الوحيد: الإعدادات ← بيانات الشركة. عند تعبئة الرقم الضريبي هناك، الفواتير الضريبية المطبوعة تتضمن <b>رمز QR بصيغة TLV حسب متطلبات هيئة الزكاة والضريبة (زاتكا)</b></p>
       <div class="table-wrap"><table id="tblTax"></table></div>
       <p class="muted" style="margin-top:8px">⚠️ تقديري — يفترض أن أسعارك غير شاملة الضريبة. للإقرار الرسمي راجع محاسبك ومنصة زاتكا</p>
+    </div>
+
+    <div class="card" id="vatReviewCard" style="display:none;margin-top:12px">
+      <h3>🔍 مراجعة الضريبة الداخلة على المصروفات</h3>
+      <p class="muted" style="margin-bottom:10px">خصم الضريبة الداخلة يتطلب <b>فاتورة ضريبية صحيحة من مورّد مسجَّل</b>. الرسوم الحكومية والتأمينات والشراء من غير مسجَّل <b>لا ضريبة فيها تُخصم</b>. المصروفات أدناه لم تُصنَّف بعد ويُفترض حالياً أنها خاضعة — راجعها بالجملة.</p>
+      <div id="vatReviewImpact" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:.87rem"></div>
+      <div class="table-wrap"><table id="tblVatReview"></table></div>
+      <p class="muted" style="margin-top:8px">الوسم يغيّر الإقرار فقط ولا يمسّ مبلغ المصروف ولا الدفاتر. تقدر ترجع وتغيّره وقتما شئت من ✏️ تعديل المصروف.</p>
     </div>
   </div>
 
@@ -2951,6 +2964,12 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
 
     <div id="acct_sales" style="display:none">
     <h2>🧺 المبيعات (حسب الفترة)</h2>
+    <div class="card" id="retCard" style="display:none;margin-bottom:12px">
+      <h3>↩️ مؤشر المردودات</h3>
+      <div id="retKpi" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:10px"></div>
+      <div class="table-wrap"><table id="tblRetRate"></table></div>
+      <p class="muted" style="margin-top:8px">نسبة مرتفعة على منتج قد تعني مشكلة جودة، وعلى عميل بعينه قد تعني نمط «بيع ثم إرجاع» — راجعها.</p>
+    </div>
     <div class="card table-wrap"><table id="tblAcSales"></table></div>
   </div>
 
@@ -4107,6 +4126,9 @@ Object.assign(I18N.ur,{
 "مقبول ⚠️ يمكن تحسينه":"مناسب ⚠️ بہتری ممکن","منخفض 🔴 يحتاج مراجعة":"کم 🔴 جائزہ درکار","خسارة ❌":"نقصان ❌",
 "نسبة الربح من المبيعات":"فروخت سے منافع کا تناسب",
 "* الربح = مبيعات الدورة − تكلفة البداية − المصروفات المرتبطة بها (المصروفات العامة غير المرتبطة محسوبة في صافي الربح أعلاه)":"* منافع = سائیکل فروخت − ابتدائی لاگت − منسلک اخراجات (غیر منسلک عمومی اخراجات اوپر خالص منافع میں شامل ہیں)"});
+/* i18n v12.12 — نصوص جولة الأرقام والفاعلية والقرارات الثلاثة */
+Object.assign(I18N.en,{"🏠 بدل السكن (⃁)":"🏠 Housing allowance (⃁)","🚗 بدل المواصلات (⃁)":"🚗 Transport allowance (⃁)","بدلات أخرى (⃁)":"Other allowances (⃁)","إجمالي البدلات الشهرية (⃁)":"Total monthly allowances (⃁)","السكن والمواصلات يدخلان في مكافأة نهاية الخدمة — «أخرى» لا تدخل":"Housing & transport count toward end-of-service; \"Other\" does not","خاضعة لضريبة القيمة المضافة":"Subject to VAT","نعم — فاتورة ضريبية من مورّد مسجَّل":"Yes — tax invoice from a registered supplier","لا — رسوم حكومية / تأمينات / مورّد غير مسجَّل":"No — government fees / insurance / unregistered supplier","🔍 مراجعة الضريبة الداخلة على المصروفات":"🔍 Input VAT review on expenses","↩️ مؤشر المردودات":"↩️ Returns indicator","عدد المصروفات":"Expenses count","الضريبة الداخلة المفترضة":"Assumed input VAT","التصنيف بالجملة":"Bulk classify","🚫 غير خاضعة":"🚫 Not subject","✅ خاضعة":"✅ Subject","✅ كلها خاضعة":"✅ All subject","مصروفات غير خاضعة (رسوم/تأمينات/مورّد غير مسجَّل)":"Non-taxable expenses (fees/insurance/unregistered supplier)","غير مستحق":"Not due","1–30 يوم":"1–30 days","31–60 يوم":"31–60 days","61–90 يوم":"61–90 days","أكثر من 90":"Over 90","الأسبوع":"Week","متوقع وارد":"Expected in","متوقع صادر":"Expected out","الرصيد المتوقع":"Projected balance","الرصيد الحالي":"Current balance","النقدية (صندوق + بنك)":"Cash (cash + bank)","عدد المبيعات":"Sales count","الدورات":"Cycles","الإيراد (صافي الضريبة)":"Revenue (net of VAT)","متوسط السعر":"Avg. price","متوسط الكمية للبيعة":"Avg. qty per sale","التغيّر":"Change","جديد":"New","المبيعات الإجمالية":"Gross sales","المردودات":"Returns","نسبة المردودات":"Returns rate","صافي المبيعات":"Net sales","النسبة":"Rate","رصيد افتتاحي":"Opening balance","قيمة المخزون بعده":"Stock value after","قيمة الفروقات":"Variance value","السبب":"Reason","الاسم المختصر (للتقارير)":"Short name (for reports)","مردود مبيعات":"Sales return","بيع مباشر":"Direct sale","— منتج محذوف —":"— deleted product —","— مورد محذوف —":"— deleted supplier —","— صنف محذوف —":"— deleted item —","— بلا مورد —":"— no supplier —","— موظف غير موجود —":"— employee not found —"});
+Object.assign(I18N.ur,{"🏠 بدل السكن (⃁)":"🏠 رہائشی الاؤنس (⃁)","🚗 بدل المواصلات (⃁)":"🚗 ٹرانسپورٹ الاؤنس (⃁)","بدلات أخرى (⃁)":"دیگر الاؤنسز (⃁)","إجمالي البدلات الشهرية (⃁)":"کل ماہانہ الاؤنسز (⃁)","السكن والمواصلات يدخلان في مكافأة نهاية الخدمة — «أخرى» لا تدخل":"رہائش اور ٹرانسپورٹ اختتامِ خدمت میں شامل — «دیگر» شامل نہیں","خاضعة لضريبة القيمة المضافة":"ویٹ کے تابع","نعم — فاتورة ضريبية من مورّد مسجَّل":"ہاں — رجسٹرڈ سپلائر کا ٹیکس انوائس","لا — رسوم حكومية / تأمينات / مورّد غير مسجَّل":"نہیں — سرکاری فیس / انشورنس / غیر رجسٹرڈ سپلائر","🔍 مراجعة الضريبة الداخلة على المصروفات":"🔍 اخراجات پر ان پٹ ویٹ کا جائزہ","↩️ مؤشر المردودات":"↩️ واپسی کا اشاریہ","عدد المصروفات":"اخراجات کی تعداد","الضريبة الداخلة المفترضة":"فرض کردہ ان پٹ ویٹ","التصنيف بالجملة":"اجتماعی درجہ بندی","🚫 غير خاضعة":"🚫 تابع نہیں","✅ خاضعة":"✅ تابع","✅ كلها خاضعة":"✅ سب تابع","مصروفات غير خاضعة (رسوم/تأمينات/مورّد غير مسجَّل)":"غیر تابع اخراجات (فیس/انشورنس/غیر رجسٹرڈ سپلائر)","غير مستحق":"واجب الادا نہیں","1–30 يوم":"1–30 دن","31–60 يوم":"31–60 دن","61–90 يوم":"61–90 دن","أكثر من 90":"90 سے زائد","الأسبوع":"ہفتہ","متوقع وارد":"متوقع آمد","متوقع صادر":"متوقع اخراج","الرصيد المتوقع":"متوقع بیلنس","الرصيد الحالي":"موجودہ بیلنس","النقدية (صندوق + بنك)":"نقدی (کیش + بینک)","عدد المبيعات":"فروخت کی تعداد","الدورات":"سائیکلز","الإيراد (صافي الضريبة)":"آمدنی (ویٹ کے بغیر)","متوسط السعر":"اوسط قیمت","متوسط الكمية للبيعة":"فی فروخت اوسط مقدار","التغيّر":"تبدیلی","جديد":"نیا","المبيعات الإجمالية":"مجموعی فروخت","المردودات":"واپسیاں","نسبة المردودات":"واپسی کی شرح","صافي المبيعات":"خالص فروخت","النسبة":"شرح","رصيد افتتاحي":"ابتدائی بیلنس","قيمة المخزون بعده":"بعد از اسٹاک قیمت","قيمة الفروقات":"فرق کی قیمت","السبب":"وجہ","الاسم المختصر (للتقارير)":"مختصر نام (رپورٹس کے لیے)","مردود مبيعات":"فروخت واپسی","بيع مباشر":"براہِ راست فروخت","— منتج محذوف —":"— حذف شدہ پروڈکٹ —","— مورد محذوف —":"— حذف شدہ سپلائر —","— صنف محذوف —":"— حذف شدہ آئٹم —","— بلا مورد —":"— سپلائر نہیں —","— موظف غير موجود —":"— ملازم موجود نہیں —"});
 I18N_PAT.unshift(
 {re:/^([▲▼]) ([\d٠-٩]+) نقطة$/,en:"$1 $2 pts",ur:"$1 $2 پوائنٹس"},
 {re:/^([▲▼]) ([\d٠-٩]+)% عن الشهر الماضي$/,en:"$1 $2% vs last month",ur:"$1 $2% پچھلے ماہ سے"},
@@ -4221,7 +4243,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.12-A";
+const KS_VER="v12.12-B";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -8365,12 +8387,15 @@ function addExpense(e){
     EDIT.expense=null; exBtn.textContent="حفظ المصروف"; markEditing("cardExpense",false); }
   else DB.expenses.push({id:uid(), ...rec});
   window.__expFiles.ex=null; const _h=document.getElementById("exFileHint"); if(_h) _h.textContent="";
-  save(); e.target.reset(); exDate.value=today(); renderExpenses(); toast("✅ تم الحفظ");
+  save(); e.target.reset(); exDate.value=today();
+  { const _v=document.getElementById("exVatable"); if(_v) _v.dataset.touched=""; }
+  try{ exVatSync(); }catch(e2){}
+  renderExpenses(); toast("✅ تم الحفظ");
 }
 function editExpense(id){
   const x = DB.expenses.find(r=>r.id===id); if(!x) return;
   exDate.value=x.date; exCat.value=x.cat; exSection.value=x.section; exAmount.value=x.amount;
-  { const _v=document.getElementById("exVatable"); if(_v) _v.value=(x.vatable===false)?"0":"1"; }
+  { const _v=document.getElementById("exVatable"); if(_v){ _v.value=(x.vatable===false)?"0":"1"; _v.dataset.touched="1"; } }
   if(x.cycleId && ![...exCycle.options].some(o=>o.value===x.cycleId)){
     const c = DB.cycles.find(y=>y.id===x.cycleId);
     if(c) exCycle.insertAdjacentHTML("beforeend", `<option value="${c.id}">${prodName(c.productId)} — ${c.section} (${c.status})</option>`);
@@ -9305,7 +9330,13 @@ function addEmployee(e){
   e.preventDefault();
   if(!emNat.value || emNat.value==="__new"){ toast("⚠️ اختر الجنسية"); return; }
   const rec = {name:emName.value.trim(), role:emRole.value, nationality:emNat.value.trim(), idNo:emIdNo.value.trim(), idExp:emIdExp.value||"", salary:+emSalary.value,
-    allowances:+((document.getElementById("emAllow")||{}).value)||0,
+    allowHouse:+((document.getElementById("emAllowHouse")||{}).value)||0,
+    allowTrans:+((document.getElementById("emAllowTrans")||{}).value)||0,
+    allowOther:+((document.getElementById("emAllowOther")||{}).value)||0,
+    allowSplit:true,
+    allowances:(+((document.getElementById("emAllowHouse")||{}).value)||0)
+              +(+((document.getElementById("emAllowTrans")||{}).value)||0)
+              +(+((document.getElementById("emAllowOther")||{}).value)||0),
     hireDate:((document.getElementById("emCnStart")||{}).value)||"",   /* أساس مكافأة نهاية الخدمة */
     phone:emPhone.value, email:emEmail.value.trim(), section:emSection.value};
   if(!rec.phone){ toast("⚠️ رقم الجوال إلزامي"); emPhone.focus(); return; }
@@ -9411,7 +9442,12 @@ function delEmContract(id){
 }
 function editEmployee(id){
   const em = DB.employees.find(x=>x.id===id); if(!em) return;
-  emName.value=em.name; emRole.value=em.role||""; emNat.value=em.nationality||""; emIdNo.value=em.idNo||""; emIdExp.value=em.idExp||""; emSalary.value=em.salary; { const _al=document.getElementById("emAllow"); if(_al) _al.value=em.allowances||""; } if(typeof emSection!=="undefined"&&emSection) emSection.value=em.section||"عام (كل المزرعة)"; emPhone.value=em.phone||""; emEmail.value=em.email||"";
+  emName.value=em.name; emRole.value=em.role||""; emNat.value=em.nationality||""; emIdNo.value=em.idNo||""; emIdExp.value=em.idExp||""; emSalary.value=em.salary; { const _h=document.getElementById("emAllowHouse"), _t=document.getElementById("emAllowTrans"), _o=document.getElementById("emAllowOther");
+    /* البدلات القديمة كانت رقماً واحداً — تُوضع في «أخرى» حتى تصنّفها، فلا يرتفع التزام نهاية الخدمة بلا قرارك */
+    if(_h) _h.value=em.allowHouse||"";
+    if(_t) _t.value=em.allowTrans||"";
+    if(_o) _o.value=(em.allowSplit? (em.allowOther||"") : (em.allowances||""));
+    emAllowSync(); } if(typeof emSection!=="undefined"&&emSection) emSection.value=em.section||"عام (كل المزرعة)"; emPhone.value=em.phone||""; emEmail.value=em.email||"";
   EM_CONTRACT=null; EM_DOCS={};
   const cn = DB.contracts.find(x=>x.empId===id);
   emCnStart.value = cn?cn.start:""; emCnEnd.value = (cn&&cn.end)||""; emCnType.value = cn?cn.type:"محدد المدة";
@@ -11056,9 +11092,18 @@ function autoEntries(from, to){
     /* الإيراد بلا ضريبة، والضريبة التزام على 2103 (كان الإجمالي كله يُقيَّد إيراداً فيتضخم 15%) */
     const __ht=hGross(h), __hx=+h.taxAmt||0, __hnet=+(__ht-__hx).toFixed(2);
     /* 📅 البيع دائماً على الذمم بتاريخه، والتحصيل قيد مستقل بتاريخه — الرصيد النقدي صار صحيحاً بأي تاريخ */
-    const __hl=[{a:"1103", d:__ht, c:0},{a:"4101", d:0, c:__hnet}];
-    if(Math.abs(__hx)>0.005) __hl.push({a:"2103", d:0, c:__hx});
-    es.push({date:h.date, desc:"بيع "+(c?prodName(c.productId):"")+" — "+custName(h.customerId), auto:true, lines:__hl});
+    /* ↩️ المردود والإشعار الدائن يُقيَّدان على 4109 «مردودات المبيعات» بدل مصافاتهما داخل 4101،
+       فيظهر حجم المردودات بنداً مستقلاً في قائمة الدخل بدل أن يختفي */
+    const __isRet = !!(h.returnOf||h.creditNote) && !h.reversalOf;
+    let __hl;
+    if(__isRet){
+      __hl=[{a:"1103", d:0, c:-__ht},{a:"4109", d:-__hnet, c:0}];
+      if(Math.abs(__hx)>0.005) __hl.push({a:"2103", d:-__hx, c:0});
+    }else{
+      __hl=[{a:"1103", d:__ht, c:0},{a:"4101", d:0, c:__hnet}];
+      if(Math.abs(__hx)>0.005) __hl.push({a:"2103", d:0, c:__hx});
+    }
+    es.push({date:h.date, desc:(__isRet?"مردود مبيعات — ":"بيع ")+(c?prodName(c.productId):hProdName(h))+" — "+custName(h.customerId), auto:true, lines:__hl});
   });
   const purExp = new Set(DB.purchases.map(p=>p.expId||""));
   DB.expenses.forEach(x=>{
@@ -11712,7 +11757,43 @@ function renderBank(){
   if(bkCash) bkCash.textContent = fmtSR(net("1101"));
   if(bkBank) bkBank.textContent = fmtSR(net("1102"));
 }
+function renderReturnsRate(){
+  const card=document.getElementById("retCard"); if(!card) return;
+  const inP = d => (!acFrom.value||d>=acFrom.value) && (!acTo.value||d<=acTo.value);
+  const all=(DB.harvests||[]).filter(h=>inP(h.date));
+  let gross=0, ret=0;
+  const byP={}, byC={};
+  all.forEach(h=>{
+    const n=hNet(h);
+    const isRet=(h.returnOf||h.creditNote)&&!h.reversalOf;
+    const pn=hProdName(h), cn=h.customerId?custName(h.customerId):(h.customer||"عميل نقدي");
+    const P=byP[pn]=byP[pn]||{g:0,r:0}, C=byC[cn]=byC[cn]||{g:0,r:0};
+    if(isRet){ ret+=-n; P.r+=-n; C.r+=-n; } else { gross+=n; P.g+=n; C.g+=n; }
+  });
+  if(ret<=0.005){ card.style.display="none"; return; }
+  card.style.display="";
+  const pct=gross>0?(ret/gross*100):0;
+  const kpi=document.getElementById("retKpi");
+  const box=(l,v,c)=>`<div class="card kpi" style="padding:10px"><div class="label" style="font-size:.75rem">${l}</div><div class="value" style="font-size:1.1rem;color:${c||"inherit"}">${v}</div></div>`;
+  if(kpi) kpi.innerHTML = box("المبيعات الإجمالية",fmtSR(gross))
+    + box("المردودات",fmtSR(ret),"var(--red)")
+    + box("نسبة المردودات",fmt(pct)+"%", pct>=10?"var(--red)":pct>=5?"var(--amber)":"var(--green)")
+    + box("صافي المبيعات",fmtSR(gross-ret),"var(--green)");
+  const rows=(obj,lbl)=>{
+    const ks=Object.keys(obj).filter(k=>obj[k].r>0.005).sort((a,b)=>(b.r/(b.g||1))-(a.r/(a.g||1)));
+    const srt=ks.sort((a,b)=>{ const ra=obj[a].g>0?obj[a].r/obj[a].g:9, rb=obj[b].g>0?obj[b].r/obj[b].g:9; return rb-ra; }).slice(0,8);
+    return srt.map(k=>{
+      const o=obj[k], p=o.g>0?(o.r/o.g*100):null;
+      return `<tr><td>${lbl}</td><td><b>${escH(k)}</b></td><td>${fmtSR(o.g)}</td><td class="neg">${fmtSR(o.r)}</td>
+        <td style="font-weight:700;color:${p===null||p>=10?"var(--red)":p>=5?"var(--amber)":"var(--green)"}">${p===null?"مردود بلا بيع ⚠️":fmt(p)+"%"}</td></tr>`;
+    }).join("");
+  };
+  const t=document.getElementById("tblRetRate");
+  if(t) t.innerHTML=`<tr><th>النوع</th><th>الاسم</th><th>المبيعات</th><th>المردودات</th><th>النسبة</th></tr>`
+    + (rows(byP,"📦 منتج")+rows(byC,"👤 عميل") || `<tr><td colspan="5" class="muted">لا مردودات</td></tr>`);
+}
 function renderAcSales(){
+  try{ renderReturnsRate(); }catch(e){}
   const tblAcSales=document.getElementById("tblAcSales"); if(!tblAcSales) return;
   const inP = d => (!acFrom.value||d>=acFrom.value) && (!acTo.value||d<=acTo.value);
   const __all = DB.harvests.filter(h=>inP(h.date));
@@ -11797,10 +11878,59 @@ function saveVat(){
   DB.settings.vatPeriod = vatPeriod.value||"quarter";
   save(); renderTax(); toast("✅ تم حفظ إعدادات ضريبة القيمة المضافة");
 }
+/* بنود لا يُخصم منها ضريبة داخلة افتراضياً */
+const VAT_NONDED_CATS = ["رواتب وعمالة","إيجارات ورسوم"];
+function exVatSync(){
+  /* ضبط تلقائي حسب البند — والمستخدم يقدر يغيّره يدوياً بعده */
+  const c=(document.getElementById("exCat")||{}).value||"";
+  const v=document.getElementById("exVatable"); if(!v) return;
+  if(v.dataset.touched==="1") return;
+  v.value = VAT_NONDED_CATS.includes(c) ? "0" : "1";
+}
+function vatBulkSet(cat, val){
+  const list=(DB.expenses||[]).filter(x=>x.vatable===undefined && (cat==="__all"||x.cat===cat));
+  if(!list.length) return;
+  const rate=ksVatRate();
+  const amt=list.reduce((s2,x)=>s2+(+x.amount||0),0);
+  const vat=+(amt-amt/(1+rate)).toFixed(2);
+  const lbl = val ? "خاضعة للضريبة" : "غير خاضعة";
+  if(!confirm(`وسم ${fmt(list.length)} مصروفاً${cat==="__all"?"":" في بند «"+cat+"»"} بمجموع ${fmt(amt)} ⃁ بأنها «${lbl}»؟\n\nالأثر على الإقرار: ${val?"تبقى":"تُسحب"} ضريبة داخلة بـ${fmt(vat)} ⃁.`)) return;
+  list.forEach(x=>{ x.vatable=!!val; });
+  logEdit("🧾 وسم ضريبي جماعي", `${list.length} مصروف — ${lbl}${cat==="__all"?"":" ("+cat+")"} — أثر ${fmt(vat)} ⃁`);
+  save(); renderTax();
+  toast(`✅ وُسم ${fmt(list.length)} مصروفاً بـ«${lbl}»`);
+}
+function renderVatReview(){
+  const card=document.getElementById("vatReviewCard"), tbl=document.getElementById("tblVatReview");
+  if(!card||!tbl) return;
+  const un=(DB.expenses||[]).filter(x=>x.vatable===undefined && x.cat!=="رواتب وعمالة");
+  if(!un.length){ card.style.display="none"; return; }
+  card.style.display="";
+  const rate=ksVatRate();
+  const by={};
+  un.forEach(x=>{ const c=x.cat||"أخرى"; const r=by[c]=by[c]||{n:0,amt:0}; r.n++; r.amt+=(+x.amount||0); });
+  const cats=Object.keys(by).sort((a,b)=>by[b].amt-by[a].amt);
+  const totAmt=un.reduce((s2,x)=>s2+(+x.amount||0),0);
+  const totVat=+(totAmt-totAmt/(1+rate)).toFixed(2);
+  const imp=document.getElementById("vatReviewImpact");
+  if(imp) imp.innerHTML=`<b>${fmt(un.length)}</b> مصروفاً غير مصنّف بمجموع <b>${fmtSR(totAmt)}</b> — يُخصم منها حالياً ضريبة داخلة قدرها <b style="color:var(--red)">${fmtSR(totVat)}</b>. كل ريال تسحبه من هنا يزيد ما تسدده للهيئة بنفس المقدار (وهو الصحيح إن لم تكن لديك فاتورة ضريبية من مورّد مسجَّل).`;
+  tbl.innerHTML=`<tr><th>البند</th><th>عدد المصروفات</th><th>المبلغ</th><th>الضريبة الداخلة المفترضة</th><th>التصنيف بالجملة</th></tr>`
+    + cats.map(c=>{
+        const r=by[c], v=+(r.amt-r.amt/(1+rate)).toFixed(2);
+        const sug=VAT_NONDED_CATS.includes(c);
+        return `<tr><td><b>${escH(c)}</b>${sug?' <span class="badge warn" title="بند لا يُخصم منه عادةً">مُرجَّح: غير خاضع</span>':''}</td>
+          <td>${fmt(r.n)}</td><td>${fmtSR(r.amt)}</td><td class="neg">${fmtSR(v)}</td>
+          <td><button class="btn small secondary" onclick="vatBulkSet('${escH(c).replace(/'/g,"\\'")}',false)">🚫 غير خاضعة</button>
+              <button class="btn small" onclick="vatBulkSet('${escH(c).replace(/'/g,"\\'")}',true)">✅ خاضعة</button></td></tr>`;
+      }).join("")
+    + `<tr class="tot-row"><th>الإجمالي</th><th>${fmt(un.length)}</th><th>${fmtSR(totAmt)}</th><th class="neg">${fmtSR(totVat)}</th>
+        <th><button class="btn small" onclick="vatBulkSet('__all',true)">✅ كلها خاضعة</button></th></tr>`;
+}
 function renderTax(){
   const _vi=document.getElementById("vatIdView"); if(_vi) _vi.textContent=(DB.settings.companyName||"—")+" · الرقم الضريبي: "+(DB.settings.taxNo||"—");
   const _vr=document.getElementById("vatRate"); if(_vr&&DB.settings.vatRate!=null&&_vr.value==="") _vr.value=DB.settings.vatRate;
   const _vp=document.getElementById("vatPeriod"); if(_vp&&DB.settings.vatPeriod) _vp.value=DB.settings.vatPeriod;
+  try{ renderVatReview(); }catch(e){}
   const tblTax=document.getElementById("tblTax"); if(!tblTax) return;
   const rate = ksVatRate();   /* يقبل 0% (isFinite) */
   const inP = d => (!acFrom.value||d>=acFrom.value) && (!acTo.value||d<=acTo.value);
@@ -12635,17 +12765,29 @@ function renderIncomeAcct(){
   const inP=d=>d&&d>=f0&&d<=t0;
   const byM={};
   /* الإيراد صافي الضريبة ليطابق حساب 4101 في ميزان المراجعة */
-  DB.harvests.filter(h=>inP(h.date)&&hSec(h)).forEach(h=>{const k=h.date.slice(0,7);(byM[k]=byM[k]||{r:0,c:0}).r+=hNet(h);});
-  DB.expenses.filter(x=>inP(x.date)&&xSec(x)).forEach(x=>{const k=x.date.slice(0,7);(byM[k]=byM[k]||{r:0,c:0}).c+=+x.amount||0;});
-  DB.cycles.filter(c=>inP(c.plantDate)&&cSec(c)).forEach(c=>{const k=(c.plantDate||"").slice(0,7);if(k)(byM[k]=byM[k]||{r:0,c:0}).c+=+c.initCost||0;});
+  /* المبيعات الإجمالية والمردودات منفصلتان — كان المردود يختفي داخل رقم المبيعات */
+  DB.harvests.filter(h=>inP(h.date)&&hSec(h)).forEach(h=>{
+    const k=h.date.slice(0,7); const v=(byM[k]=byM[k]||{r:0,c:0,ret:0});
+    const n=hNet(h);
+    if((h.returnOf||h.creditNote)&&!h.reversalOf) v.ret += -n; else v.r += n;
+  });
+  DB.expenses.filter(x=>inP(x.date)&&xSec(x)).forEach(x=>{const k=x.date.slice(0,7);(byM[k]=byM[k]||{r:0,c:0,ret:0}).c+=+x.amount||0;});
+  DB.cycles.filter(c=>inP(c.plantDate)&&cSec(c)).forEach(c=>{const k=(c.plantDate||"").slice(0,7);if(k)(byM[k]=byM[k]||{r:0,c:0,ret:0}).c+=+c.initCost||0;});
   const keys=Object.keys(byM).sort();
-  let tr=0,tc=0;
-  tbl.innerHTML=`<tr><th>الشهر</th><th>المبيعات</th><th>التكاليف</th><th>الصافي</th></tr>`
+  let tr=0,tc=0,trt=0;
+  const anyRet=keys.some(k=>(byM[k].ret||0)>0.005);
+  tbl.innerHTML=`<tr><th>الشهر</th><th>المبيعات الإجمالية</th>${anyRet?"<th>المردودات</th><th>صافي المبيعات</th>":""}<th>التكاليف</th><th>الصافي</th></tr>`
     +(keys.length?keys.map(k=>{
-      const v=byM[k]; tr+=v.r; tc+=v.c; const n=v.r-v.c;
-      return `<tr><td><b>${k}</b></td><td class="pos">${fmtSR(v.r)}</td><td class="neg">${fmtSR(v.c)}</td><td style="font-weight:700;color:${n>=0?'var(--green)':'var(--red)'}">${fmtSR(n)}</td></tr>`;
-    }).join("")+`<tr style="background:var(--green-light);font-weight:800"><td>الإجمالي</td><td>${fmtSR(tr)}</td><td>${fmtSR(tc)}</td><td style="color:${tr-tc>=0?'var(--green)':'var(--red)'}">${fmtSR(tr-tc)}</td></tr>`
-    :`<tr><td colspan="4" class="muted">لا حركة في الفترة المختارة</td></tr>`);
+      const v=byM[k]; const rt=v.ret||0; const nr=v.r-rt;
+      tr+=v.r; tc+=v.c; trt+=rt; const n=nr-v.c;
+      return `<tr><td><b>${k}</b></td><td class="pos">${fmtSR(v.r)}</td>`
+        +(anyRet?`<td class="${rt?"neg":"muted"}">${rt?"−"+fmtSR(rt):"—"}</td><td class="pos">${fmtSR(nr)}</td>`:"")
+        +`<td class="neg">${fmtSR(v.c)}</td><td style="font-weight:700;color:${n>=0?'var(--green)':'var(--red)'}">${fmtSR(n)}</td></tr>`;
+    }).join("")+`<tr style="background:var(--green-light);font-weight:800"><td>الإجمالي</td><td>${fmtSR(tr)}</td>`
+      +(anyRet?`<td class="neg">−${fmtSR(trt)}</td><td>${fmtSR(tr-trt)}</td>`:"")
+      +`<td>${fmtSR(tc)}</td><td style="color:${tr-trt-tc>=0?'var(--green)':'var(--red)'}">${fmtSR(tr-trt-tc)}</td></tr>`
+      +(anyRet?`<tr><td colspan="6" class="muted" style="font-size:.78rem">نسبة المردودات من المبيعات: <b>${tr>0?fmt(trt/tr*100):0}%</b> — تُقيَّد على حساب 4109 «مردودات المبيعات»</td></tr>`:"")
+    :`<tr><td colspan="${anyRet?6:4}" class="muted">لا حركة في الفترة المختارة</td></tr>`);
 }
 function renderCustStatement(){
   const tbl=document.getElementById("tblStmt"); if(!tbl) return;
@@ -13502,6 +13644,16 @@ function returnCustody(id){
   const c=(DB.custody||[]).find(x=>x.id===id); if(!c) return;
   c.returned=true; c.returnDate=today(); save(); renderHrAll(); toast("✅ سُجّل إرجاع العهدة");
 }
+function eosBasisNote(){
+  const el=document.getElementById("eosBasisNote"); if(!el) return;
+  const un=eosUnclassified();
+  el.innerHTML = `<b>أساس الحساب المعتمد:</b> الراتب الأساسي + بدل السكن (إن كان يُصرف) + بدل المواصلات (إن كان يُصرف). البدلات الأخرى خارج الأساس.`
+    + (un.length
+      ? `<div style="margin-top:8px;color:var(--red);font-weight:700">⚠️ ${fmt(un.length)} موظف عليه بدلات مسجَّلة برقم واحد غير مصنّف — لن تدخل في المكافأة حتى تُصنَّف:</div>
+         <div class="muted" style="font-size:.8rem;margin-top:4px">${un.slice(0,8).map(e=>escH(e.name)+" ("+fmtSR(+e.allowances||0)+")").join(" · ")}${un.length>8?" …":""}</div>
+         <div style="margin-top:6px"><button class="btn small secondary" type="button" onclick="showTab('emp')">✏️ افتح الموظفين لتصنيفها</button></div>`
+      : `<div class="muted" style="margin-top:6px">✅ كل بدلات الموظفين مصنّفة.</div>`);
+}
 function eosFill(){
   const emp=document.getElementById("eosEmp")?.value;
   const em=DB.employees.find(e=>e.id===emp);
@@ -13510,6 +13662,7 @@ function eosFill(){
   if(emp) try{ calcEos(); }catch(e){}
 }
 function renderHrAll(){
+  try{ eosBasisNote(); }catch(e){}
   ["advEmp","lvEmp","custEmp","atEmp","eosEmp"].forEach(id=>{
     const el=document.getElementById(id); if(!el) return;
     const v=el.value; el.innerHTML=empOpts(); if(v) el.value=v;
@@ -13647,6 +13800,25 @@ function addCustody(){
   const cv=document.getElementById("custValue"); if(cv) cv.value="";
   toast("✅ تم تسليم العهدة");
 }
+function emAllowSync(){
+  const g=id=>+((document.getElementById(id)||{}).value)||0;
+  const tot=g("emAllowHouse")+g("emAllowTrans")+g("emAllowOther");
+  const el=document.getElementById("emAllow"); if(el) el.value=tot||"";
+  const h=document.getElementById("emAllowHint");
+  if(h) h.innerHTML = tot
+    ? `أساس مكافأة نهاية الخدمة من البدلات: <b>${fmtSR(g("emAllowHouse")+g("emAllowTrans"))}</b> (سكن + مواصلات) — و«أخرى» ${fmtSR(g("emAllowOther"))} خارجها`
+    : "السكن والمواصلات يدخلان في مكافأة نهاية الخدمة — «أخرى» لا تدخل";
+}
+function eosWage(em){
+  /* 📌 قرار المالك: أساس المكافأة = الراتب الأساسي + بدل السكن (إن صُرف) + بدل المواصلات (إن صُرف).
+     البدلات الأخرى والبدلات القديمة غير المصنّفة خارج الأساس حتى تُصنَّف. */
+  if(!em) return 0;
+  return (+em.salary||0) + (+em.allowHouse||0) + (+em.allowTrans||0);
+}
+function eosUnclassified(){
+  /* موظفون عليهم بدلات قديمة برقم واحد لم تُصنَّف بعد — تنبيه لا يخمّن نيابةً عن المالك */
+  return (DB.employees||[]).filter(e=>!e.allowSplit && (+e.allowances||0)>0);
+}
 function eosMonthlyAccrual(em, atISO){
   /* استحقاق الشهر لموظف واحد وفق م.84: نصف أجر شهر عن كل سنة من الخمس الأولى، وأجر شهر كامل بعدها.
      شهرياً = (الراتب ÷ 2 ÷ 12) قبل إكمال 5 سنوات، و(الراتب ÷ 12) بعدها. */
@@ -13657,7 +13829,7 @@ function eosMonthlyAccrual(em, atISO){
   const yrs=Math.max(0,(at-new Date(start+"T00:00:00"))/(365.25*864e5));
   if(!isFinite(yrs)) return 0;
   /* الأجر الأخير في م.84 يشمل البدلات المنتظمة لا الأساسي وحده */
-  const sal=(+em.salary||0)+(+em.allowances||0); if(sal<=0) return 0;
+  const sal=eosWage(em); if(sal<=0) return 0;
   return +((yrs<5 ? sal/24 : sal/12)).toFixed(2);
 }
 function eosAccrue(month, silent){
@@ -13717,7 +13889,7 @@ function calcEos(){
   const days=Math.max(0,Math.floor((new Date(end+"T00:00:00")-new Date(start+"T00:00:00"))/86400000));
   const years=days/365.25;
   if(!isFinite(years)){ toast("⚠️ تعذّر حساب مدة الخدمة — راجع التاريخين"); return; }
-  const salary=(+em.salary||0)+(+em.allowances||0);   /* الأجر الأخير شامل البدلات المنتظمة (م.84) */
+  const salary=eosWage(em);   /* الأساسي + السكن + المواصلات (قرار المالك) */
   const reason=document.getElementById("eosReason")?.value||"";
   const resigned=/استقالة/.test(reason);
   /* المادة 84: نصف أجر شهر عن كل سنة من الخمس الأولى + أجر شهر كامل عما زاد — بكسور السنة */
@@ -13739,7 +13911,8 @@ function calcEos(){
     <tr><td>تاريخ التعيين</td><td>${start}</td></tr>
     <tr><td>تاريخ الانتهاء</td><td>${end}</td></tr>
     <tr><td>مدة الخدمة</td><td>${yrs} سنة و${mos} شهر</td></tr>
-    <tr><td>الأجر (أساسي ${fmtSR(+em.salary||0)} + بدلات ${fmtSR(+em.allowances||0)})</td><td>${fmtSR(salary)}</td></tr>
+    <tr><td>أساس المكافأة (أساسي ${fmtSR(+em.salary||0)} + سكن ${fmtSR(+em.allowHouse||0)} + مواصلات ${fmtSR(+em.allowTrans||0)})</td><td><b>${fmtSR(salary)}</b></td></tr>
+    ${((!em.allowSplit&&(+em.allowances||0)>0)||(+em.allowOther||0)>0)?`<tr><td class="muted">بدلات خارج الأساس ${em.allowSplit?"(أخرى)":"(غير مصنّفة — صنّفها في ملف الموظف)"}</td><td class="muted">${fmtSR(em.allowSplit?(+em.allowOther||0):(+em.allowances||0))}</td></tr>`:""}
     <tr><td>المكافأة قبل التخفيض</td><td>${fmtSR(full)}</td></tr>
     <tr><td>سبب الانتهاء</td><td>${note}</td></tr>
     <tr><td><b>مكافأة نهاية الخدمة المستحقة</b></td><td><b style="color:#166534">${fmtSR(eos)}</b></td></tr>

@@ -3234,6 +3234,15 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <p class="muted" style="font-size:.75rem;margin:6px 0 0">لاحظ السستم أن أكثر من حساب استُخدم على هذا الجهاز، فصار يمسح بيانات المزرعة عنه تلقائياً عند إغلاق السستم (التبويب أو النافذة أو المتصفح) — بعد التأكد من رفعها للسحابة. قفل الشاشة وتبديل التطبيقات لا يقطعان عملك. لا يلزمك أي إعداد، وبياناتك في السحابة لا تُمس.</p>
       <a href="#" id="shDevMine" style="display:none;font-size:.72rem;color:#065f46;margin-top:8px" onclick="if(confirm('تأكيد: هذا جهازك الشخصي ولا يستخدمه أحد غيرك؟')){ksMarkPersonal();toast('✅ اعتُبر جهازاً شخصياً');}return false">هذا جهازي الشخصي — أوقف التنظيف التلقائي</a>
     </div>
+    <div id="stgCard" style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <b>💾 مساحة البيانات على هذا الجهاز</b><span id="stgTxt" class="muted" style="font-size:.8rem">—</span>
+      </div>
+      <div style="height:8px;background:#e5e7eb;border-radius:6px;margin-top:8px;overflow:hidden">
+        <div id="stgBar" style="height:100%;width:0;background:var(--green);transition:width .3s"></div>
+      </div>
+      <p id="stgHint" class="muted" style="font-size:.72rem;margin:6px 0 0">المتصفح يمنح كل موقع مساحة محدودة (~5 ميجا). بياناتك في السحابة غير محدودة بهذا السقف.</p>
+    </div>
     <h3>☁️ المزامنة السحابية</h3>
     <p class="muted" style="margin-bottom:8px">بياناتك تنرفع تلقائياً لسحابة مزرعتك الخاصة بعد كل حفظ، وتقدر تفتحها من أي جهاز بنفس الحساب.</p>
     <div id="cloudStatus" style="margin-bottom:10px"></div>
@@ -3675,6 +3684,8 @@ Object.assign(I18N.ur,{"⚠️ أدخل اسم الصنف":"⚠️ آئٹم نا
 Object.assign(I18N.en,{"💰 بيع المواشي والحليب":"💰 Livestock & milk sales","💸 المصروفات حسب الفئة":"💸 Expenses by category","مثال: بيت محمي مكيف 3":"e.g. Cooled greenhouse 3","⭐ تقييم أداء الموظفين":"⭐ Employee performance review","المساحة / العدد (وصف)":"Area / Count (description)","تكلفة الوحدة (⃁) *":"Unit cost (⃁) *","✅ وزن البيع المستهدف:":"✅ Target sale weight:","قيمة المخزون والأصناف":"Stock & items value","✅ لا مستحقات للموردين":"✅ No supplier dues","بيانات العميل والصفقة":"Customer & deal data","حد التنبيه (أقل كمية)":"Alert threshold (min qty)","➕ إنشاء فاتورة مبيعات":"➕ Create sales invoice","✅ تم حفظ فاتورة البيع":"✅ Sales invoice saved","📅 تسجيل حضور / انصراف":"📅 Check-in / Check-out","🐟 إجمالي السمك الحالي":"🐟 Current total fish","الموازنة مقابل الفعلي":"Budget vs actual","لا يوجد حيوانات فردية":"No individual animals","📅 طبّق فترة على الكل:":"📅 Apply period to all:","⚠️ القسم موجود مسبقاً":"⚠️ Section already exists","متوسط وزن السمكة (جم)":"Avg fish weight (g)","⏳ جارٍ تحميل الخريطة…":"⏳ Loading map…","🛠️ أنواع العمل اليومي":"🛠️ Daily work types","صافي الضريبة المستحقة":"Net VAT due","خصم على إجمالي المبلغ":"Discount on total","📈 تاريخ فحوصات التربة":"📈 Soil tests history","✅ حُدّثت حالة المهمة:":"✅ Task status updated:","إجمالي مبيعات المواشي":"Total livestock sales","عدد السمك عند الإنزال":"Fish count at stocking","آخر الإدخالات المالية":"Recent financial entries","مستحق لنا (عميل مدين)":"Owed to us (debtor)","✅ تم تقديم طلب الشراء":"✅ Purchase request submitted","🔁 مصاريف متكررة شهرية":"🔁 Monthly recurring expenses","📋 سجل استخدام الأدوية":"📋 Medicine usage log","الإنتاج المتوقع (كجم)":"Expected yield (kg)","🚚 المشتريات وفواتيرها":"🚚 Purchases & invoices","✅ لا ديون على العملاء":"✅ No customer debts","سجل النقل بين الأحواض":"Pond transfers log","🔑 استعادة كلمة المرور":"🔑 Password recovery","⚠️ اختر حوضين مختلفين":"⚠️ Choose two different ponds","لا توجد قياسات مطابقة":"No matching readings","💧 قياسات مياه الأحواض":"💧 Pond water readings","🔁 نقل سمك بين الأحواض":"🔁 Fish transfer between ponds","تاريخ انتهاء الصلاحية":"Expiry date","عدد الوجبات اليومية *":"Daily meals count *","🐟 موقف الأحواض اليومي":"🐟 Daily ponds status","🪪 صورة الهوية/الإقامة":"🪪 ID/Iqama photo","⚠️ لا توجد أصول ثابتة":"⚠️ No fixed assets","متوسط وزن الرأس (كجم)":"Avg weight/head (kg)","✅ حُفظت بيانات الشركة":"✅ Company data saved","🐾 سجل المواليد والنفوق":"🐾 Births & deaths log","لماذا تحتاج هذا الصنف؟":"Why do you need this item?","🏢 إدارة الأصول الثابتة":"🏢 Fixed assets management","🔍 مسح باركود (اختياري)":"🔍 Scan barcode (optional)","🌱 الدورات — اختر القسم":"🌱 Cycles — choose section","⚠️ اختر الحظيرة الوجهة":"⚠️ Choose destination barn","لا توجد قيود في الفترة":"No entries in period","⚠️ أدخل البيانات كاملة":"⚠️ Enter all data","كبير جداً (لكبار السن)":"Extra large","⚠️ اختر الحظيرة المصدر":"⚠️ Choose source barn","📋 تم نسخ ملخص العمليات":"📋 Summary copied","مثال: مزرعة خيرات سايه":"e.g. Khayrat Saya Farm","الكمية المضافة للمخزون":"Qty added to stock","لا توجد مهام مسندة بعد":"No tasks assigned yet","لا يوجد عملاء راكدون 🎉":"No dormant customers 🎉","تاريخ الولادة المتوقّع":"Expected birth date","💾 حفظ واعتماد الفاتورة":"💾 Save & approve invoice","⚠️ عبي التاريخ والبيان":"⚠️ Fill date & description","إغلاق الحظائر وتأمينها":"Close & secure barns","🐄 سجل التلقيح والتكاثر":"🐄 Breeding log","بداية المحصول المتوقعة":"Expected harvest start","إجمالي الالتزام الشهري":"Total monthly commitment","⚠️ المورد موجود بالسجل":"⚠️ Supplier already exists","مثال: خروف / حليب طازج":"e.g. Lamb / Fresh milk","إجمالي الرواتب الشهرية":"Total monthly salaries","💾 حفظ واختيار للفاتورة":"💾 Save & pick for invoice","✅ تم حفظ بيانات المالك":"✅ Owner data saved","📊 تحليل ربحية المنتجات":"📊 Product profitability analysis","⚠️ المنتج مسجّل مسبقاً":"⚠️ Product already exists","رقم الهوية / الإقامة *":"ID / Iqama No. *","صافي الربح / (الخسارة)":"Net profit / (loss)","— بدون إضافة للمخزون —":"— No stock addition —","نسبة الربح من المبيعات":"Profit % of sales","لا حضور مسجل هذا الشهر":"No attendance this month","الراتب الشهري (⃁) *":"Monthly salary (⃁) *","الرقم الضريبي (15 رقم)":"VAT No. (15 digits)","🔍 الجرد الدوري للمخزون":"🔍 Periodic stocktake","⬅ مركز الموارد البشرية":"⬅ HR hub","📒 سجل المبيعات والديون":"📒 Sales & debts log","🏆 أفضل المنتجات مبيعاً":"🏆 Best sellers","➕ إنشاء فاتورة مشتريات":"➕ Create purchase invoice","🎯 تقدم الأهداف الشهرية":"🎯 Monthly goals progress","✅ تم حفظ فاتورة الشراء":"✅ Purchase invoice saved","المبيعات (ضريبة خارجة)":"Sales (output VAT)","مثال: مضخة مياه رئيسية":"e.g. Main water pump","دفتر الأستاذ (أي حساب)":"Ledger (any account)","⚠️ أدخل التاريخ والاسم":"⚠️ Enter date & name","✅ تم إنشاء كشف الرواتب":"✅ Payroll generated","🌱 أداء الدورات الزراعية":"🌱 Crop cycles performance","لا توجد حركات في الفترة":"No movements in period","⚠️ أدخل اسم/رقم الحظيرة":"⚠️ Enter barn name/No.","🧮 حاسبة العليقة اليومية":"🧮 Daily ration calculator","📲 فتح روابط واتساب للكل":"📲 Open WhatsApp for all","📝 اليوميات — اختر القسم":"📝 Daily log — choose section","🥛 إنتاج الحليب (30 يوم)":"🥛 Milk production (30 days)","التكلفة المتوقعة (⃁)":"Expected cost (⃁)","👥 إدارة الموارد البشرية":"👥 HR management","مثال: تنظيف فلاتر حوض 2":"e.g. Clean pond 2 filters","— بدون خصم من المخزون —":"— No stock deduction —","📊 النظرة العامة المالية":"📊 Financial overview","حذف ملف العقد المرفق لـ":"Delete contract file of","هدف المبيعات (⃁/شهر)":"Sales target (⃁/month)","⏰ تتبع المدفوعات الآجلة":"⏰ Deferred payments tracking","↩️ تم استعادة لون الثيم":"↩️ Theme color restored","🔥 لا توجد مهام مسندة لك":"🔥 No tasks assigned to you","لا حركات على هذا الحساب":"No movements on this account","السعر لكل وحدة (⃁) *":"Price per unit (⃁) *","✅ تم تسجيل إنتاج الحليب":"✅ Milk production recorded","✅ تم حفظ التقرير اليومي":"✅ Daily report saved","📈 مقارنة الفعلي بالمخطط":"📈 Actual vs planned","لا توجد مهام مسندة لك 👍":"No tasks assigned to you 👍","❌ حدث خطأ، أعد المحاولة":"❌ Error, try again","الأصول الثابتة والإهلاك":"Fixed assets & depreciation","🛒 حُدّدت البطاقة كمباعة":"🛒 Card marked as sold","🕐 جدول مناوبات الموظفين":"🕐 Employee shifts schedule","🐐 بطاقة الحيوان الفردية":"🐐 Individual animal card","أداء المحاصيل / الدورات":"Crops / cycles performance","ملاحظات (سلوك السمك...)":"Notes (fish behavior...)","كشف حركة أي حساب تختاره":"Statement of any account","مرجع الفاتورة الأصلية *":"Original invoice ref *","وحدة جديدة — مثال: شدّة":"New unit — e.g. bundle","💵 النقدية (صندوق + بنك)":"💵 Cash (box + bank)","⚠️ أدخل التاريخ والموظف":"⚠️ Enter date & employee","مستحق علينا (مورد دائن)":"We owe (creditor)","⚖️ متابعة أوزان المواشي":"⚖️ Livestock weights tracking","📋 نسخ الملخص (للواتساب)":"📋 Copy summary (WhatsApp)","الالتزام بالدوام (0-10)":"Punctuality (0-10)","✅ تم التسعير — الإجمالي":"✅ Priced — total","✅ تمت إضافة الأصل الثابت":"✅ Fixed asset added","الاسم المختصر (للتقارير)":"Short name (for reports)","آخر القيود (آلية ويدوية)":"Recent entries (auto & manual)","ملخص المصروفات حسب البند":"Expenses summary by category","📋 التقرير اليومي للمواشي":"📋 Daily livestock report","رش مبيدات / مكافحة حشرات":"Pesticide spray / pest control","اضغط لفتح/إغلاق الموظفين":"Click to open/close employees","✅ تم تسجيل الدفعة للمورد":"✅ Supplier payment recorded","ضريبة القيمة المضافة 15%":"VAT 15%","🗑️ حُذفت المسودة نهائياً":"🗑️ Draft permanently deleted","⚠️ لا توجد حركات للإقفال":"⚠️ No movements to close","مثال: سوق الخضار المركزي":"e.g. Central vegetable market","✅ تم حفظ تعديلات الأقسام":"✅ Sections changes saved","📦 موقف الإنتاج والجاهزية":"📦 Production & readiness status","⚠️ صيانة قريبة أو متأخرة":"⚠️ Maintenance due or overdue","العمر الإنتاجي (سنوات) *":"Useful life (years) *","سعر البيع الافتراضي/وحدة":"Default sale price/unit","التكلفة التقديرية (⃁)":"Estimated cost (⃁)","⚠️ أدخل عدد السمك المباع":"⚠️ Enter fish sold count","⚠️ عبي البيانات الأساسية":"⚠️ Fill basic data","⏳ أعمار مستحقات الموردين":"⏳ Payables aging","مصروفات عامة (غير موزعة)":"General expenses (unallocated)","المبادرة والإبداع (0-10)":"Initiative & creativity (0-10)","✅ تم تسجيل الحالة الصحية":"✅ Health case recorded","⚠️ اختر حظيرتين مختلفتين":"⚠️ Choose two different barns","لا توجد رواتب مصروفة بعد":"No salaries paid yet","سقف المصروفات (⃁/شهر)":"Expenses cap (⃁/month)","⚠️ اسمح بالنوافذ المنبثقة":"⚠️ Allow pop-ups","تاريخ الزراعة / الإنزال *":"Planting / stocking date *","📍 العنوان الوطني (إلزامي)":"📍 National address (required)","السعر الخاص (⃁/وحدة) *":"Special price (⃁/unit) *","⚠️ المهمة مسندة لموظف آخر":"⚠️ Task assigned to another","إدارة الأحواض (عدد السمك)":"Ponds management (fish count)","⚠️ أدخل البريد الإلكتروني":"⚠️ Enter email","مثال: أغنام / عزل / ولادة":"e.g. Sheep / isolation / birthing","🚶 عميل نقدي (بدون بيانات)":"🚶 Cash customer (no data)","— بدون عميل (بيع مباشر) —":"— No customer (direct sale) —","⚠️ الحيوان في نفس الحظيرة":"⚠️ Animal already in this barn","🏢 بيانات الشركة (المزرعة)":"🏢 Company (farm) data","الإنجاز والإنتاجية (0-10)":"Output & productivity (0-10)","🤝 متابعة العملاء الراكدين":"🤝 Dormant customers follow-up","إدارة قوائم نموذج التسجيل":"Manage registration form lists","العنوان الوطني — لم يُعبأ":"National address — not filled","⚠️ لا توجد بيانات للطباعة":"⚠️ No data to print","📌 المهام المسندة للموظفين":"📌 Tasks assigned to employees","🛒 منتجات جاهزة للبيع الآن":"🛒 Products ready for sale","⚠️ أضف سطر واحد على الأقل":"⚠️ Add at least one line","مثال: علف بلطي 30% بروتين":"e.g. Tilapia feed 30% protein","🌱 بدأت الدورة — صارت نشطة":"🌱 Cycle started — now active","سبب النفوق أو وصف المولود":"Death cause or newborn description","لا أعمال مسجلة لهذا القسم":"No works for this section","لا يوجد ملاك إضافيون بعد.":"No additional owners yet.","سبب الرتبة، آفات، أمراض...":"Grade reason, pests, diseases...","⚠️ الاعتماد النهائي للمالك":"⚠️ Final approval is owner's","لا توجد مواعيد خلال 60 يوم":"No due dates within 60 days","🗺️ خريطة المزرعة التفاعلية":"🗺️ Interactive farm map","سعر البيع الافتراضي (⃁)":"Default sale price (⃁)","إضافة لصنف مخزون (اختياري)":"Add to stock item (optional)","🧾 تم حفظ السند كقيد متوازن":"🧾 Voucher saved as balanced entry","💲 أسعار خاصة لعملاء معينين":"💲 Special prices for customers","⚠️ الاعتماد الأولي للمحاسب":"⚠️ Initial approval is accountant's","امسح بالقارئ أو الصق الكود":"Scan or paste the code","📢 إرسال حملة واتساب جماعية":"📢 Send WhatsApp campaign","⚠️ اختر نوع الحيوان المباع":"⚠️ Choose sold animal type","🔄 حركة مخزون (إضافة / صرف)":"🔄 Stock movement (in / out)","⚡ الحفظ تلقائي مع كل مفتاح":"⚡ Auto-saves on every toggle","أولاً: المبيعات حسب المنتج":"First: sales by product","تعبئة الماء وتنظيف الأحواض":"Water refill & pond cleaning","لا حركة في الفترة المختارة":"No movement in selected period","🔧 المعدات والصيانة الدورية":"🔧 Equipment & periodic maintenance","📈 الموازنات والأداء المالي":"📈 Budgets & financial performance","— أضف منتجاً بزر ➕ أعلاه —":"— Add a product with ➕ above —","⚠️ ما لقيت صنف بهذا الكود:":"⚠️ No item with this code:","آخر أعمال الموظفين اليومية":"Recent employee daily works","عبّي الأرقام ويطلع التقدير":"Fill numbers to get estimate","ربط بدورة زراعية (اختياري)":"Link to crop cycle (optional)","ملاحظات (الجرعة، الآفة...)":"Notes (dose, pest...)","تنظيف الحظائر وإزالة الروث":"Barn cleaning & manure removal","⚠️ لا توجد دورة نشطة لمنتج":"⚠️ No active cycle for product","نوع جديد للمجموعة المختارة":"New type for selected group","مثال: مؤسسة الأعلاف المتحدة":"e.g. United Feeds Est.","📝 ملخص العمليات التشغيلية —":"📝 Operations summary —","🏦 الحسابات البنكية والنقدية":"🏦 Bank & cash accounts","كل الأقسام (مجمعة بالأعمدة)":"All sections (grouped columns)","⚠️ أمهات السمك ما لها ترقية":"⚠️ Broodstock can't be promoted","ثانياً: المصروفات حسب البند":"Second: expenses by category","⚠️ البريد الإلكتروني إلزامي":"⚠️ Email required","لا جرعات مستحقة خلال 30 يوم":"No doses due within 30 days","✅ كل الأصناف فوق حد التنبيه":"✅ All items above threshold","🔁 رجعت كل التنبيهات المخفية":"🔁 All hidden alerts restored"});
 Object.assign(I18N.en,{"نوع الري":"Irrigation type","💧 أوتوماتيكي (زر تأكيد يومي)":"💧 Automatic (daily confirm button)","🚿 يدوي (يُسجل كعمل يومي)":"🚿 Manual (logged as daily work)","💧 أوتوماتيكي (زر تأكيد)":"💧 Automatic (confirm button)","🚿 يدوي (عمل يومي)":"🚿 Manual (daily work)","الاسم المختصر":"Short name","عليه بيانات":"Has data","⚠️ القسم عليه بيانات مسجلة — لا يمكن حذفه":"⚠️ Section has recorded data — cannot delete","⚠️ حذف الأقسام للمالك فقط":"⚠️ Only the owner can delete sections"});
 Object.assign(I18N.ur,{"نوع الري":"آبپاشی کی قسم","💧 أوتوماتيكي (زر تأكيد يومي)":"💧 خودکار (روزانہ تصدیقی بٹن)","🚿 يدوي (يُسجل كعمل يومي)":"🚿 دستی (روزانہ کام میں درج)","💧 أوتوماتيكي (زر تأكيد)":"💧 خودکار (تصدیقی بٹن)","🚿 يدوي (عمل يومي)":"🚿 دستی (روزانہ کام)","الاسم المختصر":"مختصر نام","عليه بيانات":"ڈیٹا موجود ہے","⚠️ القسم عليه بيانات مسجلة — لا يمكن حذفه":"⚠️ سیکشن میں ڈیٹا موجود ہے — حذف نہیں ہو سکتا","⚠️ حذف الأقسام للمالك فقط":"⚠️ سیکشن صرف مالک حذف کر سکتا ہے"});
+Object.assign(I18N.en,{"💾 مساحة البيانات على هذا الجهاز":"💾 Data space on this device","المتصفح يمنح كل موقع مساحة محدودة (~5 ميجا). بياناتك في السحابة غير محدودة بهذا السقف.":"Browsers give each site a limited quota (~5 MB). Your cloud data is not bound by this cap."});
+Object.assign(I18N.ur,{"💾 مساحة البيانات على هذا الجهاز":"💾 اس ڈیوائس پر ڈیٹا کی جگہ","المتصفح يمنح كل موقع مساحة محدودة (~5 ميجا). بياناتك في السحابة غير محدودة بهذا السقف.":"براؤزر ہر سائٹ کو محدود جگہ دیتا ہے (~5 MB)۔ کلاؤڈ کا ڈیٹا اس حد سے آزاد ہے۔"});
 Object.assign(I18N.en,{"🔐 جهاز مشترك — يُنظَّف تلقائياً":"🔐 Shared device — auto-cleaned","لاحظ السستم أن أكثر من حساب استُخدم على هذا الجهاز، فصار يمسح بيانات المزرعة عنه تلقائياً عند إغلاق السستم (التبويب أو النافذة أو المتصفح) — بعد التأكد من رفعها للسحابة. قفل الشاشة وتبديل التطبيقات لا يقطعان عملك. لا يلزمك أي إعداد، وبياناتك في السحابة لا تُمس.":"The system noticed more than one account using this device, so it now erases the farm data whenever the system is closed (tab, window or browser) — after confirming the data reached the cloud. Locking the screen or switching apps never interrupts your work. No setup needed, and your cloud data is never touched.","هذا جهازي الشخصي — أوقف التنظيف التلقائي":"This is my personal device — stop auto-cleaning","🔐 جهاز مشترك: تُمسح بيانات المزرعة عند إغلاق السستم":"🔐 Shared device: farm data is erased when the system is closed","✅ اعتُبر جهازاً شخصياً":"✅ Marked as a personal device"});
 Object.assign(I18N.ur,{"🔐 جهاز مشترك — يُنظَّف تلقائياً":"🔐 مشترکہ ڈیوائس — خودکار صفائی","لاحظ السستم أن أكثر من حساب استُخدم على هذا الجهاز، فصار يمسح بيانات المزرعة عنه تلقائياً عند إغلاق السستم (التبويب أو النافذة أو المتصفح) — بعد التأكد من رفعها للسحابة. قفل الشاشة وتبديل التطبيقات لا يقطعان عملك. لا يلزمك أي إعداد، وبياناتك في السحابة لا تُمس.":"سسٹم نے دیکھا کہ اس ڈیوائس پر ایک سے زیادہ اکاؤنٹ استعمال ہوئے، اس لیے اب سسٹم بند ہوتے ہی (ٹیب، ونڈو یا براؤزر) فارم کا ڈیٹا مٹا دیتا ہے — کلاؤڈ پر پہنچنے کی تصدیق کے بعد۔ اسکرین لاک یا ایپ بدلنے سے کام نہیں رکتا۔","هذا جهازي الشخصي — أوقف التنظيف التلقائي":"یہ میری ذاتی ڈیوائس ہے — خودکار صفائی بند کریں","🔐 جهاز مشترك: تُمسح بيانات المزرعة عند إغلاق السستم":"🔐 مشترکہ ڈیوائس: سسٹم بند ہوتے ہی فارم ڈیٹا مٹ جائے گا","✅ اعتُبر جهازاً شخصياً":"✅ ذاتی ڈیوائس کے طور پر محفوظ"});
 Object.assign(I18N.en,{"💵 سداد":"💵 Pay","↩️ مردود":"↩️ Return","ربط بفاتورة بيع آجلة (اختياري)":"Link to a credit sale invoice (optional)","— بدون ربط —":"— No link —","محول لفاتورة":"Converted to invoice","🖨️ طباعة":"🖨️ Print","📄 XML":"📄 XML","📱 واتساب":"📱 WhatsApp"});
@@ -4160,7 +4171,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.09-D";
+const KS_VER="v12.10-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4204,7 +4215,9 @@ function defAccounts(){
     ["5302","إيجارات ورسوم","مصروفات",0],
     ["5303","مصروفات أخرى","مصروفات",0],
     ["5304","مصروف الإهلاك","مصروفات",0],
-    ["5305","فروقات الجرد","مصروفات",0]
+    ["5305","فروقات الجرد","مصروفات",0],
+    ["5106","أعلاف مواشي","مصروفات",0],
+    ["5107","شراء مواشي","مصروفات",0]
   ];
   return base.map(a=>({code:a[0], name:a[1], type:a[2], header:!!a[3]}));
 }
@@ -4398,15 +4411,18 @@ function ksStale(){ try{ const t=+localStorage.getItem("ksSeen")||0; return t>0 
 function ksTabBind(){ try{ const c=(typeof cloudFarmId==="function")?cloudFarmId():""; if(c) sessionStorage.setItem("ksTabFarm", c); }catch(e){} }
 function ksTabDrift(){ try{ const t=sessionStorage.getItem("ksTabFarm"), c=(typeof cloudFarmId==="function")?cloudFarmId():"";
   return !!(t && c && t!==c); }catch(e){ return false; } }
-function ksFreeze(){
+function ksFreeze(kind){
   if(window.__ksFrozen) return; window.__ksFrozen=true;
+  const __busy=(kind==="busy");
   try{
     const d=document.createElement("div");
     d.id="ksFrozenBox";
     d.style.cssText="position:fixed;inset:0;z-index:2147483647;background:rgba(15,23,42,.94);color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:inherit";
     d.innerHTML='<div style="max-width:420px"><div style="font-size:2.4rem;margin-bottom:10px">🛑</div>'+
-      '<div style="font-weight:700;font-size:1.05rem;margin-bottom:8px">أُوقفت هذه النافذة لحماية البيانات</div>'+
-      '<p style="font-size:.85rem;line-height:1.9;opacity:.9">تم تسجيل الدخول بمزرعة أخرى على هذا الجهاز، فلم تعد هذه النافذة تخص المزرعة المفتوحة. لم يُحفظ ولم يُرفع أي شيء منها.</p>'+
+      '<div style="font-weight:700;font-size:1.05rem;margin-bottom:8px">'+(__busy?'مزرعة أخرى مفتوحة على هذا الجهاز':'أُوقفت هذه النافذة لحماية البيانات')+'</div>'+
+      '<p style="font-size:.85rem;line-height:1.9;opacity:.9">'+(__busy
+        ? 'يوجد سستم مفتوح بمزرعة أخرى في نافذة ثانية. أغلق تلك النافذة ثم اضغط إعادة التحميل. (إن كنت قد أغلقتها للتو فانتظر دقيقة ثم أعد المحاولة.)'
+        : 'تم تسجيل الدخول بمزرعة أخرى على هذا الجهاز، فلم تعد هذه النافذة تخص المزرعة المفتوحة. لم يُحفظ ولم يُرفع أي شيء منها.')+'</p>'+
       '<button onclick="location.reload()" style="margin-top:14px;padding:10px 22px;border:0;border-radius:10px;background:#16a34a;color:#fff;font-weight:700;cursor:pointer">إعادة التحميل</button></div>';
     document.body.appendChild(d);
   }catch(e){}
@@ -4430,6 +4446,37 @@ function ksSafeWipe(reason){
 function ksFlushOut(){ /* احفظ وارفع كل معلّق فوراً */
   try{ if(__saveTimer){ clearTimeout(__saveTimer); __saveTimer=null; __persistNow(); } }catch(e){}
   try{ if(typeof __cloudTimer!=="undefined"&&__cloudTimer){ clearTimeout(__cloudTimer); __cloudTimer=null; cloudPush(); } }catch(e){}
+}
+const KS_STORE_CAP_KB=5120;   /* سقف localStorage العملي في المتصفحات (مقيس: 5,119KB) */
+function ksStoreUsage(){
+  try{
+    let db=0, sn=0;
+    try{ db=(localStorage.getItem(KEY)||"").length; }catch(e){}
+    try{ sn=(localStorage.getItem("ksFarmSnaps")||"").length; }catch(e){}
+    const kb=Math.round((db+sn)/1024);
+    return {kb, dbKB:Math.round(db/1024), snapKB:Math.round(sn/1024), capKB:KS_STORE_CAP_KB,
+            pct:Math.min(100, Math.round(kb*100/KS_STORE_CAP_KB))};
+  }catch(e){ return {kb:0,dbKB:0,snapKB:0,capKB:KS_STORE_CAP_KB,pct:0}; }
+}
+function ksStoreUI(){
+  const u=ksStoreUsage();
+  const t=document.getElementById("stgTxt"), bar=document.getElementById("stgBar"), hint=document.getElementById("stgHint");
+  if(t) t.textContent=u.kb+" من "+u.capKB+" كيلوبايت ("+u.pct+"%)"+(u.snapKB?" — منها "+u.snapKB+" لقطات":"");
+  if(bar){ bar.style.width=u.pct+"%"; bar.style.background = u.pct>=85?"#dc2626" : u.pct>=70?"#f59e0b" : "var(--green)"; }
+  if(hint && u.pct>=70) hint.textContent = u.pct>=85
+    ? "⛔ المساحة شبه ممتلئة — أغلق سنة قديمة أو احذف لقطات، وإلا قد يفشل الحفظ المحلي (السحابة سليمة)."
+    : "⚠️ اقتربت المساحة من الامتلاء — يُنصح بإقفال سنة قديمة أو تقليل اللقطات.";
+  return u;
+}
+function ksStoreWarn(){
+  try{
+    const u=ksStoreUsage(); if(u.pct<80) return;
+    const k="ksStoreWarnAt", last=+localStorage.getItem(k)||0;
+    if(Date.now()-last < 86400000) return;          /* تنبيه واحد يومياً لا أكثر */
+    localStorage.setItem(k, String(Date.now()));
+    toast(u.pct>=90 ? "⛔ مساحة الجهاز شبه ممتلئة ("+u.pct+"%) — راجع الإعدادات ← النسخ والسحابة"
+                    : "⚠️ مساحة الجهاز "+u.pct+"% — يُنصح بإقفال سنة قديمة");
+  }catch(e){}
 }
 function ksSharedUI(){
   const card=document.getElementById("shDevCard"); if(card) card.style.display=ksSharedDev()?"":"none";
@@ -4570,11 +4617,11 @@ function __ksDenyMsg(tx){
   if(area==="trash")      return "⛔ صلاحية الحذف مسحوبة من حسابك — لم يُرفع";
   return "⛔ رفض السيرفر: التعديل يتجاوز صلاحياتك — لم يُرفع للسحابة";
 }
-async function cloudPush(){
+async function cloudPush(__preAuth){
   __cloudTimer=null;
   if(!cloudOn()||__cloudBusy) return;
   if(typeof ksGuardTab==="function" && !ksGuardTab()) return;   /* 🛑 لا نرفع بهوية مزرعة غير هوية هذه النافذة */
-  try{ if(sessionStorage.getItem("ksAuthed")!=="1") return; }catch(e){}  /* لا رفع قبل اكتمال الدخول */
+  try{ if(!__preAuth && sessionStorage.getItem("ksAuthed")!=="1") return; }catch(e){}  /* لا رفع قبل الدخول إلا لرفع البقايا */
   const __fid=cloudFarmId();                                    /* 🔒 تُثبَّت هنا: أي await بعدها قد تُبدّل الجلسة */
   const __ok=()=>(!ksTabDrift() && cloudFarmId()===__fid);
   const __ps=cloudSess();
@@ -4644,9 +4691,10 @@ async function cloudPull(silent){
   try{
     const __fid=cloudFarmId();
     const r=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+encodeURIComponent(__fid)+"&select=id,data,updated_at");
-    if(!r.ok) return null;
+    if(!r.ok) return null;                                       /* خطأ فعلي */
     const rows=await r.json();
-    if(!rows.length){ if(!silent) toast("☁️ لا توجد نسخة بالسحابة بعد — اضغط رفع الآن"); return null; }
+    /* ⚠️ التمييز حاسم: «لا يوجد صف» ≠ «تعذّر الاتصال». الخلط بينهما يكتب قاعدة فارغة فوق مزرعة قائمة */
+    if(!rows.length){ if(!silent) toast("☁️ لا توجد نسخة بالسحابة بعد — اضغط رفع الآن"); return {__empty:true}; }
     if(String(rows[0].id||__fid)!==String(__fid)) return null;   /* 🛡️ صف لا يخص هذه المزرعة: يُهمل */
     return rows[0];
   }catch(e){ if(!silent) toast("📴 تعذر الاتصال بالسحابة"); return null; }
@@ -4666,10 +4714,10 @@ function ksApplyRow(expectFid, row){
 }
 async function cloudPullApply(){
   const __fid=cloudFarmId();
-  const row=await cloudPull(); if(!row) return;
+  const row=await cloudPull(); if(!row||row.__empty) return;
   if(!confirm("⬇️ استبدال بيانات هذا الجهاز بنسخة السحابة؟\n(آخر تحديث سحابي: "+String(row.updated_at||"").slice(0,16).replace("T"," ")+")\nيُنصح بتصدير نسخة احتياطية أولاً.")) return;
   cancelPendingSave();
-  if(!ksApplyRow(__fid,row)){ toast("⛔ تغيّرت هوية الجلسة — أُلغيت العملية"); return; }
+  if(!ksApplyRow(__fid,row)){ __skipPersist=false; toast("⛔ تغيّرت هوية الجلسة — أُلغيت العملية"); return; }
   toast("✅ سُحبت نسخة السحابة — سيُعاد التحميل");
   setTimeout(()=>location.reload(), 900);
 }
@@ -4686,13 +4734,13 @@ async function cloudBootCheck(){
     if(m && m.status!=="approved"){ try{ cloudGateShow(); }catch(e){} return; } /* معلق: بوابة الانتظار بلا مسح بيانات */
   }
   const __bfid=cloudFarmId();
-  const row=await cloudPull(true); if(!row) return;
+  const row=await cloudPull(true); if(!row||row.__empty) return;
   const localT=DB.settings.lastCloudSync||"";
   if(row.updated_at && row.updated_at>localT){
     if(confirm("☁️ توجد نسخة أحدث بالسحابة (من جهاز آخر).\nاستبدال بيانات هذا الجهاز بها؟")){
       cancelPendingSave();
       if(ksApplyRow(__bfid,row)) location.reload();
-      else toast("⛔ تغيّرت هوية الجلسة — أُلغيت العملية");
+      else { __skipPersist=false; toast("⛔ تغيّرت هوية الجلسة — أُلغيت العملية"); }
     }
   }
 }
@@ -4809,7 +4857,7 @@ async function planBoot(){
   if(!cloudOn()) return;
   await planFetch(); planApply();
 }
-setTimeout(function(){ try{ planBoot(); }catch(e){} }, 900);
+setTimeout(function(){ try{ if(sessionStorage.getItem("ksAuthed")==="1") planBoot(); }catch(e){} }, 900);
 
 /* ── لوحة المزود ── */
 function planDaysRow(p){ return p.status==="trial"?planDays(p.trial_ends):planDays(p.expires_at); }
@@ -5665,10 +5713,14 @@ function setTrend(elId, current, previous){
 }
 
 function logout(){
-  if(!confirm("تسجيل الخروج النهائي من هذا الجهاز؟ (الدخول القادم يحتاج إنترنت)\nملاحظة: إغلاق الصفحة وحده يقفل الجلسة ويطلب كلمة المرور عند الفتح")) return;
+  if(!confirm("تسجيل الخروج النهائي؟\n• تُحذف بيانات المزرعة من هذا الجهاز (تبقى كاملة في السحابة)\n• الدخول القادم يحتاج إنترنت\nملاحظة: إغلاق الصفحة وحده يقفل الجلسة بلا حذف")) return;
+  try{ ksFlushOut(); }catch(e){}                 /* ارفع كل معلّق قبل أي حذف */
+  if(ksIsDirty()){
+    if(!confirm("⏳ توجد تعديلات لم تصل السحابة بعد.\n«موافق» = الخروج وحذفها من الجهاز نهائياً\n«إلغاء» = البقاء حتى تكتمل المزامنة (يُنصح به)")) return;
+  }
   sessionStorage.removeItem("ksUser"); sessionStorage.removeItem("ksAuthed");
-  try{ localStorage.removeItem("ksCloudSess"); localStorage.removeItem("ksCredHash"); }catch(e){}
-  ksWipeFarmData(); /* 🛡️ خروج نهائي = لا يبقى أثر للمزرعة على الجهاز (حماية الأجهزة المشتركة) */
+  try{ localStorage.removeItem("ksCloudSess"); localStorage.removeItem("ksCredHash"); sessionStorage.removeItem("ksTabFarm"); }catch(e){}
+  ksWipeFarmData(); /* 🛡️ خروج نهائي = لا يبقى أثر للمزرعة على الجهاز */
   location.reload();
 }
 function applyEmpNames(){
@@ -5736,8 +5788,14 @@ function cloudGateNeeded(){
     /* 🛡️ عزل المستأجرين: بيانات على الجهاز تخص مزرعة أخرى ⇒ لا تُعرض أبداً — تُمسح ويُجلب من سحابة المزرعة الحالية */
     const cur=(typeof cloudFarmId==="function")?cloudFarmId():"";
     const own=ksDataOwner();
-    /* ⚠️ الختم الغائب = ملكية مجهولة (بيانات إصدار قديم أو بقايا) — لا تُتبنّى أبداً */
-    if(cur && own!==cur){ ksWipeFarmData(); return true; }
+    /* ⚠️ الختم الغائب = ملكية مجهولة — لا تُعرض أبداً. لكن لا نمسحها هنا:
+       المسح يتم في البوابة بعد التأكد من السحابة (المسح المبكر يُفقد بيانات مستخدم قديم بلا إنترنت). */
+    if(cur && own!==cur){
+      try{ if(typeof blank==="function") DB=blank(); }catch(e){}
+      /* مفاتيح التنبيهات تحمل أسماء عملاء وأصناف ولا تُمثّل عملاً يخسره أحد ⇒ تُمسح فوراً */
+      try{ localStorage.removeItem("ksNotifMuted"); localStorage.removeItem("ksNotifSeen"); }catch(e){}
+      return true;
+    }
     return false;
   }catch(e){ return false; }
 }
@@ -5775,12 +5833,16 @@ async function cloudGateLogin(){
     /* انقطاع شبكة → تحقق محلي بالبصمة المشفرة */
     const isNet=(e instanceof TypeError)||!navigator.onLine;
     const s=cloudSess();
-    if(isNet && s && s.email && s.email.toLowerCase()===em.toLowerCase() && localStorage.getItem(KEY) && await __credMatch(em,pw)){
+    /* 🛡️ الدخول المحلي مسموح فقط إذا كانت بيانات الجهاز تخص هذه المزرعة نفسها */
+    const __localOwn = ksDataOwner() && cloudFarmId() && ksDataOwner()===cloudFarmId();
+    if(isNet && s && s.email && s.email.toLowerCase()===em.toLowerCase() && localStorage.getItem(KEY) && __localOwn && await __credMatch(em,pw)){
       sessionStorage.setItem("ksAuthed","1");
       if(msg)msg.textContent="📴 دخول محلي بلا إنترنت — ستتم المزامنة عند عودة الاتصال";
       setTimeout(()=>location.reload(),600); return;
     }
-    if(msg)msg.textContent="❌ "+(isNet?"لا يوجد اتصال، وتعذر التحقق المحلي":(e.message||"فشل الدخول"));
+    if(msg)msg.textContent="❌ "+(isNet?(localStorage.getItem(KEY)&&ksDataOwner()&&ksDataOwner()!==cloudFarmId()
+      ?"أول دخول لهذه المزرعة على هذا الجهاز يحتاج إنترنت (الجهاز يحمل بيانات مزرعة أخرى محفوظة ولن تُعرض)"
+      :"لا يوجد اتصال، وتعذر التحقق المحلي"):(e.message||"فشل الدخول"));
   }
 }
 async function cloudGateNewFarm(){
@@ -5852,13 +5914,17 @@ async function cloudGateCheck(){
     if(m.status==="approved"){
       cgShow("pend");
       if(pm)pm.textContent="✅ تم الاعتماد — جارٍ تجهيز الدخول...";
+      try{ ksTabBind(); }catch(e){}
       if(m.emp_id && localStorage.getItem(KEY)){
         const __o=ksDataOwner(), __c=cloudFarmId();
-        if(__o && __c && __o!==__c){ ksWipeFarmData(); }
-        else try{ const d=JSON.parse(localStorage.getItem(KEY)); if((d.employees||[]).some(e=>e.id===m.emp_id)){ ksStampOwner(); location.reload(); return; } }catch(e){}
+        if(__c && __o===__c){
+          try{ const d=JSON.parse(localStorage.getItem(KEY)); if((d.employees||[]).some(e=>e.id===m.emp_id)){ ksStampOwner(); location.reload(); return; } }catch(e){}
+        }
       }
       const row=await cloudPull(true);
-      if(!row){ if(pm)pm.textContent="⚠️ تعذر جلب بيانات المزرعة — جرّب 🔄 بعد قليل"; return; }
+      if(!row){ if(pm)pm.textContent="⚠️ تعذر جلب بيانات المزرعة — لم يُحذف شيء، جرّب 🔄 بعد قليل"; return; }
+      if(row.__empty){ if(pm)pm.textContent="⚠️ لا توجد بيانات للمزرعة بعد — تواصل مع صاحب المزرعة"; return; }
+      if(localStorage.getItem(KEY) && ksDataOwner()!==cloudFarmId()) ksWipeFarmData();
       const d2=row.data||{};
       if(!m.emp_id || !(d2.employees||[]).some(e=>e.id===m.emp_id)){
         if(pm)pm.textContent="⚠️ حسابك معتمد لكن غير مربوط بموظف مسجل — كلم صاحب المزرعة";
@@ -5872,21 +5938,28 @@ async function cloudGateCheck(){
   }
   /* حساب مالك */
   const __own=ksDataOwner(), __cur=cloudFarmId();
-  if(__cur && __own!==__cur){ ksWipeFarmData(); }   /* مزرعة أخرى أو ملكية مجهولة ⇒ تُمسح ويُجلب الصحيح */
-  else if(localStorage.getItem(KEY)){ ksStampOwner(); location.reload(); return; }
+  try{ ksTabBind(); }catch(e){}   /* هذه النافذة هي التي سجّلت الدخول: اربطها بالهوية الجديدة */
+  if(__cur && __own===__cur && localStorage.getItem(KEY)){ ksStampOwner(); location.reload(); return; }
   const row=await cloudPull(true);
-  if(row){ await __gateApply(row); return; }
-  /* مزرعة جديدة فاضية — جهّز قاعدة فارغة وادخل */
+  if(row===null){
+    /* ⛔ تعذّر الاتصال: لا نمسح ولا نكتب شيئاً — بيانات الجهاز تبقى سليمة */
+    cgShow("login");
+    const __m=document.getElementById("cgMsg");
+    if(__m) __m.textContent="⚠️ تعذّر الاتصال بالسحابة — لم يُحذف أي شيء. تأكد من الإنترنت وأعد المحاولة";
+    return;
+  }
+  if(localStorage.getItem(KEY) && __own!==__cur) ksWipeFarmData();   /* الآن فقط: بعد التأكد */
+  if(!row.__empty){ await __gateApply(row); return; }
+  /* لا يوجد صف سحابي = مزرعة جديدة فعلاً */
   try{ localStorage.setItem(KEY, JSON.stringify(blank())); }catch(e){}
   ksStampOwner();
   location.reload();
 }
-function cloudGateSignout(){ try{ localStorage.removeItem("ksFarmPlan"); }catch(e){} cloudSetSess(null); cgShow("login"); const m=document.getElementById("cgMsg"); if(m)m.textContent=""; }
+function cloudGateSignout(){ try{ localStorage.removeItem("ksFarmPlan"); sessionStorage.removeItem("ksTabFarm"); }catch(e){} cloudSetSess(null); cgShow("login"); const m=document.getElementById("cgMsg"); if(m)m.textContent=""; }
 function bootLogin(){
   /* 🔐 جهاز مشترك: جلسة متصفح جديدة ⇒ لا تبقى أي بقايا من المستخدم السابق (حتى لو نسي الخروج) */
-  try{ ksTabBind(); }catch(e){}   /* اربط هوية النافذة أولاً: أي رفع أدناه يجب أن يكون محروساً */
   try{
-    if(ksBusyOtherFarm()){ ksFreeze(); return; }        /* مزرعة أخرى مفتوحة الآن في نافذة حية */
+    if(ksBusyOtherFarm()){ ksFreeze("busy"); return; }  /* مزرعة أخرى مفتوحة الآن في نافذة حية */
     if(ksLiveSameFarm()){
       /* نافذة ثانية لنفس المزرعة: تفتح مباشرة بلا كلمة مرور وبلا أي مسح */
       try{ sessionStorage.setItem("ksAuthed","1"); }catch(e){}
@@ -5896,14 +5969,14 @@ function bootLogin(){
         if(!ksIsDirty()){ try{ localStorage.removeItem("ksCloudSess"); }catch(e){} ksWipeFarmData(); }
         else if(cloudOn()){
           /* بقايا لم تُرفع: ارفعها أولاً ثم نظّف — لا نفقد عملاً ولا نترك أثراً */
-          try{ Promise.resolve(cloudPush()).then(function(){
+          try{ ksTabBind(); Promise.resolve(cloudPush(true)).then(function(){
                  if(!ksIsDirty()){ try{ localStorage.removeItem("ksCloudSess"); }catch(e){} ksWipeFarmData(); }
                }).catch(function(){}); }catch(e){}
         }
       }
     }
   }catch(e){}
-  try{ ksSharedUI(); ksSeenNow(); ksBeatNow();
+  try{ ksSharedUI(); ksSeenNow(); ksBeatNow(); setTimeout(ksStoreWarn, 4000);
        if(!window.__ksBeatT) window.__ksBeatT=setInterval(function(){ if(ksTabDrift()) ksFreeze(); else ksBeatNow(); }, KS_BEAT_MS);
   }catch(e){}
   /* 🔑 الدخول الموحد: باب واحد بالإيميل للجميع — الهوية تُشتق من الحساب السحابي */
@@ -5912,6 +5985,8 @@ function bootLogin(){
   if(cloudGateNeeded()){ cloudGateShow(); return; }
   /* إغلاق الصفحة = خروج تلقائي: كل جلسة متصفح جديدة تتطلب كلمة المرور */
   if(sessionStorage.getItem("ksAuthed")!=="1"){ cloudGateShow(); return; }
+  /* 🔒 من هنا فقط ندخل السستم فعلاً: اربط هوية النافذة (لا تُربط ونحن على البوابة) */
+  try{ ksTabBind(); }catch(e){}
   try{
     if(cs.uid&&cs.farmId&&cs.farmId!==cs.uid){
       /* حساب موظف */
@@ -7767,7 +7842,15 @@ function hPaidAmt(h){
   const b=(DB.payments||[]).filter(p=>p.harvestId===h.id).reduce((s,p)=>s+(+p.amount||0),0);
   return a+b;
 }
-function hRemain(h){ return Math.max(0, hGross(h)-hPaidAmt(h)); }
+function hSecOf(h){ /* قسم البيع: قسم الدورة وإلا قسم الفاتورة (مبيعات المواشي/الأسماك بلا دورة) */
+  const c=(DB.cycles||[]).find(x=>x.id===h.cycleId); return c?c.section:(h.section||"");
+}
+function hRemain(h){
+  const g=hGross(h);
+  /* السجل السالب (إشعار دائن/مردود) يُقاصص دين العميل — التصفير عند صفر كان يبتلع الإلغاء */
+  if(g<0) return +(g-hPaidAmt(h)).toFixed(2);
+  return Math.max(0, g-hPaidAmt(h));
+}
 function pGross(p){ return +p.total||+p.amount||0; }
 function pPaidAmt(p){
   if(p.paid) return pGross(p);
@@ -7783,6 +7866,7 @@ function returnHarvest(id){
   if(!canSettle()){ toast("⚠️ ما عندك صلاحية تسجيل المردود"); return; }
   const h=DB.harvests.find(x=>x.id===id); if(!h) return;
   if(h.creditNote||h.returnOf||(+h.total||0)<0){ toast("⚠️ هذا سجل عكسي أصلاً"); return; }
+  if(h.fromInvoice){ toast("🧾 هذا بيع بفاتورة إلكترونية — صحّحه بإشعار دائن من شاشة الفواتير"); return; }
   const maxQ=+h.qty||0; if(maxQ<=0){ toast("⚠️ لا كمية في السجل"); return; }
   const q=parseFloat(prompt("↩️ كمية المردود (المباع "+fmt(maxQ)+" "+(h.unit||"")+"):", maxQ));
   if(!q||q<=0) return;
@@ -7804,7 +7888,7 @@ function returnHarvest(id){
     /* مدفوعة (كلياً/جزئياً): سجل استرداد سالب — يعكس الإيراد والضريبة ويعيد رؤوس المواشي للقطيع */
     DB.harvests.push({id:uid(), date:today(), cycleId:h.cycleId||"", section:h.section||"",
       productName:"↩️ مردود — "+(h.productName||""), qty:-q, unit:h.unit||"", price:0,
-      total:-amt, taxAmt:(h.taxAmt!=null?-tax:undefined), taxRate:h.taxRate,
+      total:-amt, taxAmt:(h.taxAmt!=null?-tax:undefined), taxRate:h.taxRate, fromInvoice:h.fromInvoice||false,
       livestockSale:h.livestockSale||false, saleType:h.saleType||"", animal:h.animal||"",
       heads:(h.heads!=null?-Math.round((+h.heads)*ratio):undefined),
       customerId:h.customerId||"", paid:true, returnOf:h.id,
@@ -7944,7 +8028,7 @@ function renderHarvests(){
         : hPaidAmt(h)>0?'<span class="badge warn">جزئي — باقي '+fmt(hRemain(h))+'</span> <button class="btn small secondary" onclick="payHarvest(\''+h.id+'\')">دفعة</button>'
         :'<span class="badge danger">آجل</span> <button class="btn small secondary" onclick="payHarvest(\''+h.id+'\')">دفعة</button> <button class="btn small secondary" onclick="markPaid(\''+h.id+'\')">سداد</button>'}</td>
       <td>${h.employee||""}</td>
-      <td>${h.fishSale&&h.unpriced?`<button class="edt" title="تسعير" onclick="priceFishSale('${h.id}')">💲</button>`:""}${(+h.total||0)>0&&!h.creditNote&&!h.returnOf?`<button class="edt" title="مردود" onclick="returnHarvest('${h.id}')">↩️</button>`:""}<button class="edt" title="فاتورة" onclick="printHarvestInvoice('${h.id}')">🖨️</button><button class="edt" title="مشاركة واتساب" onclick="waSale('${h.id}')">💬</button>${h.fromInvoice?`<span class="badge active" title="مولدة من فاتورة">🧾 ${h.invNo||"فاتورة"}</span>`:canEdit(h.employee)?`<button class="del" onclick="delHarvest('${h.id}')">🗑️</button>`:""}</td></tr>`;
+      <td>${h.fishSale&&h.unpriced?`<button class="edt" title="تسعير" onclick="priceFishSale('${h.id}')">💲</button>`:""}${(+h.total||0)>0&&!h.creditNote&&!h.returnOf&&!h.fromInvoice?`<button class="edt" title="مردود" onclick="returnHarvest('${h.id}')">↩️</button>`:""}<button class="edt" title="فاتورة" onclick="printHarvestInvoice('${h.id}')">🖨️</button><button class="edt" title="مشاركة واتساب" onclick="waSale('${h.id}')">💬</button>${h.fromInvoice?`<span class="badge active" title="مولدة من فاتورة">🧾 ${h.invNo||"فاتورة"}</span>`:canEdit(h.employee)?`<button class="del" onclick="delHarvest('${h.id}')">🗑️</button>`:""}</td></tr>`;
   }).join("");
   tblHarvests.innerHTML =
     `<tr><th>التاريخ</th><th>المنتج</th><th>القسم</th><th>الكمية</th><th>سعر الكيلو</th><th>الإجمالي</th><th>العميل</th><th>السداد</th><th>الموظف</th><th></th></tr>`
@@ -8543,7 +8627,8 @@ function ksSaveSnaps(mine){
   try{
     const cur=(typeof cloudFarmId==="function")?cloudFarmId():"";
     let all=[]; try{ all=JSON.parse(localStorage.getItem("ksFarmSnaps")||"[]"); }catch(e){}
-    const others=cur?all.filter(x=>x&&x.farm&&x.farm!==cur):[];
+    /* نُبقي لقطات المزارع الأخرى **واللقطات بلا وسم** (بقايا إصدار قديم): تُخفى ولا تُباد */
+    const others=cur?all.filter(x=>x&&(!x.farm||x.farm!==cur)):[];
     localStorage.setItem("ksFarmSnaps", JSON.stringify(others.concat(mine)));
   }catch(e){ throw e; }
 }
@@ -8582,9 +8667,10 @@ function restoreSnap(i){
     else localStorage.setItem(KEY, s.data);
     ksStampOwner();
     location.reload();
-  }catch(e){ toast("❌ فشلت الاستعادة"); }
+  }catch(e){ __skipPersist=false; toast("❌ فشلت الاستعادة"); }
 }
-function delSnap(i){ if(!isOwner()){ toast("⚠️ للمالك فقط"); return; } const sn=getSnaps(); const s=sn[i]; if(!s)return;
+function delSnap(i){ if(typeof ksGuardTab==="function" && !ksGuardTab()) return;
+  if(!isOwner()){ toast("⚠️ للمالك فقط"); return; } const sn=getSnaps(); const s=sn[i]; if(!s)return;
   if(!confirm("حذف اللقطة "+s.ts+"؟"))return;
   let all=[]; try{ all=JSON.parse(localStorage.getItem("ksFarmSnaps")||"[]"); }catch(e){}
   const j=all.findIndex(x=>x.ts===s.ts && x.data===s.data); if(j>=0) all.splice(j,1);
@@ -9946,7 +10032,7 @@ function updateNavBadge(){ /* أُزيلت شارة الملخص — الجرس 
 function renderDash(){
   const secF = dashSection.value;
   const cycSec = c => secF==="all" || c.section===secF;
-  const hSec = h => { const c=DB.cycles.find(x=>x.id===h.cycleId); return c?c.section:(h.section||""); };
+  const hSec = h => hSecOf(h);
   const harvests = DB.harvests.filter(h=>inPeriod(h.date)&&(secF==="all"||hSec(h)===secF));
   const expenses = DB.expenses.filter(x=> (secF==="all" || x.section===secF || x.section.startsWith("عام")) && inPeriod(x.date));
   const cycles = DB.cycles.filter(c=>cycSec(c)&&inPeriod(c.plantDate));
@@ -10408,8 +10494,8 @@ function incomeData(from, to){
   const un = {sal:0, shared:0};
   DB.harvests.forEach(h=>{
     if(!inP(h.date)) return;
-    const c = DB.cycles.find(x=>x.id===h.cycleId);
-    if(c && sec[c.section]) sec[c.section].rev += h.total;
+    const sn = hSecOf(h);
+    if(sec[sn]) sec[sn].rev += hGross(h);      /* بالمستحق الشامل، وبقسم الدورة أو الفاتورة */
   });
   DB.cycles.forEach(c=>{ if(inP(c.plantDate) && sec[c.section]) sec[c.section].cyc += c.initCost||0; });
   const ca = DB.settings.catAlloc||{};
@@ -10588,8 +10674,11 @@ function autoEntries(from, to){
   DB.harvests.forEach(h=>{
     if(!inP(h.date)) return;
     const c = DB.cycles.find(x=>x.id===h.cycleId);
-    es.push({date:h.date, desc:"بيع "+(c?prodName(c.productId):"")+" — "+custName(h.customerId), auto:true,
-      lines:[{a:h.paid?"1101":"1103", d:h.total, c:0},{a:"4101", d:0, c:h.total}]});
+    /* الإيراد بلا ضريبة، والضريبة التزام على 2103 (كان الإجمالي كله يُقيَّد إيراداً فيتضخم 15%) */
+    const __ht=+h.total||0, __hx=+h.taxAmt||0, __hnet=+(__ht-__hx).toFixed(2);
+    const __hl=[{a:h.paid?"1101":"1103", d:__ht, c:0},{a:"4101", d:0, c:__hnet}];
+    if(Math.abs(__hx)>0.005) __hl.push({a:"2103", d:0, c:__hx});
+    es.push({date:h.date, desc:"بيع "+(c?prodName(c.productId):"")+" — "+custName(h.customerId), auto:true, lines:__hl});
   });
   const purExp = new Set(DB.purchases.map(p=>p.expId||""));
   DB.expenses.forEach(x=>{
@@ -11147,7 +11236,7 @@ function renderCV(){
 function acctRenderAll(){
   try{ renderApv(); }catch(e){}
   [renderAcctSelects,renderAccounts,renderJournals,renderTrial,renderLedger,
-   renderOverview,renderBS,renderBank,renderAcSales,renderAcPurch,
+   renderOverview,renderBank,renderAcSales,renderAcPurch,
    renderFA,renderTax,renderHR,renderHrAll,renderInvM,renderPerf,renderCV,renderCustStatement,renderIncomeAcct,renderAnnualAcct,fillPerfGoals,renderBudget,renderReports,renderProfitability
   ].forEach(fn=>{ try{ fn(); }catch(e){ console.warn("acct render:", fn.name, e.message); } });
 }
@@ -11800,10 +11889,15 @@ function renderCustStatement(){
   const ev=[];
   DB.harvests.filter(h=>h.customerId===custId||h.customer===c.name).forEach(h=>{
     ev.push({d:h.date, t:"🧺 مبيعات — "+(h.productName|| (DB.cycles.find(x=>x.id===h.cycleId)?prodName(DB.cycles.find(x=>x.id===h.cycleId).productId):"بيع")), deb:+h.total||0, cred:0});
+    /* 🛡️ الدفعات من مصدرين (h.payments و DB.payments) وراية paid — تُجمع مرة واحدة عبر hPaidAmt
+       (كان السداد الكامل عبر «دفعة» يُقيَّد مرتين فيظهر رصيد سالب للعميل) */
     (h.payments||[]).forEach(p=>ev.push({d:p.date, t:"💵 دفعة", deb:0, cred:+p.amt||0}));
-    if(h.paid && !(h.payments||[]).length) ev.push({d:h.paidDate||h.date, t:"💵 سداد", deb:0, cred:+h.total||0});
+    (DB.payments||[]).filter(p=>p.harvestId===h.id).forEach(p=>ev.push({d:p.date, t:"💵 دفعة", deb:0, cred:+p.amount||0}));
+    const __hp=hPaidAmt(h), __rec=(h.payments||[]).reduce((x,p)=>x+(+p.amt||0),0)
+                              +(DB.payments||[]).filter(p=>p.harvestId===h.id).reduce((x,p)=>x+(+p.amount||0),0);
+    if(__hp-__rec>0.005) ev.push({d:h.paidDate||h.date, t:"💵 سداد", deb:0, cred:+(__hp-__rec).toFixed(2)});
   });
-  (DB.payments||[]).filter(p=>p.custId===custId).forEach(p=>ev.push({d:p.date, t:"💵 دفعة", deb:0, cred:+p.amount||0}));
+  (DB.payments||[]).filter(p=>p.custId===custId && !p.harvestId).forEach(p=>ev.push({d:p.date, t:"💵 دفعة", deb:0, cred:+p.amount||0}));
   ev.sort((a,b)=>(a.d||"").localeCompare(b.d||""));
   let run=0;
   tbl.innerHTML=`<tr><th>التاريخ</th><th>البيان</th><th>مدين (عليه)</th><th>دائن (له)</th><th>الرصيد</th></tr>`
@@ -11877,12 +11971,13 @@ function payHarvest(id){
 }
 function payPurchase(id){
   const p = DB.purchases.find(x=>x.id===id); if(!p) return;
-  const paid = (DB.supPayments||[]).filter(x=>x.purchaseId===id).reduce((s,x)=>s+x.amount,0);
-  const remain = p.total - paid;
-  const amt = parseFloat(prompt(`دفعة لمشتريات ${fmtSR(p.total)}\nالمتبقي: ${fmtSR(remain)}\nأدخل المبلغ:`));
+  const remain = pRemain(p);          /* يقرأ total أو amount والمدفوعات من المصدرين — لا NaN */
+  if(remain<=0.005){ toast("✅ الفاتورة مسددة بالكامل"); return; }
+  const amt = parseFloat(prompt(`دفعة لمشتريات ${fmtSR(pGross(p))}\nالمتبقي: ${fmtSR(remain)}\nأدخل المبلغ:`));
   if(!amt || amt<=0) return;
   DB.supPayments = DB.supPayments||[];
   DB.supPayments.push({id:uid(), date:today(), supId:p.supplierId||"", purchaseId:id, amount:Math.min(amt,remain)});
+  if(pRemain(p)<=0.005){ p.paid=true; p.paidDate=today(); }   /* اكتمل السداد ⇒ لم تعد آجلة */
   save(); renderPurchases(); renderSuppliers(); toast("✅ تم تسجيل الدفعة للمورد");
 }
 
@@ -12527,7 +12622,7 @@ function stView(k){
     if(k==="company"){ try{ fillCompanyInfo(); }catch(e){} }
     if(k==="perms"){ try{ permFillSelect(); }catch(e){} }
     if(k==="log"){ try{ empMovesInit(); }catch(e){} }
-    if(k==="backup"){ try{ cloudStatusUI(); }catch(e){} }
+    if(k==="backup"){ try{ cloudStatusUI(); }catch(e){} try{ ksStoreUI(); }catch(e){} }
   }
   try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(e){}
 }
@@ -12808,7 +12903,7 @@ function imAddItem(){
 
 /* ====== أصول ثابتة ====== */
 function postDep(){
-  const dep=DB.assets?.reduce((s,a)=>s+(a.cost||0)/(a.life||10)/12,0)||0;
+  const dep=(DB.fixedAssets||[]).reduce((s,a)=>s+(+a.cost||0)/(+a.life||10)/12,0)||0;
   if(!dep){ toast("⚠️ لا توجد أصول ثابتة"); return; }
   DB.journals=DB.journals||[];
   DB.journals.push({id:uid(),date:today(),desc:"قيد إهلاك شهري تلقائي",
@@ -13559,9 +13654,8 @@ function addLvFeed(e){
     if(qty>it.qty){ toast("❌ العلف غير كافٍ (متوفر "+fmt(it.qty)+" "+it.unit+")"); return; }
     it.qty=+(it.qty-qty).toFixed(2);
     DB.invMoves.push({id:uid(), date:g("lvFdDate").value||today(), itemId:it.id, type:"صرف", qty, employee:(CURRENT_USER?CURRENT_USER.name:""), notes:"تغذية مواشي"});
-    if((+it.cost||0)>0){
-      DB.expenses.push({id:uid(), date:g("lvFdDate").value||today(), cat:"أعلاف مواشي", section:"قسم المواشي", amount:+(qty*it.cost).toFixed(2), cycleId:"", employee:(CURRENT_USER?CURRENT_USER.name:""), notes:"تغذية مواشي — "+it.name});
-    }
+    /* ⚠️ لا مصروف هنا: قيمة العلف سُجّلت مصروفاً عند فاتورة الشراء — إنشاء مصروف ثانٍ عند الاستهلاك
+       كان يضاعف التكلفة ويضخّم ضريبة المدخلات (يطابق سلوك الأسماك والرش). */
   }
   lv.feedLogs.push({id:uid(), date:g("lvFdDate").value||today(), itemId, itemName:it?it.name:"", qty, barn:g("lvFdBarn")?.value||"", notes:g("lvFdNotes").value, employee:(CURRENT_USER?CURRENT_USER.name:"")});
   save(); renderLivestock(); try{renderInv();}catch(_){} e.target.reset(); g("lvFdDate").value=today(); toast("🌾 سُجّلت التغذية وخُصمت من المخزون");
@@ -14007,16 +14101,25 @@ function generatePayroll(){
     // حسب الحضور
     const atts=(DB.attendance||[]).filter(a=>a.empId===emp.id&&a.date?.startsWith(ms));
     const presentDays=atts.filter(a=>a.status==="حاضر"||a.status==="حضور").length;
-    const workingDays=daysInMonth-8; // تقريبي
-    const attRate=workingDays>0?Math.min(1,presentDays/workingDays):1;
-    // إجازات بدون راتب
-    const unpaidLeaves=(DB.leaves||[]).filter(l=>l.empId===emp.id&&l.type==="بدون راتب"&&(l.from?.startsWith(ms)||l.to?.startsWith(ms)))
-      .reduce((s,l)=>{ const a=new Date(l.from<ms+"-01"?ms+"-01":l.from), b=new Date(l.to>ms+"-31"?ms+"-31":l.to);
-        return s+Math.max(0,Math.round((b-a)/864e5)+1); },0);
-    const dailyRate=salary/workingDays;
-    const leaveDeduction=unpaidLeaves*dailyRate;
-    // خصم الغياب حسب الحضور (يُطبّق فقط إذا سُجّل حضور لهذا الشهر)
-    const attDeduction = atts.length ? salary*(1-attRate) : 0;
+    const workingDays=daysInMonth;
+    /* 📏 معدّل اليوم = الأجر الشهري ÷ 30 (نظام العمل السعودي) — كان ÷(أيام الشهر−8) فيخصم أكثر بـ30% */
+    const dailyRate=salary/30;
+    /* 🗓️ إجازات بدون راتب: تقاطع فعلي مع الشهر (كان يفوّت الإجازة العابرة للشهر ويزيد أياماً بسبب "-31") */
+    const __mEnd=`${ms}-${String(daysInMonth).padStart(2,'0')}`;
+    const __leaveDays=new Set();
+    (DB.leaves||[]).filter(l=>l.empId===emp.id&&l.type==="بدون راتب").forEach(l=>{
+      const f=(l.from||""), t=(l.to||l.from||"");
+      if(!f||!t) return;
+      const a=f<ms+"-01"?ms+"-01":f, b=t>__mEnd?__mEnd:t;
+      if(a>b) return;
+      for(let dd=1; dd<=daysInMonth; dd++){ const iso=`${ms}-${String(dd).padStart(2,'0')}`; if(iso>=a&&iso<=b) __leaveDays.add(iso); }
+    });
+    const unpaidLeaves=__leaveDays.size;
+    const leaveDeduction=+(unpaidLeaves*dailyRate).toFixed(2);
+    /* 🚫 الغياب = أيام مسجَّلة «غائب» فقط، وبلا ازدواج مع الإجازة بدون راتب.
+       (كان: أي يوم بلا سجل حضور يُعتبر غياباً — فنسيان تسجيل الحضور يقتطع نصف الراتب) */
+    const __absDays=atts.filter(a=>String(a.status||"")==="غائب" && !__leaveDays.has(a.date)).length;
+    const attDeduction=+(__absDays*dailyRate).toFixed(2);
     const deductions=leaveDeduction+attDeduction;
     // سلف غير مسددة: خصم جزئي بقدر المتاح — الباقي يترحّل للأشهر القادمة برصيد متبقٍ
     const advList=(DB.advances||[]).filter(a=>a.empId===emp.id&&!a.paid&&(a.date||"")<=ms+"-31");
@@ -14024,7 +14127,7 @@ function generatePayroll(){
     const avail=Math.max(0,salary+allowances-deductions);
     const advances=Math.min(advOwed,avail);
     const net=avail-advances;
-    return {empId:emp.id,name:emp.name,salary,allowances,presentDays,workingDays,unpaidLeaves,deductions:deductions.toFixed(2),advances:advances.toFixed(2),advOwed:advOwed.toFixed(2),advIds:advList.map(a=>a.id),net:Math.max(0,net).toFixed(2),status:"غير مدفوع"};
+    return {empId:emp.id,name:emp.name,salary,allowances,presentDays,workingDays,unpaidLeaves,absentDays:__absDays,deductions:deductions.toFixed(2),advances:advances.toFixed(2),advOwed:advOwed.toFixed(2),advIds:advList.map(a=>a.id),net:Math.max(0,net).toFixed(2),status:"غير مدفوع"};
   });
   DB.payrollRuns.push({id:uid(),month,rows,createdAt:today()});
   save(); renderPayroll(); toast("✅ تم إنشاء كشف الرواتب");
@@ -14279,7 +14382,7 @@ function saveStockCheck(){
   const shortCount=currentStockCheck.items.filter(it=>it.actualQty<(it.minQty||0)).length;
   const totalDiff=currentStockCheck.items.reduce((s,it)=>s+Math.abs(it.actualQty-it.systemQty),0);
   let __val=0;
-  currentStockCheck.items.forEach(it=>{ const inv=DB.inventory.find(i=>i.id===it.id); if(inv) __val+=(it.actualQty*(+inv.price||0)); });
+  currentStockCheck.items.forEach(it=>{ const inv=DB.inventory.find(i=>i.id===it.id); if(inv) __val+=(it.actualQty*(+inv.cost||0)); });
   DB.stockTakes.push({id:uid(),date:currentStockCheck.date,itemCount:currentStockCheck.items.length,shortCount,totalDiff:totalDiff.toFixed(2),value:+__val.toFixed(2),employee:(CURRENT_USER||{}).name||"",items:currentStockCheck.items});
   // تحديث المخزون بالكميات الفعلية + حركة تسوية لكل فرق (أثر يُتتبع)
   currentStockCheck.items.forEach(it=>{
@@ -14462,7 +14565,7 @@ function invPostCredit(inv){ /* الإشعار الدائن: عكس مالي ف�
     DB.harvests.push({id:uid(), date:inv.date||today(), cycleId:i.cycleId||"",
       productName:"↩️ إشعار دائن — "+i.name, section:"", qty:-(+i.qty||0), unit:i.unit||"",
       price:0, total:-gross, taxAmt:-tax, taxRate:(+i.tax||0), customerId:inv.custId||"",
-      paid:true, employee:(CURRENT_USER?CURRENT_USER.name:""),
+      paid:false, employee:(CURRENT_USER?CURRENT_USER.name:""),
       notes:"↩️ إشعار دائن "+(inv.no||""), fromInvoice:true, creditNote:true, invId:inv.id, invNo:inv.no});
   });
   inv.creditPosted=true;
@@ -15261,7 +15364,9 @@ function markDeferredPaid(id){
     ? [{a:cash,debit:amt,credit:0},{a:contra,debit:0,credit:amt}]
     : [{a:contra,debit:amt,credit:0},{a:cash,debit:0,credit:amt}];
   const typeTxt=receipt?"سند قبض":"سند صرف";
-  DB.journals.push({id:uid(), date:todayStr(),
+  /* 🛡️ لو السند مرتبط بفاتورة بيع فسدادها يقلب قيدها التلقائي إلى الصندوق —
+     وإضافة قيد يدوي هنا تُضاعف النقدية وتترك الذمم برصيد دائن. */
+  if(!r.harvestId) DB.journals.push({id:uid(), date:todayStr(),
     desc:typeTxt+" — "+(receipt?"تحصيل آجل من ":"سداد آجل لـ ")+(r.party||"")+(r.ref?" ("+r.ref+")":""),
     lines, employee:CURRENT_USER?CURRENT_USER.name:"", defId:r.id});
   r.status='paid'; r.paidAt=todayStr(); r.cashAcc=cash;
@@ -15300,6 +15405,7 @@ function renderProfitability(){
   // التكاليف: مصروفات الدورة مباشرة إن رُبطت، وإلا مصروفات القسم موزعة بنسبة إيراد المنتج داخل قسمه
   const secRev={};
   Object.values(salesMap).forEach(i=>Object.keys(i.secs).forEach(sec=>{ secRev[sec]=(secRev[sec]||0)+i.revenue; }));
+  const __totRev=Object.values(salesMap).reduce((s2,i)=>s2+i.revenue,0);
   (DB.expenses||[]).forEach(e=>{
     const d=e.date||'';
     if(from&&d<from) return; if(to&&d>to) return;
@@ -15307,7 +15413,11 @@ function renderProfitability(){
     if(e.cycleId){ const it=Object.values(salesMap).find(i=>i.cycIds.has(e.cycleId)); if(it){ it.cost+=amt; return; } }
     if(e.section&&secRev[e.section]){
       Object.values(salesMap).forEach(i=>{ if(i.secs[e.section]&&secRev[e.section]>0) i.cost+=amt*(i.revenue/secRev[e.section]); });
+      return;
     }
+    /* 💡 مصروف عام (المشتريات والرواتب تُسجَّل «عام (كل المزرعة)») — كان يُتجاهل بصمت
+       فتظهر ربحية 100%. يوزَّع الآن على المنتجات بنسبة إيراد كل منتج من إجمالي الإيراد. */
+    if(__totRev>0) Object.values(salesMap).forEach(i=>{ i.cost += amt*(i.revenue/__totRev); });
   });
   const items=Object.values(salesMap).sort((a,b)=>b.revenue-a.revenue);
   const totalRev=items.reduce((s,i)=>s+i.revenue,0);

@@ -1234,6 +1234,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
           <div><label>نوع الحيوان</label>
             <select id="lskHlAnimal"><option>أبقار</option><option>ضان</option><option>إبل</option><option>ماعز</option><option>دواجن</option><option>أخرى</option></select>
           </div>
+          <div><label>رقم الوسم (اختياري)</label><input id="lskHlTag" placeholder="لربط السجل ببطاقة حيوان معيّن"></div>
           <div><label>العدد المصاب</label><input type="number" id="lskHlCount" min="1" value="1"></div>
           <div><label>المشكلة / المرض</label><input id="lskHlIssue" placeholder="وصف الحالة" required></div>
         </div>
@@ -1360,7 +1361,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <div class="row">
         <div><label>من حوض *</label><select id="trFrom" required></select></div>
         <div><label>إلى حوض *</label><select id="trTo" required></select></div>
-        <div><label>العدد</label><input type="number" id="trCount" min="1" step="1"></div>
+        <div><label>العدد *</label><input type="number" id="trCount" min="1" step="1" required></div>
         <div><label>متوسط وزن السمكة (جم)</label><input type="number" id="trAvgW" min="0" step="1"></div>
         <div><label>التاريخ *</label><input type="date" id="trDate" required></div>
         <input id="trEmp" type="hidden">
@@ -1870,6 +1871,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <div><label>تاريخ انتهاء الهوية / الإقامة</label><input type="date" id="emIdExp"></div>
         <div><label>القسم *</label><select id="emSection" required></select></div>
         <div><label>الراتب الشهري (⃁) *</label><input type="number" id="emSalary" min="0" step="0.01" required></div>
+        <div><label>البدلات الشهرية (⃁)</label><input type="number" id="emAllow" min="0" step="0.01" placeholder="0"></div>
         <div><label>الجوال *</label><input id="emPhone" inputmode="tel" required></div>
         <div><label>البريد الإلكتروني *</label><input type="email" id="emEmail" inputmode="email" placeholder="name@example.com" required></div>
         <div><label>📜 بداية العقد</label><input type="date" id="emCnStart"></div>
@@ -2930,6 +2932,11 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     <div class="card table-wrap"><table id="tblQuotes"></table></div>
   </div>
 
+    <div id="acct_sales" style="display:none">
+    <h2>🧺 المبيعات (حسب الفترة)</h2>
+    <div class="card table-wrap"><table id="tblAcSales"></table></div>
+  </div>
+
     <div id="acct_purch" style="display:none">
     <h2>🚚 المشتريات وفواتيرها</h2>
     <h2>فواتير المشتريات (حسب الفترة)</h2>
@@ -3696,6 +3703,8 @@ Object.assign(I18N.ur,{"⚠️ أدخل اسم الصنف":"⚠️ آئٹم نا
 Object.assign(I18N.en,{"💰 بيع المواشي والحليب":"💰 Livestock & milk sales","💸 المصروفات حسب الفئة":"💸 Expenses by category","مثال: بيت محمي مكيف 3":"e.g. Cooled greenhouse 3","⭐ تقييم أداء الموظفين":"⭐ Employee performance review","المساحة / العدد (وصف)":"Area / Count (description)","تكلفة الوحدة (⃁) *":"Unit cost (⃁) *","✅ وزن البيع المستهدف:":"✅ Target sale weight:","قيمة المخزون والأصناف":"Stock & items value","✅ لا مستحقات للموردين":"✅ No supplier dues","بيانات العميل والصفقة":"Customer & deal data","حد التنبيه (أقل كمية)":"Alert threshold (min qty)","➕ إنشاء فاتورة مبيعات":"➕ Create sales invoice","✅ تم حفظ فاتورة البيع":"✅ Sales invoice saved","📅 تسجيل حضور / انصراف":"📅 Check-in / Check-out","🐟 إجمالي السمك الحالي":"🐟 Current total fish","الموازنة مقابل الفعلي":"Budget vs actual","لا يوجد حيوانات فردية":"No individual animals","📅 طبّق فترة على الكل:":"📅 Apply period to all:","⚠️ القسم موجود مسبقاً":"⚠️ Section already exists","متوسط وزن السمكة (جم)":"Avg fish weight (g)","⏳ جارٍ تحميل الخريطة…":"⏳ Loading map…","🛠️ أنواع العمل اليومي":"🛠️ Daily work types","صافي الضريبة المستحقة":"Net VAT due","خصم على إجمالي المبلغ":"Discount on total","📈 تاريخ فحوصات التربة":"📈 Soil tests history","✅ حُدّثت حالة المهمة:":"✅ Task status updated:","إجمالي مبيعات المواشي":"Total livestock sales","عدد السمك عند الإنزال":"Fish count at stocking","آخر الإدخالات المالية":"Recent financial entries","مستحق لنا (عميل مدين)":"Owed to us (debtor)","✅ تم تقديم طلب الشراء":"✅ Purchase request submitted","🔁 مصاريف متكررة شهرية":"🔁 Monthly recurring expenses","📋 سجل استخدام الأدوية":"📋 Medicine usage log","الإنتاج المتوقع (كجم)":"Expected yield (kg)","🚚 المشتريات وفواتيرها":"🚚 Purchases & invoices","✅ لا ديون على العملاء":"✅ No customer debts","سجل النقل بين الأحواض":"Pond transfers log","🔑 استعادة كلمة المرور":"🔑 Password recovery","⚠️ اختر حوضين مختلفين":"⚠️ Choose two different ponds","لا توجد قياسات مطابقة":"No matching readings","💧 قياسات مياه الأحواض":"💧 Pond water readings","🔁 نقل سمك بين الأحواض":"🔁 Fish transfer between ponds","تاريخ انتهاء الصلاحية":"Expiry date","عدد الوجبات اليومية *":"Daily meals count *","🐟 موقف الأحواض اليومي":"🐟 Daily ponds status","🪪 صورة الهوية/الإقامة":"🪪 ID/Iqama photo","⚠️ لا توجد أصول ثابتة":"⚠️ No fixed assets","متوسط وزن الرأس (كجم)":"Avg weight/head (kg)","✅ حُفظت بيانات الشركة":"✅ Company data saved","🐾 سجل المواليد والنفوق":"🐾 Births & deaths log","لماذا تحتاج هذا الصنف؟":"Why do you need this item?","🏢 إدارة الأصول الثابتة":"🏢 Fixed assets management","🔍 مسح باركود (اختياري)":"🔍 Scan barcode (optional)","🌱 الدورات — اختر القسم":"🌱 Cycles — choose section","⚠️ اختر الحظيرة الوجهة":"⚠️ Choose destination barn","لا توجد قيود في الفترة":"No entries in period","⚠️ أدخل البيانات كاملة":"⚠️ Enter all data","كبير جداً (لكبار السن)":"Extra large","⚠️ اختر الحظيرة المصدر":"⚠️ Choose source barn","📋 تم نسخ ملخص العمليات":"📋 Summary copied","مثال: مزرعة خيرات سايه":"e.g. Khayrat Saya Farm","الكمية المضافة للمخزون":"Qty added to stock","لا توجد مهام مسندة بعد":"No tasks assigned yet","لا يوجد عملاء راكدون 🎉":"No dormant customers 🎉","تاريخ الولادة المتوقّع":"Expected birth date","💾 حفظ واعتماد الفاتورة":"💾 Save & approve invoice","⚠️ عبي التاريخ والبيان":"⚠️ Fill date & description","إغلاق الحظائر وتأمينها":"Close & secure barns","🐄 سجل التلقيح والتكاثر":"🐄 Breeding log","بداية المحصول المتوقعة":"Expected harvest start","إجمالي الالتزام الشهري":"Total monthly commitment","⚠️ المورد موجود بالسجل":"⚠️ Supplier already exists","مثال: خروف / حليب طازج":"e.g. Lamb / Fresh milk","إجمالي الرواتب الشهرية":"Total monthly salaries","💾 حفظ واختيار للفاتورة":"💾 Save & pick for invoice","✅ تم حفظ بيانات المالك":"✅ Owner data saved","📊 تحليل ربحية المنتجات":"📊 Product profitability analysis","⚠️ المنتج مسجّل مسبقاً":"⚠️ Product already exists","رقم الهوية / الإقامة *":"ID / Iqama No. *","صافي الربح / (الخسارة)":"Net profit / (loss)","— بدون إضافة للمخزون —":"— No stock addition —","نسبة الربح من المبيعات":"Profit % of sales","لا حضور مسجل هذا الشهر":"No attendance this month","الراتب الشهري (⃁) *":"Monthly salary (⃁) *","الرقم الضريبي (15 رقم)":"VAT No. (15 digits)","🔍 الجرد الدوري للمخزون":"🔍 Periodic stocktake","⬅ مركز الموارد البشرية":"⬅ HR hub","📒 سجل المبيعات والديون":"📒 Sales & debts log","🏆 أفضل المنتجات مبيعاً":"🏆 Best sellers","➕ إنشاء فاتورة مشتريات":"➕ Create purchase invoice","🎯 تقدم الأهداف الشهرية":"🎯 Monthly goals progress","✅ تم حفظ فاتورة الشراء":"✅ Purchase invoice saved","المبيعات (ضريبة خارجة)":"Sales (output VAT)","مثال: مضخة مياه رئيسية":"e.g. Main water pump","دفتر الأستاذ (أي حساب)":"Ledger (any account)","⚠️ أدخل التاريخ والاسم":"⚠️ Enter date & name","✅ تم إنشاء كشف الرواتب":"✅ Payroll generated","🌱 أداء الدورات الزراعية":"🌱 Crop cycles performance","لا توجد حركات في الفترة":"No movements in period","⚠️ أدخل اسم/رقم الحظيرة":"⚠️ Enter barn name/No.","🧮 حاسبة العليقة اليومية":"🧮 Daily ration calculator","📲 فتح روابط واتساب للكل":"📲 Open WhatsApp for all","📝 اليوميات — اختر القسم":"📝 Daily log — choose section","🥛 إنتاج الحليب (30 يوم)":"🥛 Milk production (30 days)","التكلفة المتوقعة (⃁)":"Expected cost (⃁)","👥 إدارة الموارد البشرية":"👥 HR management","مثال: تنظيف فلاتر حوض 2":"e.g. Clean pond 2 filters","— بدون خصم من المخزون —":"— No stock deduction —","📊 النظرة العامة المالية":"📊 Financial overview","حذف ملف العقد المرفق لـ":"Delete contract file of","هدف المبيعات (⃁/شهر)":"Sales target (⃁/month)","⏰ تتبع المدفوعات الآجلة":"⏰ Deferred payments tracking","↩️ تم استعادة لون الثيم":"↩️ Theme color restored","🔥 لا توجد مهام مسندة لك":"🔥 No tasks assigned to you","لا حركات على هذا الحساب":"No movements on this account","السعر لكل وحدة (⃁) *":"Price per unit (⃁) *","✅ تم تسجيل إنتاج الحليب":"✅ Milk production recorded","✅ تم حفظ التقرير اليومي":"✅ Daily report saved","📈 مقارنة الفعلي بالمخطط":"📈 Actual vs planned","لا توجد مهام مسندة لك 👍":"No tasks assigned to you 👍","❌ حدث خطأ، أعد المحاولة":"❌ Error, try again","الأصول الثابتة والإهلاك":"Fixed assets & depreciation","🛒 حُدّدت البطاقة كمباعة":"🛒 Card marked as sold","🕐 جدول مناوبات الموظفين":"🕐 Employee shifts schedule","🐐 بطاقة الحيوان الفردية":"🐐 Individual animal card","أداء المحاصيل / الدورات":"Crops / cycles performance","ملاحظات (سلوك السمك...)":"Notes (fish behavior...)","كشف حركة أي حساب تختاره":"Statement of any account","مرجع الفاتورة الأصلية *":"Original invoice ref *","وحدة جديدة — مثال: شدّة":"New unit — e.g. bundle","💵 النقدية (صندوق + بنك)":"💵 Cash (box + bank)","⚠️ أدخل التاريخ والموظف":"⚠️ Enter date & employee","مستحق علينا (مورد دائن)":"We owe (creditor)","⚖️ متابعة أوزان المواشي":"⚖️ Livestock weights tracking","📋 نسخ الملخص (للواتساب)":"📋 Copy summary (WhatsApp)","الالتزام بالدوام (0-10)":"Punctuality (0-10)","✅ تم التسعير — الإجمالي":"✅ Priced — total","✅ تمت إضافة الأصل الثابت":"✅ Fixed asset added","الاسم المختصر (للتقارير)":"Short name (for reports)","آخر القيود (آلية ويدوية)":"Recent entries (auto & manual)","ملخص المصروفات حسب البند":"Expenses summary by category","📋 التقرير اليومي للمواشي":"📋 Daily livestock report","رش مبيدات / مكافحة حشرات":"Pesticide spray / pest control","اضغط لفتح/إغلاق الموظفين":"Click to open/close employees","✅ تم تسجيل الدفعة للمورد":"✅ Supplier payment recorded","ضريبة القيمة المضافة 15%":"VAT 15%","🗑️ حُذفت المسودة نهائياً":"🗑️ Draft permanently deleted","⚠️ لا توجد حركات للإقفال":"⚠️ No movements to close","مثال: سوق الخضار المركزي":"e.g. Central vegetable market","✅ تم حفظ تعديلات الأقسام":"✅ Sections changes saved","📦 موقف الإنتاج والجاهزية":"📦 Production & readiness status","⚠️ صيانة قريبة أو متأخرة":"⚠️ Maintenance due or overdue","العمر الإنتاجي (سنوات) *":"Useful life (years) *","سعر البيع الافتراضي/وحدة":"Default sale price/unit","التكلفة التقديرية (⃁)":"Estimated cost (⃁)","⚠️ أدخل عدد السمك المباع":"⚠️ Enter fish sold count","⚠️ عبي البيانات الأساسية":"⚠️ Fill basic data","⏳ أعمار مستحقات الموردين":"⏳ Payables aging","مصروفات عامة (غير موزعة)":"General expenses (unallocated)","المبادرة والإبداع (0-10)":"Initiative & creativity (0-10)","✅ تم تسجيل الحالة الصحية":"✅ Health case recorded","⚠️ اختر حظيرتين مختلفتين":"⚠️ Choose two different barns","لا توجد رواتب مصروفة بعد":"No salaries paid yet","سقف المصروفات (⃁/شهر)":"Expenses cap (⃁/month)","⚠️ اسمح بالنوافذ المنبثقة":"⚠️ Allow pop-ups","تاريخ الزراعة / الإنزال *":"Planting / stocking date *","📍 العنوان الوطني (إلزامي)":"📍 National address (required)","السعر الخاص (⃁/وحدة) *":"Special price (⃁/unit) *","⚠️ المهمة مسندة لموظف آخر":"⚠️ Task assigned to another","إدارة الأحواض (عدد السمك)":"Ponds management (fish count)","⚠️ أدخل البريد الإلكتروني":"⚠️ Enter email","مثال: أغنام / عزل / ولادة":"e.g. Sheep / isolation / birthing","🚶 عميل نقدي (بدون بيانات)":"🚶 Cash customer (no data)","— بدون عميل (بيع مباشر) —":"— No customer (direct sale) —","⚠️ الحيوان في نفس الحظيرة":"⚠️ Animal already in this barn","🏢 بيانات الشركة (المزرعة)":"🏢 Company (farm) data","الإنجاز والإنتاجية (0-10)":"Output & productivity (0-10)","🤝 متابعة العملاء الراكدين":"🤝 Dormant customers follow-up","إدارة قوائم نموذج التسجيل":"Manage registration form lists","العنوان الوطني — لم يُعبأ":"National address — not filled","⚠️ لا توجد بيانات للطباعة":"⚠️ No data to print","📌 المهام المسندة للموظفين":"📌 Tasks assigned to employees","🛒 منتجات جاهزة للبيع الآن":"🛒 Products ready for sale","⚠️ أضف سطر واحد على الأقل":"⚠️ Add at least one line","مثال: علف بلطي 30% بروتين":"e.g. Tilapia feed 30% protein","🌱 بدأت الدورة — صارت نشطة":"🌱 Cycle started — now active","سبب النفوق أو وصف المولود":"Death cause or newborn description","لا أعمال مسجلة لهذا القسم":"No works for this section","لا يوجد ملاك إضافيون بعد.":"No additional owners yet.","سبب الرتبة، آفات، أمراض...":"Grade reason, pests, diseases...","⚠️ الاعتماد النهائي للمالك":"⚠️ Final approval is owner's","لا توجد مواعيد خلال 60 يوم":"No due dates within 60 days","🗺️ خريطة المزرعة التفاعلية":"🗺️ Interactive farm map","سعر البيع الافتراضي (⃁)":"Default sale price (⃁)","إضافة لصنف مخزون (اختياري)":"Add to stock item (optional)","🧾 تم حفظ السند كقيد متوازن":"🧾 Voucher saved as balanced entry","💲 أسعار خاصة لعملاء معينين":"💲 Special prices for customers","⚠️ الاعتماد الأولي للمحاسب":"⚠️ Initial approval is accountant's","امسح بالقارئ أو الصق الكود":"Scan or paste the code","📢 إرسال حملة واتساب جماعية":"📢 Send WhatsApp campaign","⚠️ اختر نوع الحيوان المباع":"⚠️ Choose sold animal type","🔄 حركة مخزون (إضافة / صرف)":"🔄 Stock movement (in / out)","⚡ الحفظ تلقائي مع كل مفتاح":"⚡ Auto-saves on every toggle","أولاً: المبيعات حسب المنتج":"First: sales by product","تعبئة الماء وتنظيف الأحواض":"Water refill & pond cleaning","لا حركة في الفترة المختارة":"No movement in selected period","🔧 المعدات والصيانة الدورية":"🔧 Equipment & periodic maintenance","📈 الموازنات والأداء المالي":"📈 Budgets & financial performance","— أضف منتجاً بزر ➕ أعلاه —":"— Add a product with ➕ above —","⚠️ ما لقيت صنف بهذا الكود:":"⚠️ No item with this code:","آخر أعمال الموظفين اليومية":"Recent employee daily works","عبّي الأرقام ويطلع التقدير":"Fill numbers to get estimate","ربط بدورة زراعية (اختياري)":"Link to crop cycle (optional)","ملاحظات (الجرعة، الآفة...)":"Notes (dose, pest...)","تنظيف الحظائر وإزالة الروث":"Barn cleaning & manure removal","⚠️ لا توجد دورة نشطة لمنتج":"⚠️ No active cycle for product","نوع جديد للمجموعة المختارة":"New type for selected group","مثال: مؤسسة الأعلاف المتحدة":"e.g. United Feeds Est.","📝 ملخص العمليات التشغيلية —":"📝 Operations summary —","🏦 الحسابات البنكية والنقدية":"🏦 Bank & cash accounts","كل الأقسام (مجمعة بالأعمدة)":"All sections (grouped columns)","⚠️ أمهات السمك ما لها ترقية":"⚠️ Broodstock can't be promoted","ثانياً: المصروفات حسب البند":"Second: expenses by category","⚠️ البريد الإلكتروني إلزامي":"⚠️ Email required","لا جرعات مستحقة خلال 30 يوم":"No doses due within 30 days","✅ كل الأصناف فوق حد التنبيه":"✅ All items above threshold","🔁 رجعت كل التنبيهات المخفية":"🔁 All hidden alerts restored"});
 Object.assign(I18N.en,{"نوع الري":"Irrigation type","💧 أوتوماتيكي (زر تأكيد يومي)":"💧 Automatic (daily confirm button)","🚿 يدوي (يُسجل كعمل يومي)":"🚿 Manual (logged as daily work)","💧 أوتوماتيكي (زر تأكيد)":"💧 Automatic (confirm button)","🚿 يدوي (عمل يومي)":"🚿 Manual (daily work)","الاسم المختصر":"Short name","عليه بيانات":"Has data","⚠️ القسم عليه بيانات مسجلة — لا يمكن حذفه":"⚠️ Section has recorded data — cannot delete","⚠️ حذف الأقسام للمالك فقط":"⚠️ Only the owner can delete sections"});
 Object.assign(I18N.ur,{"نوع الري":"آبپاشی کی قسم","💧 أوتوماتيكي (زر تأكيد يومي)":"💧 خودکار (روزانہ تصدیقی بٹن)","🚿 يدوي (يُسجل كعمل يومي)":"🚿 دستی (روزانہ کام میں درج)","💧 أوتوماتيكي (زر تأكيد)":"💧 خودکار (تصدیقی بٹن)","🚿 يدوي (عمل يومي)":"🚿 دستی (روزانہ کام)","الاسم المختصر":"مختصر نام","عليه بيانات":"ڈیٹا موجود ہے","⚠️ القسم عليه بيانات مسجلة — لا يمكن حذفه":"⚠️ سیکشن میں ڈیٹا موجود ہے — حذف نہیں ہو سکتا","⚠️ حذف الأقسام للمالك فقط":"⚠️ سیکشن صرف مالک حذف کر سکتا ہے"});
+Object.assign(I18N.en,{"🧺 المبيعات (حسب الفترة)":"🧺 Sales (by period)","رقم الوسم (اختياري)":"Tag number (optional)","البدلات الشهرية (⃁)":"Monthly allowances (⃁)","الأصول":"Assets","الخصوم وحقوق الملكية":"Liabilities & Equity","إجمالي الأصول":"Total assets","إجمالي الخصوم وحقوق الملكية":"Total liabilities & equity","صافي نتيجة الفترة (غير مُقفلة)":"Period result (not closed)"});
+Object.assign(I18N.ur,{"🧺 المبيعات (حسب الفترة)":"🧺 فروخت (مدت کے مطابق)","رقم الوسم (اختياري)":"ٹیگ نمبر (اختیاری)","البدلات الشهرية (⃁)":"ماہانہ الاؤنس (⃁)","الأصول":"اثاثے","الخصوم وحقوق الملكية":"واجبات اور ایکویٹی","إجمالي الأصول":"کل اثاثے","إجمالي الخصوم وحقوق الملكية":"کل واجبات اور ایکویٹی","صافي نتيجة الفترة (غير مُقفلة)":"مدت کا نتیجہ (غیر بند)"});
 Object.assign(I18N.en,{"أساس السعر (ضريبة)":"Price basis (VAT)","شامل الضريبة":"VAT inclusive","غير شامل — تُضاف":"Exclusive — VAT added","بدون ضريبة":"No VAT","🧮 تسوية المخزون في الدفاتر":"🧮 Inventory reconciliation in the books","🧮 سوِّ المخزون الآن":"🧮 Reconcile inventory now","📅 رحّل استحقاق الشهر":"📅 Post this month's accrual","💸 صرف المكافأة":"💸 Pay end-of-service","رصيد المخصص المتراكم (كل الموظفين)":"Accrued provision balance (all employees)","المجموع قبل الضريبة":"Subtotal before VAT"});
 Object.assign(I18N.ur,{"أساس السعر (ضريبة)":"قیمت کی بنیاد (ٹیکس)","شامل الضريبة":"ٹیکس شامل","غير شامل — تُضاف":"ٹیکس شامل نہیں — الگ","بدون ضريبة":"ٹیکس کے بغیر","🧮 تسوية المخزون في الدفاتر":"🧮 کھاتوں میں اسٹاک کی درستی","🧮 سوِّ المخزون الآن":"🧮 ابھی اسٹاک درست کریں","📅 رحّل استحقاق الشهر":"📅 اس ماہ کا استحقاق درج کریں","💸 صرف المكافأة":"💸 اینڈ آف سروس ادا کریں","رصيد المخصص المتراكم (كل الموظفين)":"جمع شدہ پروویژن بیلنس (تمام ملازمین)","المجموع قبل الضريبة":"ٹیکس سے پہلے کل"});
 Object.assign(I18N.en,{"💾 مساحة البيانات على هذا الجهاز":"💾 Data space on this device","المتصفح يمنح كل موقع مساحة محدودة (~5 ميجا). بياناتك في السحابة غير محدودة بهذا السقف.":"Browsers give each site a limited quota (~5 MB). Your cloud data is not bound by this cap."});
@@ -4185,7 +4194,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.10-B";
+const KS_VER="v12.10-C";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4361,6 +4370,8 @@ function load(){
       if(!d.accounts.some(a=>a.code==="5107")) d.accounts.push({code:"5107", name:"شراء مواشي", type:"مصروفات", header:false});
       if(!d.accounts.some(a=>a.code==="5306")) d.accounts.push({code:"5306", name:"مصروف مكافأة نهاية الخدمة", type:"مصروفات", header:false});
       if(!d.accounts.some(a=>a.code==="2105")) d.accounts.push({code:"2105", name:"مخصص مكافأة نهاية الخدمة", type:"خصوم", header:false});
+      try{ (d.employees||[]).forEach(e2=>{ if(!e2.hireDate){
+        const c2=(d.contracts||[]).find(c3=>c3.empId===e2.id && c3.start); if(c2) e2.hireDate=c2.start; } }); }catch(e3){}
       if(!d.accounts.some(a=>a.code==="5309")) d.accounts.push({code:"5309", name:"تغيّر المخزون (بضاعة آخر المدة)", type:"مصروفات", header:false});
       /* مزامنة رجعية: دفعات مسير الرواتب المدفوعة سابقاً → سجل الرواتب المصروفة */
       d.salaryPays=d.salaryPays||[];
@@ -5015,6 +5026,15 @@ function cloudLogout(){ if(!confirm("قطع الاتصال بالسحابة عل
 function saveNow(){ if(window.__ksReadOnly){ try{toast("🔒 انتهى الاشتراك — وضع قراءة فقط");}catch(e){} return; } if(__saveTimer) clearTimeout(__saveTimer); __persistNow(); }
 function todayStr(){ return today(); }
 function cancelPendingSave(){ if(__saveTimer){ clearTimeout(__saveTimer); __saveTimer=null; } try{ if(typeof __cloudTimer!=="undefined"&&__cloudTimer){ clearTimeout(__cloudTimer); __cloudTimer=null; } }catch(e){} __skipPersist=true; }
+function ksClosedDate(d){
+  /* الفترة المقفلة: أي إدخال بتاريخ داخلها يفسد أرصدة مُرحَّلة لحقوق الملكية */
+  try{ const c=(DB.settings||{}).closedThrough||""; return !!(c && d && String(d)<=c); }catch(e){ return false; }
+}
+function ksGuardClosed(d, what){
+  if(!ksClosedDate(d)) return true;
+  try{ toast("🔒 "+(what||"التاريخ")+" داخل سنة مالية مُقفلة ("+((DB.settings||{}).closedThrough||"")+") — اختر تاريخاً بعدها"); }catch(e){}
+  return false;
+}
 function save(){
   if(window.__ksReadOnly){ try{toast("🔒 انتهى الاشتراك — وضع قراءة فقط");}catch(e){} return; }
   try{ __ksSanDeep(DB,0); }catch(e){} /* تعقيم فوري: يمنع تنفيذ أي وسم HTML مُدخل قبل أول عرض */
@@ -6826,8 +6846,8 @@ function renderClimate(){
     + (rows || `<tr><td colspan="7" class="muted">🌡️ لا قراءات مناخ — سجّل أول قراءة من النموذج أعلاه</td></tr>`);
 }
 function csvClimate(){
-  csv([["التاريخ","البيت","الحرارة","الرطوبة","الموظف","ملاحظات"],
-    ...DB.climateLogs.map(c=>[c.date,c.house,c.temp??"",c.hum??"",c.employee,c.notes])], "مناخ-البيوت");
+  exportCSV(["التاريخ","البيت","الحرارة","الرطوبة","الموظف","ملاحظات"],
+    (DB.climateLogs||[]).map(c=>[c.date,c.house,c.temp??"",c.hum??"",c.employee,c.notes]), "مناخ-البيوت");
 }
 
 /* ====== الأحواض ====== */
@@ -6936,6 +6956,7 @@ function addTransfer(e){
   const a = tankAgg()[trFrom.value];
   const cur = t ? tankCurrent(t, a) : 0;
   const cnt = +trCount.value;
+  if(!isFinite(cnt)||cnt<=0){ toast("⚠️ أدخل عدد الأسماك المنقولة"); return; }   /* فارغ = NaN كان يمر ويُخزَّن null */
   if(cnt>cur){ toast("❌ العدد أكبر من الموجود في "+trFrom.value+" ("+fmt(cur)+")"); return; }
   const _w=+trAvgW.value||0;
   if(_w>0){
@@ -7076,8 +7097,15 @@ function editTank(id){
   EDIT.tank=id; tnBtn.textContent="💾 حفظ التعديل"; markEditing("cardTank",true);
 }
 function delTank(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; } 
-  if(confirm("حذف الحوض؟ (سجلاته اليومية تبقى محفوظة)")){
-    DB.tanks=DB.tanks.filter(x=>x.id!==id); save(); fillSelects(); renderFish(); toast("تم الحذف");
+  const __t=(DB.tanks||[]).find(x=>x.id===id);
+  const __logs=(DB.fishLogs||[]).filter(f=>__t&&f.tank===__t.name).length;
+  if(confirm("حذف الحوض؟\n"+(__logs?("له "+__logs+" سجل يومي — تبقى محفوظة\n"):"")+"وتُحذف دورته الآلية إن كانت بلا مبيعات.")){
+    /* الدورة الآلية المرتبطة كانت تبقى بتكلفتها الابتدائية في كل التقارير */
+    try{ if(__t&&__t.cycleId){
+      const __sold=(DB.harvests||[]).some(h=>h.cycleId===__t.cycleId);
+      if(!__sold) DB.cycles=(DB.cycles||[]).filter(c=>c.id!==__t.cycleId);
+    } }catch(e){}
+    DB.tanks=DB.tanks.filter(x=>x.id!==id); save(); fillSelects(); renderFish(); try{ renderCycles(); }catch(e){} toast("تم الحذف");
   }
 }
 
@@ -7139,6 +7167,15 @@ function addFish(e){
   const rec = {date:fsDate.value, tank:fsTank.value.trim(), meal:fsMeal.value?+fsMeal.value:null,
     feed:fsFeed.value===""?0:+fsFeed.value, feedType:fsFeedType.value, dead:fsDead.value===""?0:+fsDead.value,
     avgW:fsAvgW.value===""?null:+fsAvgW.value, employee:(fsEmp.value.trim()||(CURRENT_USER?CURRENT_USER.name:'')), notes:fsNotes.value};
+  /* 🛡️ نفوق أكبر من رصيد الحوض كان يُبتلع صامتاً (Math.max(0,…)) فتختل كل الأعداد لاحقاً */
+  if((+rec.dead||0)>0){
+    try{
+      const __t=DB.tanks.find(x=>x.name===rec.tank);
+      const __cur=__t?tankCurrent(__t,(tankAgg()||{})[rec.tank]):0;
+      const __self=EDIT.fish?((DB.fishLogs.find(x=>x.id===EDIT.fish)||{}).dead||0):0;
+      if((+rec.dead||0)-__self>__cur){ toast("❌ النافق ("+fmt(rec.dead)+") أكبر من الموجود في «"+rec.tank+"» ("+fmt(__cur)+")"); return; }
+    }catch(e){}
+  }
   if(EDIT.fish){
     const __old=DB.fishLogs.find(x=>x.id===EDIT.fish);
     const __delta=(+rec.feed||0)-(+__old.feed||0);
@@ -7177,7 +7214,22 @@ function editFish(id){
   fsEmp.value=f.employee; fsNotes.value=f.notes||"";
   EDIT.fish=id; fsBtn.textContent="💾 حفظ التعديل"; markEditing("cardFish",true);
 }
-function delFish(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(confirm("حذف السجل؟")){ const f=DB.fishLogs.find(x=>x.id===id); trashIt("fishLogs","سجل أسماك",`${f.tank} — ${f.date}`,f); DB.fishLogs=DB.fishLogs.filter(x=>x.id!==id); save(); renderFish(); } }
+function delFish(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
+  if(confirm("حذف السجل؟ (تُعاد كمية العلف للمخزون)")){
+    const f=DB.fishLogs.find(x=>x.id===id); if(!f) return;
+    /* ↩️ إعادة العلف المخصوم — الإضافة تخصم والتعديل يسوّي، فالحذف يجب أن يعكس */
+    try{ if((+f.feed||0)>0){
+      let it=null;
+      const mv=(DB.invMoves||[]).find(m=>m.notes&&m.notes.includes("تغذية أسماك")&&m.date===f.date&&Math.abs((+m.qty||0)-(+f.feed||0))<0.001);
+      if(mv) it=(DB.inventory||[]).find(x=>x.id===mv.itemId);
+      if(!it){ const fs=(DB.inventory||[]).filter(i=>i.cat==="أعلاف");
+        it=(f.feedType?fs.find(i=>i.name.includes(f.feedType)):null)||(fs.length===1?fs[0]:null); }
+      if(it){ it.qty=+((+it.qty||0)+(+f.feed||0)).toFixed(2);
+        DB.invMoves.push({id:uid(), date:today(), itemId:it.id, type:"إضافة (شراء/توريد)", qty:+f.feed||0,
+          employee:(CURRENT_USER||{}).name||"", notes:"عكس حذف سجل تغذية أسماك — "+f.tank}); } }
+    }catch(e){}
+    trashIt("fishLogs","سجل أسماك",`${f.tank} — ${f.date}`,f);
+    DB.fishLogs=DB.fishLogs.filter(x=>x.id!==id); save(); renderFish(); try{ renderInv(); }catch(e){} } }
 function renderFish(){
   const rows = DB.fishLogs.slice().reverse().slice(0,200).map(f=>
     `<tr><td>${f.date}</td><td><b>${f.tank}</b></td><td>${f.meal?`<span class="badge active">وجبة ${f.meal}</span>`:"—"}</td><td>${fmt(f.feed)} كجم</td>
@@ -7921,7 +7973,7 @@ function returnHarvest(id){
     /* مدفوعة (كلياً/جزئياً): سجل استرداد سالب — يعكس الإيراد والضريبة ويعيد رؤوس المواشي للقطيع */
     DB.harvests.push({id:uid(), date:today(), cycleId:h.cycleId||"", section:h.section||"",
       productName:"↩️ مردود — "+(h.productName||""), qty:-q, unit:h.unit||"", price:0,
-      total:-amt, taxAmt:(h.taxAmt!=null?-tax:undefined), taxRate:h.taxRate, fromInvoice:h.fromInvoice||false,
+      total:-amt, taxAmt:(h.taxAmt!=null?-tax:undefined), taxRate:h.taxRate, fromInvoice:h.fromInvoice||false, taxIncl:!!h.taxIncl,
       livestockSale:h.livestockSale||false, saleType:h.saleType||"", animal:h.animal||"",
       heads:(h.heads!=null?-Math.round((+h.heads)*ratio):undefined),
       customerId:h.customerId||"", paid:true, returnOf:h.id,
@@ -8113,6 +8165,7 @@ function viewExpFile(id){
 function addExpense(e){
   e.preventDefault();
   if(!EDIT.expense && !window.__expFiles.ex){ toast("⚠️ أرفق فاتورة المصروف أولاً (إلزامية)"); return; }
+  if(!ksGuardClosed(exDate.value,"تاريخ المصروف")) return;
   const rec = {date:exDate.value, cat:exCat.value, section:exSection.value, cycleId:exCycle.value||"",
     amount:+exAmount.value, employee:(exEmp.value.trim()||(CURRENT_USER?CURRENT_USER.name:'')), notes:exNotes.value};
   if(window.__expFiles.ex) rec.invFile=window.__expFiles.ex;
@@ -8987,13 +9040,10 @@ function applyStocktake(){
     inv.qty = it.actual;
     DB.invMoves.push({id:uid(), date:today(), itemId:it.itemId, type:it.diff>0?"إضافة (شراء/توريد)":"صرف", qty:Math.abs(it.diff), employee:emp, notes:"تسوية جرد"});
   });
-  if(Math.abs(value)>=0.01){
-    const lines = value<0
-      ? [{a:"5305", debit:-value, credit:0},{a:"1104", debit:0, credit:-value}]
-      : [{a:"1104", debit:value, credit:0},{a:"5305", debit:0, credit:value}];
-    DB.journals.push({id:uid(), date:today(), desc:"قيد تسوية جرد "+today(), lines, employee:emp});
-  }
   DB.stockTakes.push({id:uid(), date:today(), items, value, employee:emp});
+  /* المخزون يُصرف مصروفاً عند الشراء (جرد دوري) — فالتسوية تُبقي 1104 مطابقاً للواقع عبر 5309،
+     والقيد القديم على 5305/1104 كان يزدوج المصروف ويترك المخزون برصيد سالب. */
+  try{ ksSyncStock(true, "تسوية جرد "+today()); }catch(e){}
   save(); renderStocktake(); renderInv(); renderInvM(); renderTrial(); renderJournals();
   toast("✅ اعتمد الجرد — عدلت الأرصدة وانقيد الفرق");
 }
@@ -9034,7 +9084,10 @@ function closeYear(){
 function addEmployee(e){
   e.preventDefault();
   if(!emNat.value || emNat.value==="__new"){ toast("⚠️ اختر الجنسية"); return; }
-  const rec = {name:emName.value.trim(), role:emRole.value, nationality:emNat.value.trim(), idNo:emIdNo.value.trim(), idExp:emIdExp.value||"", salary:+emSalary.value, phone:emPhone.value, email:emEmail.value.trim(), section:emSection.value};
+  const rec = {name:emName.value.trim(), role:emRole.value, nationality:emNat.value.trim(), idNo:emIdNo.value.trim(), idExp:emIdExp.value||"", salary:+emSalary.value,
+    allowances:+((document.getElementById("emAllow")||{}).value)||0,
+    hireDate:((document.getElementById("emCnStart")||{}).value)||"",   /* أساس مكافأة نهاية الخدمة */
+    phone:emPhone.value, email:emEmail.value.trim(), section:emSection.value};
   if(!rec.phone){ toast("⚠️ رقم الجوال إلزامي"); emPhone.focus(); return; }
   if(!rec.email){ toast("⚠️ البريد الإلكتروني إلزامي"); emEmail.focus(); return; }
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rec.email)){ toast("⚠️ صيغة البريد الإلكتروني غير صحيحة"); emEmail.focus(); return; }
@@ -9138,7 +9191,7 @@ function delEmContract(id){
 }
 function editEmployee(id){
   const em = DB.employees.find(x=>x.id===id); if(!em) return;
-  emName.value=em.name; emRole.value=em.role||""; emNat.value=em.nationality||""; emIdNo.value=em.idNo||""; emIdExp.value=em.idExp||""; emSalary.value=em.salary; if(typeof emSection!=="undefined"&&emSection) emSection.value=em.section||"عام (كل المزرعة)"; emPhone.value=em.phone||""; emEmail.value=em.email||"";
+  emName.value=em.name; emRole.value=em.role||""; emNat.value=em.nationality||""; emIdNo.value=em.idNo||""; emIdExp.value=em.idExp||""; emSalary.value=em.salary; { const _al=document.getElementById("emAllow"); if(_al) _al.value=em.allowances||""; } if(typeof emSection!=="undefined"&&emSection) emSection.value=em.section||"عام (كل المزرعة)"; emPhone.value=em.phone||""; emEmail.value=em.email||"";
   EM_CONTRACT=null; EM_DOCS={};
   const cn = DB.contracts.find(x=>x.empId===id);
   emCnStart.value = cn?cn.start:""; emCnEnd.value = (cn&&cn.end)||""; emCnType.value = cn?cn.type:"محدد المدة";
@@ -9311,7 +9364,8 @@ function addOrder(e){
   e.preventDefault();
   if(!orCustomer.value){ toast("⚠️ أضف عميل أولاً"); return; }
   const rec = {due:orDue.value, customerId:orCustomer.value, productId:orProduct.value,
-    qty:+orQty.value, unit:orUnit.value, employee:(CURRENT_USER?CURRENT_USER.name:'المالك'), notes:orNotes.value};
+    qty:+orQty.value, unit:orUnit.value,
+    employee:((document.getElementById("orEmp")||{}).value||"").trim()||(CURRENT_USER?CURRENT_USER.name:'المالك'), notes:orNotes.value};
   if(EDIT.order){ Object.assign(DB.orders.find(x=>x.id===EDIT.order), rec); EDIT.order=null; orBtn.textContent="حفظ الطلب"; markEditing("cardOrder",false); }
   else DB.orders.push({id:uid(), created:today(), status:"جديد", ...rec});
   save(); e.target.reset(); orDue.value=today(); renderOrders(); toast("✅ تم حفظ الطلب");
@@ -9453,6 +9507,14 @@ function editCustomer(id){
   EDIT.customer=id; cuBtn.textContent="💾 حفظ التعديل"; markEditing("cardCustomer",true);
 }
 function delCustomer(id){
+  /* منع الأيتام: طلبات/فواتير/عروض/التزامات مرتبطة بالعميل */
+  try{
+    const __o=(DB.orders||[]).filter(o=>o.customerId===id).length;
+    const __i=(DB.invoices||[]).filter(v=>v.custId===id).length;
+    const __q=(DB.quotes||[]).filter(v=>v.customerId===id).length;
+    const __d=(DB.deferredPayments||[]).filter(v=>v.custId===id).length;
+    if(__o||__i||__q||__d){ toast("⚠️ لا يمكن الحذف — للعميل "+(__o?"طلبات ":"")+(__i?"فواتير ":"")+(__q?"عروض ":"")+(__d?"التزامات":"")+"مرتبطة"); return; }
+  }catch(e){}
   if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
   if(DB.harvests.some(h=>h.customerId===id)){ toast("⚠️ العميل مرتبط بمبيعات مسجلة"); return; }
   if(confirm("حذف العميل؟")){ const _c=DB.customers.find(x=>x.id===id); trashIt("customers","عميل",_c?_c.name:"",_c); DB.customers=DB.customers.filter(x=>x.id!==id); logEdit("🗑️ حذف عميل",_c?_c.name:""); save(); fillSelects(); renderCustomers(); }
@@ -9462,7 +9524,7 @@ function renderDebts(){
   const rows = unpaid.map(h=>{
     const c = DB.cycles.find(x=>x.id===h.cycleId);
     return `<tr><td>${h.date}</td><td><b>${custName(h.customerId)}</b></td>
-      <td>${c?prodName(c.productId):"؟"}</td><td>${fmt(h.qty)} ${h.unit||"كجم"}</td>
+      <td>${c?prodName(c.productId):(h.productName||h.item||"—")}</td><td>${fmt(h.qty)} ${h.unit||"كجم"}</td>
       <td>${fmtSR(hGross(h))}</td><td class="pos">${hPaidAmt(h)?fmtSR(hPaidAmt(h)):"—"}</td>
       <td class="neg"><b>${fmtSR(hRemain(h))}</b></td>
       <td><button class="btn small secondary" onclick="payHarvest('${h.id}')">💵 دفعة</button>
@@ -9530,12 +9592,16 @@ function addPurchase(e){
     if(!(+puQty.value>0)){ toast("⚠️ اخترت صنف مخزون — أدخل الكمية"); try{puQty.focus();}catch(e2){} return; }
     if(!_u){ toast("⚠️ اخترت صنف مخزون — اختر الوحدة"); try{document.getElementById("puUnit").focus();}catch(e2){} return; }
   }
+  if(!ksGuardClosed(puDate.value,"تاريخ الفاتورة")) return;
   const rec = {date:puDate.value, supplierId:puSupplier.value, cat:puCat.value, desc:puDesc.value,
     itemId:puItem.value||"", unit:document.getElementById("puUnit")?.value||"", qty:puQty.value===""?0:+puQty.value,
     net:+puNet.value||0, discEarned:+puDiscE.value||0, vat:+puVatAmt.value||0,
     amount:Math.max(0,(+puNet.value||0)-(+puDiscE.value||0)),
     total:Math.max(0,(+puNet.value||0)-(+puDiscE.value||0))+(+puVatAmt.value||0),
-    paid:puPaid.value==="1", employee:(CURRENT_USER?CURRENT_USER.name:'المالك'), notes:puNotes.value};
+    paid:puPaid.value==="1",
+    /* يحفظ منشئ الفاتورة الأصلي عند التعديل (كان يُعاد إسنادها للمعدِّل فيفقد صاحبها صلاحية تعديلها) */
+    employee:((document.getElementById("puEmp")||{}).value||"").trim()||(CURRENT_USER?CURRENT_USER.name:'المالك'),
+    notes:puNotes.value};
   if(EDIT.purchase){
     const p = DB.purchases.find(x=>x.id===EDIT.purchase);
     const oldItem = p.itemId, oldQty = p.qty;
@@ -9587,6 +9653,7 @@ function editPurchase(id){
   puNet.value=(p.net!==undefined?p.net:p.amount)||""; puDiscE.value=p.discEarned||"";
   const _pv=document.getElementById("puVatAmt"); if(_pv){ _pv.value=p.vat||""; _pv.dataset.manual=p.vat!==undefined?"1":""; }
   puCalc(); puPaid.value=p.paid?"1":"0"; puNotes.value=p.notes||"";
+  { const _pe=document.getElementById("puEmp"); if(_pe) _pe.value=p.employee||""; }
   EDIT.purchase=id; puBtn.textContent="💾 حفظ التعديل"; markEditing("cardPurchase",true);
 }
 function delPurchase(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; } 
@@ -9647,8 +9714,9 @@ function renderSuppliers(){
     + (rows || `<tr><td colspan="7" class="muted">🚚 لا موردين بعد — أضفهم من النموذج أعلاه لتسجيل فواتير الشراء ومتابعة المستحقات</td></tr>`);
 }
 function csvPurchases(){
-  csv([["التاريخ","المورد","البند","الوصف","المبلغ","السداد","الموظف","ملاحظات"],
-    ...DB.purchases.map(p=>[p.date,supName(p.supplierId),p.cat,p.desc,p.amount,p.paid?"مدفوع":"آجل",p.employee,p.notes])], "فواتير-الشراء");
+  exportCSV(["التاريخ","المورد","البند","الوصف","الصافي","الضريبة","الإجمالي","السداد","الموظف","ملاحظات"],
+    (DB.purchases||[]).map(p=>[p.date,supName(p.supplierId),p.cat,p.desc||"",p.amount,(+p.vat||0),pGross(p),
+      (pRemain(p)<=0.005?"مدفوع":"آجل"),p.employee||"",p.notes||""]), "فواتير-الشراء");
 }
 
 /* ====== المنتجات ====== */
@@ -9765,6 +9833,7 @@ function addProduct(e){
 function editProduct(id){
   const p = DB.products.find(x=>x.id===id); if(!p) return;
   prName.value=p.name; const _pd=document.getElementById("prDesc"); if(_pd) _pd.value=p.desc||""; prType.value=p.type; prUnit.value=p.unit||"كجم"; prUnitW.value=p.unitW||""; prPrice.value=p.price;
+  { const _ps=document.getElementById("prSec"); if(_ps&&p.section) _ps.value=p.section; }   /* كان القسم يُفقد عند التعديل */
   EDIT.product=id; prBtn.textContent="💾 حفظ التعديل"; markEditing("cardProduct",true);
 }
 function delProduct(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; } 
@@ -10514,12 +10583,15 @@ function saveAlloc(){
     if(sum>100){ toast("❌ مجموع نسب «"+ALLOC_CATS[i]+"» أكبر من 100%"); return; }
     if(sum>0) ca[ALLOC_CATS[i]] = rule;
   }
+  /* 🛡️ كل الحراس قبل أي تعديل — الإسناد داخل الحلقة كان يترك نصف الموظفين معدَّلين عند الفشل */
+  const __pend=[];
   for(const em of DB.employees){
     const al = {}; let sum=0;
     SECTIONS.forEach((sec,j)=>{ const el=document.getElementById(`ea_${em.id}_${j}`); if(!el) return; const v=+el.value||0; if(v>0){al[sec]=v; sum+=v;} });
     if(sum>100){ toast("❌ مجموع نسب راتب «"+em.name+"» أكبر من 100%"); return; }
-    em.alloc = al;
+    __pend.push([em, al]);
   }
+  __pend.forEach(([em,al])=>{ em.alloc = al; });
   DB.settings.catAlloc = ca;
   save(); renderAllocEditors(); renderIncome(); toast("💾 تم حفظ التوزيعات");
 }
@@ -10710,13 +10782,13 @@ function autoEntries(from, to){
   DB.harvests.forEach(h=>{
     const g=hGross(h);
     const pays=[];
-    (h.payments||[]).forEach(x=>pays.push({date:x.date||h.date, amt:+x.amt||0}));
-    (DB.payments||[]).filter(x=>x.harvestId===h.id).forEach(x=>pays.push({date:x.date||h.date, amt:+x.amount||0}));
+    (h.payments||[]).forEach(x=>pays.push({date:x.date||h.date, amt:+x.amt||0, acc:x.acc||""}));
+    (DB.payments||[]).filter(x=>x.harvestId===h.id).forEach(x=>pays.push({date:x.date||h.date, amt:+x.amount||0, acc:x.acc||""}));
     const rec=pays.reduce((s2,x)=>s2+x.amt,0);
     if(h.paid && Math.abs(g-rec)>0.005) pays.push({date:h.paidDate||h.date, amt:+(g-rec).toFixed(2)});
     pays.forEach(x=>{ if(inP(x.date) && Math.abs(x.amt)>0.005)
       es.push({date:x.date, desc:"تحصيل من "+custName(h.customerId), auto:true,
-        lines:[{a:"1101", d:x.amt, c:0},{a:"1103", d:0, c:x.amt}]}); });
+        lines:[{a:(x.acc||"1101"), d:x.amt, c:0},{a:"1103", d:0, c:x.amt}]}); });
   });
   DB.harvests.forEach(h=>{
     if(!inP(h.date)) return;
@@ -10968,6 +11040,37 @@ function acctBalances(from, to){
   autoEntries(from, to).forEach(e=>e.lines.forEach(l=>{ const b=bal[l.a]=bal[l.a]||{d:0,c:0}; b.d+=l.d; b.c+=l.c; }));
   return bal;
 }
+function renderBS(){
+  /* الميزانية العمومية من أرصدة الحسابات الفعلية حتى تاريخ «إلى» (كانت الشاشة بيضاء بلا أي كود) */
+  const tA=document.getElementById("tblBSAssets"), tL=document.getElementById("tblBSLiab"), ck=document.getElementById("bsCheck");
+  if(!tA||!tL) return;
+  const to=(document.getElementById("acTo")||{}).value||"";
+  const bal=acctBalances("", to);
+  const net=c=>{ const b=bal[c]||{d:0,c:0}; return b.d-b.c; };
+  const accs=(DB.accounts||[]).filter(a=>!a.header);
+  const rowsA=[], rowsL=[]; let totA=0, totLE=0, rev=0, exp=0;
+  accs.forEach(a=>{
+    const v=net(a.code);
+    if(a.type==="إيرادات"){ rev+=-v; return; }
+    if(a.type==="مصروفات"){ exp+=v; return; }
+    if(Math.abs(v)<0.005) return;
+    if(a.type==="أصول"){ rowsA.push([a.code,a.name,v]); totA+=v; }
+    else { rowsL.push([a.code,a.name,-v]); totLE+=-v; }
+  });
+  const profit=+(rev-exp).toFixed(2);
+  if(Math.abs(profit)>0.005){ rowsL.push(["—","صافي نتيجة الفترة (غير مُقفلة)",profit]); totLE+=profit; }
+  const money=v=>`<td style="font-weight:700">${fmtSR(v)}</td>`;
+  tA.innerHTML=`<tr><th colspan="2">الأصول</th><th>الرصيد</th></tr>`
+    +(rowsA.length?rowsA.map(r=>`<tr><td>${r[0]}</td><td>${escH(r[1])}</td>${money(r[2])}</tr>`).join(""):`<tr><td colspan="3" class="muted">لا أرصدة</td></tr>`)
+    +`<tr class="tot-row"><td colspan="2"><b>إجمالي الأصول</b></td>${money(totA)}</tr>`;
+  tL.innerHTML=`<tr><th colspan="2">الخصوم وحقوق الملكية</th><th>الرصيد</th></tr>`
+    +(rowsL.length?rowsL.map(r=>`<tr><td>${r[0]}</td><td>${escH(r[1])}</td>${money(r[2])}</tr>`).join(""):`<tr><td colspan="3" class="muted">لا أرصدة</td></tr>`)
+    +`<tr class="tot-row"><td colspan="2"><b>إجمالي الخصوم وحقوق الملكية</b></td>${money(totLE)}</tr>`;
+  const diff=+(totA-totLE).toFixed(2);
+  if(ck) ck.innerHTML = Math.abs(diff)<0.01
+    ? "✅ الميزانية متوازنة (الأصول = الخصوم + حقوق الملكية)"
+    : "⚠️ فرق "+fmtSR(diff)+" — راجع ميزان المراجعة والقيود اليدوية";
+}
 function renderOverview(){
   const bal = acctBalances(acFrom.value, acTo.value);
   const net = c => { const b=bal[c]||{d:0,c:0}; return b.d-b.c; };
@@ -11053,6 +11156,7 @@ function jrCalc(){
 function saveJournal(){
   const jrDate=document.getElementById("jrDate"), jrDesc=document.getElementById("jrDesc");
   if(!jrDate.value || !jrDesc.value.trim()){ toast("⚠️ عبي التاريخ والبيان"); return; }
+  if(!ksGuardClosed(jrDate.value,"تاريخ القيد")) return;
   const lines = [];
   let d=0,c=0;
   document.querySelectorAll("#jrLines .jrRow").forEach(r=>{
@@ -11122,6 +11226,8 @@ function saveVoucher(){
   const vCash=document.getElementById("vCash"), vAcc=document.getElementById("vAcc");
   const vAmount=document.getElementById("vAmount"), vType=document.getElementById("vType");
   if(!vDate||!vDate.value||!vDesc||!vDesc.value.trim()||!(+vAmount.value>0)){ toast("⚠️ عبي التاريخ والمبلغ والبيان"); return; }
+  if(!ksGuardClosed(vDate.value,"تاريخ السند")) return;
+  if(vCash && vAcc && vCash.value===vAcc.value){ toast("⚠️ لا يمكن أن يكون الطرفان نفس الحساب"); return; }
   const amt = +vAmount.value, receipt = vType.value==="سند قبض";
   const lines = receipt
     ? [{a:vCash.value, debit:amt, credit:0},{a:vAcc.value, debit:0, credit:amt}]
@@ -11173,7 +11279,12 @@ function addFA(){
   const faSalv=document.getElementById("faSalv");
   if(!faDate||!faDate.value||!faName||!faName.value.trim()||!faCost||!(+faCost.value>0)){ toast("⚠️ عبي البيانات الأساسية"); return; }
   DB.fixedAssets = DB.fixedAssets||[];
-  DB.fixedAssets.push({id:uid(), date:faDate.value, name:faName.value.trim(), cost:+faCost.value, life:+faLife.value||5, salvage:+(faSalv&&faSalv.value)||0});
+  const __fid=uid(), __fc=+faCost.value;
+  DB.fixedAssets.push({id:__fid, date:faDate.value, name:faName.value.trim(), cost:__fc, life:+faLife.value||5, salvage:+(faSalv&&faSalv.value)||0});
+  /* قيد الاقتناء: أصل مدين مقابل نقد — كان الأصل يُسجَّل بلا أي أثر محاسبي (1201 لم يكن يُستخدم إطلاقاً) */
+  DB.journals=DB.journals||[];
+  DB.journals.push({id:uid(), date:faDate.value, desc:"اقتناء أصل ثابت — "+faName.value.trim(), faId:__fid,
+    lines:[{a:"1201",debit:__fc,credit:0},{a:"1101",debit:0,credit:__fc}], employee:CURRENT_USER?.name||""});
   save(); faName.value=""; faCost.value=""; faLife.value=""; if(faSalv)faSalv.value="";
   renderFA(); toast("✅ تمت إضافة الأصل الثابت");
 }
@@ -11250,6 +11361,20 @@ function invBookBal(){ /* رصيد حساب المخزون 1104 دفترياً *
     return +v.toFixed(2);
   }catch(e){ return 0; }
 }
+function ksSyncStock(silent, desc){
+  /* يجعل حساب المخزون 1104 مطابقاً للقيمة الفعلية — يُستدعى يدوياً ومن الجرد */
+  const phys=+((DB.inventory||[]).reduce((s,i)=>s+(+i.qty||0)*(+i.cost||0),0)).toFixed(2);
+  const book=invBookBal();
+  const diff=+(phys-book).toFixed(2);
+  if(Math.abs(diff)<0.01) return 0;
+  const lines = diff>0 ? [{a:"1104",debit:diff,credit:0},{a:"5309",debit:0,credit:diff}]
+                       : [{a:"5309",debit:-diff,credit:0},{a:"1104",debit:0,credit:-diff}];
+  DB.journals=DB.journals||[];
+  DB.journals.push({id:uid(), date:todayStr(), desc:desc||"تسوية مخزون آخر المدة", lines,
+    employee:CURRENT_USER?CURRENT_USER.name:"", stockAdj:true});
+  if(!silent){ try{ renderInvM(); renderJournals(); renderTrial(); renderLedger(); }catch(e){} }
+  return diff;
+}
 function stockAdjust(){
   /* جرد دوري: تُرحَّل بضاعة آخر المدة إلى 1104 مقابل «تغيّر المخزون» فيطابق الميزان الواقع */
   try{
@@ -11258,11 +11383,7 @@ function stockAdjust(){
     const diff=+(phys-book).toFixed(2);
     if(Math.abs(diff)<0.01){ toast("✔️ حساب المخزون مطابق للقيمة الفعلية"); return; }
     if(!confirm("تسوية المخزون في الدفاتر؟\nالقيمة الفعلية: "+fmt(phys)+" ⃁\nالرصيد الدفتري: "+fmt(book)+" ⃁\nالفرق: "+fmt(diff)+" ⃁")) return;
-    const lines = diff>0 ? [{a:"1104",debit:diff,credit:0},{a:"5309",debit:0,credit:diff}]
-                         : [{a:"5309",debit:-diff,credit:0},{a:"1104",debit:0,credit:-diff}];
-    DB.journals=DB.journals||[];
-    DB.journals.push({id:uid(), date:todayStr(), desc:"تسوية مخزون آخر المدة", lines,
-      employee:CURRENT_USER?CURRENT_USER.name:"", stockAdj:true});
+    ksSyncStock(true);
     save();
     try{ renderInvM(); renderJournals(); renderTrial(); renderLedger(); renderFinPos(); }catch(e){}
     toast("✅ سُوّي المخزون — "+fmtSR(Math.abs(diff)));
@@ -11327,7 +11448,7 @@ function renderCV(){
 function acctRenderAll(){
   try{ renderApv(); }catch(e){}
   [renderAcctSelects,renderAccounts,renderJournals,renderTrial,renderLedger,
-   renderOverview,renderBank,renderAcSales,renderAcPurch,
+   renderOverview,renderBS,renderBank,renderAcSales,renderAcPurch,
    renderFA,renderTax,renderHR,renderHrAll,renderInvM,renderPerf,renderCV,renderCustStatement,renderIncomeAcct,renderAnnualAcct,fillPerfGoals,renderBudget,renderReports,renderProfitability
   ].forEach(fn=>{ try{ fn(); }catch(e){ console.warn("acct render:", fn.name, e.message); } });
 }
@@ -11951,7 +12072,8 @@ function renderIncomeAcct(){
   const f0=acFrom.value||"2000-01-01", t0=acTo.value||today();
   const inP=d=>d&&d>=f0&&d<=t0;
   const byM={};
-  DB.harvests.filter(h=>inP(h.date)&&hSec(h)).forEach(h=>{const k=h.date.slice(0,7);(byM[k]=byM[k]||{r:0,c:0}).r+=hGross(h);});
+  /* الإيراد صافي الضريبة ليطابق حساب 4101 في ميزان المراجعة */
+  DB.harvests.filter(h=>inP(h.date)&&hSec(h)).forEach(h=>{const k=h.date.slice(0,7);(byM[k]=byM[k]||{r:0,c:0}).r+=hGross(h)-(+h.taxAmt||0);});
   DB.expenses.filter(x=>inP(x.date)&&xSec(x)).forEach(x=>{const k=x.date.slice(0,7);(byM[k]=byM[k]||{r:0,c:0}).c+=+x.amount||0;});
   DB.cycles.filter(c=>inP(c.plantDate)&&cSec(c)).forEach(c=>{const k=(c.plantDate||"").slice(0,7);if(k)(byM[k]=byM[k]||{r:0,c:0}).c+=+c.initCost||0;});
   const keys=Object.keys(byM).sort();
@@ -12801,6 +12923,12 @@ function renderHrHub(){
 }
 function delHrRow(coll,id,msg){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; } 
   if(!confirm(msg||"حذف السجل؟")) return;
+  /* السلفة أنشأت قيداً (1105/1101) — حذفها بلا حذف قيدها كان يترك الصندوق منقوصاً بلا سند */
+  if(coll==="advances"){
+    const __before=(DB.journals||[]).length;
+    DB.journals=(DB.journals||[]).filter(j=>j.ref!==id);
+    if((DB.journals||[]).length!==__before){ try{ renderJournals(); renderTrial(); renderLedger(); }catch(e){} }
+  }
   DB[coll]=(DB[coll]||[]).filter(x=>x.id!==id);
   save(); renderHrAll();
 }
@@ -12895,6 +13023,14 @@ function addAtt(){
   const st=document.getElementById("atStatus")?.value;
   if(!d||!emp){ toast("⚠️ أدخل التاريخ والموظف"); return; }
   DB.attendance=DB.attendance||[];
+  const __dup=DB.attendance.find(a=>a.empId===emp&&a.date===d);
+  if(__dup){
+    if(!confirm("يوجد سجل حضور لهذا الموظف في "+d+" ("+(__dup.status||"")+").\nاستبداله بالحالة الجديدة؟")) return;
+    __dup.status=st||"حاضر";
+    __dup.inT=document.getElementById("atIn")?.value||"";
+    __dup.outT=document.getElementById("atOut")?.value||"";
+    save(); try{ renderHrAll(); }catch(e){} toast("✏️ حُدّث سجل الحضور"); return;
+  }
   DB.attendance.push({id:uid(),date:d,empId:emp,status:st||"حاضر",inT:document.getElementById("atIn")?.value||"",outT:document.getElementById("atOut")?.value||""});
   save(); try{renderHrAll();}catch(e){} toast("✅ تم تسجيل الحضور");
 }
@@ -13044,18 +13180,37 @@ function imAddItem(){
   const unit=document.getElementById("imUnit")?.value||"";
   if(!name){ toast("⚠️ أدخل اسم الصنف"); return; }
   DB.inventory=DB.inventory||[];
-  DB.inventory.push({id:uid(),name,qty,unit,sku:"INV"+Date.now().toString().slice(-6),minQty:0,cost:0});
+  /* الحقول الناقصة كانت تُظهر «undefined» في التصنيف وتُعطّل تنبيه النقص (القارئ يقرأ cat و min) */
+  DB.inventory.push({id:uid(), name, qty, unit, sku:"INV"+Date.now().toString().slice(-6),
+                     cat:"أخرى", section:"عام (كل المزرعة)", min:0, minQty:0, cost:0});
   save(); renderInv(); toast("✅ تم إضافة الصنف");
 }
 
 /* ====== أصول ثابتة ====== */
-function postDep(){
-  const dep=(DB.fixedAssets||[]).reduce((s,a)=>s+(+a.cost||0)/(+a.life||10)/12,0)||0;
-  if(!dep){ toast("⚠️ لا توجد أصول ثابتة"); return; }
+function postDep(month){
+  /* إهلاك شهري: يحترم قيمة الخردة، ويتوقف عند اكتمال عمر الأصل، ولا يتكرر لنفس الشهر */
+  const ms=(month||todayStr().slice(0,7));
   DB.journals=DB.journals||[];
-  DB.journals.push({id:uid(),date:today(),desc:"قيد إهلاك شهري تلقائي",
-    lines:[{a:"5304",debit:dep,credit:0},{a:"1202",debit:0,credit:dep}],employee:CURRENT_USER?.name||""});
-  save(); toast(`✅ تم ترحيل إهلاك ${fmtSR(dep)}`);
+  if(DB.journals.some(j=>j.depMonth===ms)){ toast("✔️ إهلاك "+ms+" مُرحَّل مسبقاً"); return; }
+  const lastD=new Date(+ms.slice(0,4), +ms.slice(5,7), 0);
+  const atISO=`${ms}-${String(lastD.getDate()).padStart(2,'0')}`;
+  let dep=0;
+  (DB.fixedAssets||[]).forEach(a=>{
+    const cost=+a.cost||0, salv=+a.salvage||0, life=+a.life||10;
+    if(cost<=salv||life<=0) return;
+    const monthly=(cost-salv)/life/12;
+    const start=a.date||atISO;
+    if(start>atISO) return;                                   /* لم يُقتنَ بعد */
+    const mUsed=Math.max(0,(new Date(atISO)-new Date(start))/(30.44*864e5));
+    if(mUsed>life*12+1) return;                               /* اكتمل إهلاكه */
+    dep+=monthly;
+  });
+  dep=+dep.toFixed(2);
+  if(dep<=0){ toast("⚠️ لا يوجد إهلاك مستحق لهذا الشهر"); return; }
+  DB.journals.push({id:uid(), date:atISO, depMonth:ms, desc:"قيد إهلاك شهري — "+ms,
+    lines:[{a:"5304",debit:dep,credit:0},{a:"1202",debit:0,credit:dep}], employee:CURRENT_USER?.name||""});
+  save(); try{ renderJournals(); renderTrial(); renderFA(); }catch(e){}
+  toast(`✅ تم ترحيل إهلاك ${fmtSR(dep)} عن ${ms}`);
 }
 
 
@@ -13140,9 +13295,20 @@ function addMaintenance(e){
   /* مزامنة بطاقة المعدة: آخر صيانة تتحدث تلقائياً فينطفئ تنبيه الملخص */
   const _eq=(DB.equipment||[]).find(x=>x.id===r.equipId);
   if(_eq && (!_eq.last || r.date>_eq.last)){ _eq.last=r.date; try{ renderEquip(); }catch(e2){} }
-  save(); renderMaintenance(); toast("✅ تم تسجيل الصيانة وتحدّث موعد المعدة القادم");
+  /* 💸 تكلفة الصيانة تدخل المصروفات (كانت تُخزَّن بالجدول فقط وخارج قائمة الدخل والدفاتر) */
+  if((+r.cost||0)>0){
+    const _ex={id:uid(), date:r.date, cat:"صيانة", section:(_eq&&_eq.section)||"عام (كل المزرعة)",
+      amount:+r.cost, cycleId:"", employee:(CURRENT_USER?CURRENT_USER.name:""),
+      notes:"صيانة "+(_eq?_eq.name:"")+(r.tech?" — "+r.tech:""), mntId:r.id};
+    DB.expenses=DB.expenses||[]; DB.expenses.push(_ex); r.expId=_ex.id;
+    try{ renderExpenses(); }catch(e2){}
+  }
+  save(); renderMaintenance(); toast("✅ سُجّلت الصيانة"+((+r.cost||0)>0?" وأُضيفت تكلفتها للمصروفات":"")+" وتحدّث موعد المعدة");
 }
-function delMaintenance(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(!confirm("حذف؟"))return; DB.maintenance=(DB.maintenance||[]).filter(x=>x.id!==id); save(); renderMaintenance(); }
+function delMaintenance(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(!confirm("حذف سجل الصيانة؟ (يُحذف مصروفه المرتبط)"))return;
+  const m=(DB.maintenance||[]).find(x=>x.id===id);
+  if(m&&m.expId){ DB.expenses=(DB.expenses||[]).filter(x=>x.id!==m.expId); try{ renderExpenses(); }catch(e){} }
+  DB.maintenance=(DB.maintenance||[]).filter(x=>x.id!==id); save(); renderMaintenance(); }
 
 /* ====== الموازنة التقديرية ====== */
 const MONTHS_AR=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
@@ -13279,7 +13445,7 @@ function renderLivestock(){
   const tblM=document.getElementById("tblLvMilk"); if(tblM){
     const logs=[...(lv.milkLogs||[])].reverse();
     const totalM=logs.reduce((s,l)=>s+(+l.morning||0)+(+l.evening||0),0);
-    const kpi=document.getElementById("lvMilkKpi"); if(kpi){
+    const kpi=document.getElementById("lskMilkKpi"); if(kpi){
       const last7=logs.slice(0,7).reduce((s,l)=>s+(+l.morning||0)+(+l.evening||0),0);
       kpi.innerHTML=`<div class="kpi-card"><div class="kpi-val">${totalM.toFixed(1)} ل</div><div class="kpi-label">إجمالي الإنتاج</div></div>
         <div class="kpi-card"><div class="kpi-val">${last7.toFixed(1)} ل</div><div class="kpi-label">آخر 7 أيام</div></div>
@@ -13635,9 +13801,11 @@ function lvNetOf(animal){ /* صافي القطيع لنوع معيّن: جرد +
   (lv.animals||[]).forEach(a=>{ if(a.type===animal) n+=(+a.count||0); });
   (lv.birthDeathLogs||[]).forEach(b=>{ if(b.animal===animal) n+=(b.type==="مولود")?(+b.count||0):-(+b.count||0); });
   (DB.harvests||[]).forEach(h=>{ if(h.livestockSale&&h.saleType==="حيوان"&&h.animal===animal) n-=(h.heads!=null?+h.heads:(+h.qty||0)); });
-  /* مزرعة تسجل قطيعها بالبطاقات الفردية فقط: نعتمد عدّ البطاقات الحية إن كان أكبر */
+  /* مزرعة تسجل قطيعها بالبطاقات الفردية فقط (جرد مجمّع = صفر): نعتمد عدّ البطاقات الحية.
+     ⚠️ Math.max المطلقة كانت تسمح بالبيع بلا حد — تُستعمل فقط عندما لا يوجد جرد مجمّع أصلاً. */
   const __ind=(lv.individuals||[]).filter(x=>x&&x.type===animal&&!/مباع|نافق/.test(String(x.status||""))).length;
-  return Math.max(n,__ind);
+  const __agg=(lv.animals||[]).some(a=>a.type===animal);
+  return __agg ? n : Math.max(n,__ind);
 }
 function addLivestockBD(e){
   e.preventDefault();
@@ -13672,6 +13840,7 @@ function addLivestockHealth(e){
   const r={id:uid(),
     date:g("lskHlDate").value||today(),
     animal:g("lskHlAnimal").value,
+    tag:(g("lskHlTag")?.value||"").trim(),
     count:+g("lskHlCount").value||1,
     issue:g("lskHlIssue").value,
     treatment:g("lskHlTreat").value,
@@ -13687,7 +13856,7 @@ function addLivestockHealth(e){
       if(_mq>_m.qty){ toast("❌ كمية الدواء غير متوفرة (متوفر "+fmt(_m.qty)+")"); return; }
       _m.qty=+(_m.qty-_mq).toFixed(2);
       lv.medUses=lv.medUses||[];
-      lv.medUses.push({id:uid(), date:r.date, medId:_mid, name:_m.name, qty:_mq, unit:_m.unit, tag:r.animal||"", employee:(CURRENT_USER?CURRENT_USER.name:"")});
+      lv.medUses.push({id:uid(), healthId:r.id, date:r.date, medId:_mid, name:_m.name, qty:_mq, unit:_m.unit, tag:r.animal||"", employee:(CURRENT_USER?CURRENT_USER.name:"")});
       if(!r.treatment) r.treatment=_m.name;
     }
   }
@@ -13810,7 +13979,14 @@ function addLvFeed(e){
   lv.feedLogs.push({id:uid(), date:g("lvFdDate").value||today(), itemId, itemName:it?it.name:"", qty, barn:g("lvFdBarn")?.value||"", notes:g("lvFdNotes").value, employee:(CURRENT_USER?CURRENT_USER.name:"")});
   save(); renderLivestock(); try{renderInv();}catch(_){} e.target.reset(); g("lvFdDate").value=today(); toast("🌾 سُجّلت التغذية وخُصمت من المخزون");
 }
-function delLvFeed(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(!confirm("حذف؟ (لا يعيد الكمية للمخزون)"))return; const lv=getLivestock(); lv.feedLogs=(lv.feedLogs||[]).filter(x=>x.id!==id); save(); renderLivestock(); }
+function delLvFeed(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
+  if(!confirm("حذف سجل التغذية؟ (تُعاد الكمية للمخزون)"))return;
+  const lv=getLivestock(); const f=(lv.feedLogs||[]).find(x=>x.id===id);
+  try{ if(f && f.itemId && (+f.qty||0)>0){ const it=(DB.inventory||[]).find(x=>x.id===f.itemId);
+    if(it){ it.qty=+((+it.qty||0)+(+f.qty||0)).toFixed(2);
+      DB.invMoves.push({id:uid(), date:today(), itemId:it.id, type:"إضافة (شراء/توريد)", qty:+f.qty||0,
+        employee:(CURRENT_USER||{}).name||"", notes:"عكس حذف سجل تغذية مواشي"}); } } }catch(e){}
+  lv.feedLogs=(lv.feedLogs||[]).filter(x=>x.id!==id); save(); renderLivestock(); try{ renderInv(); }catch(e){} }
 function addLvIndiv(e){
   e.preventDefault();
   const lv=getLivestock(); lv.individuals=lv.individuals||[];
@@ -13829,7 +14005,8 @@ function markLvIndivDead(id){
   if(!confirm("تسجيل نفوق الحيوان "+a.tag+"؟ سيُضاف سجل نفوق (1) للجرد تلقائياً.")) return;
   a.status="نافق";
   lv.birthDeathLogs=lv.birthDeathLogs||[];
-  lv.birthDeathLogs.push({id:uid(), date:today(), type:"نفوق", animal:a.tag, count:1, barn:a.barn||"", notes:"من بطاقة فردية"});
+  /* حقل animal يحمل «نوع الحيوان» في كل النظام — كتابة رقم الوسم هنا كانت تُبطل الخصم من القطيع */
+  lv.birthDeathLogs.push({id:uid(), date:today(), type:"نفوق", animal:a.type||"", tag:a.tag||"", count:1, barn:a.barn||"", notes:"من بطاقة فردية — وسم "+(a.tag||"")});
   save(); renderLivestock(); toast("💀 سُجّل النفوق وخُصم من القطيع");
 }
 function markLvIndivSold(id){
@@ -13840,7 +14017,7 @@ function markLvIndivSold(id){
 function delLvIndiv(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(!confirm("حذف؟"))return; const lv=getLivestock(); lv.individuals=(lv.individuals||[]).filter(x=>x.id!==id); save(); renderLivestock(); }
 function showLvProfile(tag){
   const lv=getLivestock();
-  const health=(lv.healthLogs||[]).filter(x=>(x.animal||"")===tag);
+  const health=(lv.healthLogs||[]).filter(x=>(x.tag||"")===tag||(x.animal||"")===tag);   /* الوسم أولاً — الحقل animal يحمل النوع */
   const vac=(lv.vaccines||[]).filter(x=>(x.animal||"")===tag);
   const br=(lv.breeding||[]).filter(x=>(x.animal||"")===tag);
   const ind=(lv.individuals||[]).find(x=>x.tag===tag)||{};
@@ -13913,7 +14090,13 @@ function addLvBreeding(e){
   save(); renderLivestock(); e.target.reset(); g("lvBrDate").value=today(); toast("🐄 تم تسجيل التلقيح");
 }
 function delLvBreeding(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(!confirm("حذف؟"))return; const lv=getLivestock(); lv.breeding=(lv.breeding||[]).filter(x=>x.id!==id); save(); renderLivestock(); }
-function delLvHealth(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(!confirm("حذف؟"))return; getLivestock().healthLogs=getLivestock().healthLogs.filter(x=>x.id!==id); save(); renderLivestock(); }
+function delLvHealth(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
+  if(!confirm("حذف السجل الصحي؟ (يُعاد الدواء المخصوم إن وُجد)"))return;
+  const lv=getLivestock(); const h=(lv.healthLogs||[]).find(x=>x.id===id);
+  try{ if(h){ (lv.medUses||[]).filter(u=>u.healthId===h.id).forEach(u=>{
+        const m=(lv.medicines||[]).find(x=>x.id===u.medId); if(m) m.qty=+((+m.qty||0)+(+u.qty||0)).toFixed(2); });
+      lv.medUses=(lv.medUses||[]).filter(u=>u.healthId!==h.id); } }catch(e){}
+  lv.healthLogs=(lv.healthLogs||[]).filter(x=>x.id!==id); save(); renderLivestock(); }
 
 function renderMyTasksLv(){
   const tbl = document.getElementById("tblMyTasksLv"); if(!tbl) return;
@@ -14310,6 +14493,10 @@ function markPayrollPaid(runId,empId){
   const row=run.rows.find(r=>r.empId===empId); if(!row)return;
   if(row.status==="مدفوع") return;
   row.status="مدفوع"; row.paidDate=today();
+  /* 📅 تاريخ الاستحقاق = آخر يوم في شهر الكشف (كان today() فيقع راتب مارس في شهر الدفع) */
+  const __pm=(run.month||todayStr().slice(0,7));
+  const __pl=new Date(+__pm.slice(0,4), +__pm.slice(5,7), 0);
+  const __pd=`${__pm}-${String(__pl.getDate()).padStart(2,'0')}`;
   /* إعادة تحقق لحظة الدفع: لو سُددت السلفة من كشف شهر آخر بعد إنشاء هذا الكشف، نرجع الفرق لصافي الموظف */
   let advDed=+row.advances||0;
   const __remNow=(row.advIds||[]).reduce((s,aid)=>{ const a=(DB.advances||[]).find(x=>x.id===aid);
@@ -14322,11 +14509,11 @@ function markPayrollPaid(runId,empId){
   if(grossExp>0){ const expId=uid(); row.expId=expId;
     const _em=DB.employees.find(e=>e.id===row.empId);
     const _sec=(_em&&_em.section)||"عام (كل المزرعة)";
-    DB.expenses.push({id:expId, date:today(), cat:"رواتب وعمالة", section:_sec, amount:grossExp, cycleId:"", employee:row.name, notes:"راتب "+(run.month||"")+" — "+row.name+(advDed>0?" (منها سداد سلفة "+fmt(advDed)+")":"")}); }
+    DB.expenses.push({id:expId, date:__pd, cat:"رواتب وعمالة", section:_sec, amount:grossExp, cycleId:"", employee:row.name, notes:"راتب "+(run.month||"")+" — "+row.name+(advDed>0?" (منها سداد سلفة "+fmt(advDed)+")":"")}); }
   if(advDed>0){ /* المصروف أعلاه يتقيد تلقائياً 5301/1101 بكامل التكلفة — النقد الفعلي الخارج هو الصافي فقط،
        فنعيد قيمة السلفة للصندوق وندائن 1105 (سدادها): المحصلة = 5301 كامل، 1101 صافي، 1105 سداد */
     DB.journals=DB.journals||[];
-    DB.journals.push({id:uid(), date:today(), desc:"سداد سلفة من راتب "+(run.month||"")+" — "+row.name,
+    DB.journals.push({id:uid(), date:__pd, desc:"سداد سلفة من راتب "+(run.month||"")+" — "+row.name,
       lines:[{a:"1101", debit:advDed, credit:0},{a:"1105", debit:0, credit:advDed}], employee:CURRENT_USER?CURRENT_USER.name:""}); }
   /* مزامنة: يظهر فوراً في كشف الرواتب والتقويم وملف الموظف ومؤشرات HR */
   DB.salaryPays=DB.salaryPays||[];
@@ -14543,7 +14730,8 @@ function saveStockCheck(){
       type:__diff>0?"إضافة (شراء/توريد)":"صرف", qty:Math.abs(__diff), employee:(CURRENT_USER||{}).name||"", notes:"تسوية جرد دوري"});
     inv.qty=it.actualQty;
   });
-  save(); currentStockCheck=null; renderStockCheckTable(); toast("✅ تم حفظ الجرد وتحديث المخزون");
+  try{ ksSyncStock(true, "تسوية جرد دوري"); }catch(e){}
+  save(); currentStockCheck=null; renderStockCheckTable(); toast("✅ تم حفظ الجرد وتحديث المخزون والدفاتر");
 }
 function renderStockHistory(){
   const tbody=document.getElementById("stockHistoryTbody"); if(!tbody)return;
@@ -15510,7 +15698,7 @@ function markDeferredPaid(id){
   const cash=pick==="2"?"1102":"1101";
   const amt=+r.amount||0;
   const receipt = r.type==="receivable";
-  const contra = receipt?"1103" : (r.type==="employee"?"5301":"2101");
+  const contra = receipt?"1103" : (r.type==="employee"?"2102":"2101");   /* 2102 مصروفات مستحقة — 5301 كان يزدوج مع مصروف الراتب */
   const lines = receipt
     ? [{a:cash,debit:amt,credit:0},{a:contra,debit:0,credit:amt}]
     : [{a:contra,debit:amt,credit:0},{a:cash,debit:0,credit:amt}];
@@ -15524,7 +15712,7 @@ function markDeferredPaid(id){
   /* 🔗 مرتبط بفاتورة بيع؟ نسدّدها فعلياً حتى لا يزدوج التحصيل مع سجل الديون */
   if(r.harvestId){ const h=DB.harvests.find(x=>x.id===r.harvestId);
     if(h&&!h.paid){ const ap=Math.min(amt,hRemain(h));
-      if(ap>0.005)(h.payments=h.payments||[]).push({date:todayStr(),amt:ap});
+      if(ap>0.005)(h.payments=h.payments||[]).push({date:todayStr(),amt:ap,acc:cash});   /* الخزينة التي اختارها المستخدم */
       if(hRemain(h)<=0.005){ h.paid=true; h.paidDate=todayStr(); }
       try{ renderHarvests(); renderDebts(); renderCustomers(); }catch(e){} } }
   save(); renderDeferred();

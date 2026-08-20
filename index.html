@@ -2932,6 +2932,21 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     <div class="card table-wrap"><table id="tblQuotes"></table></div>
   </div>
 
+    <div id="acct_recon" style="display:none">
+      <h2>🧮 مطابقة الصندوق والبنك</h2>
+      <p class="muted" style="margin-bottom:10px">قارن رصيد الدفاتر بالنقد الفعلي في الصندوق وبكشف حساب البنك. أي فرق غير مفسَّر هو أول إشارة على خطأ أو اختلاس — والمطابقة الدورية أقوى أداة كشف عملية.</p>
+      <div class="row" style="flex-wrap:wrap;gap:10px">
+        <div style="min-width:170px"><label>التاريخ</label><input type="date" id="rcDate"></div>
+        <div style="min-width:170px"><label>النقد الفعلي بالصندوق (⃁)</label><input type="number" id="rcCash" step="0.01" placeholder="عدّ الصندوق"></div>
+        <div style="min-width:170px"><label>رصيد البنك من الكشف (⃁)</label><input type="number" id="rcBank" step="0.01" placeholder="من كشف الحساب"></div>
+        <div style="flex:1;min-width:200px"><label>ملاحظات / تفسير الفرق</label><input id="rcNotes" placeholder="مثال: شيك لم يُصرف بعد"></div>
+        <div style="display:flex;align-items:end"><button class="btn" type="button" onclick="saveRecon()">💾 حفظ المطابقة</button></div>
+      </div>
+      <div id="rcLive" class="muted" style="margin-top:10px;font-size:.85rem"></div>
+      <h3 style="margin-top:14px">سجل المطابقات</h3>
+      <div class="card table-wrap"><table id="tblRecon"></table></div>
+    </div>
+
     <div id="acct_sales" style="display:none">
     <h2>🧺 المبيعات (حسب الفترة)</h2>
     <div class="card table-wrap"><table id="tblAcSales"></table></div>
@@ -3260,6 +3275,14 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <div id="stgBar" style="height:100%;width:0;background:var(--green);transition:width .3s"></div>
       </div>
       <p id="stgHint" class="muted" style="font-size:.72rem;margin:6px 0 0">المتصفح يمنح كل موقع مساحة محدودة (~5 ميجا). بياناتك في السحابة غير محدودة بهذا السقف.</p>
+    </div>
+    <div class="card" style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700">
+        <input type="checkbox" id="ctrlChk" style="width:auto;accent-color:var(--green)" onchange="ctrlSet(this.checked)">
+        🛡️ الوضع الرقابي (منع التلاعب)
+      </label>
+      <p class="muted" style="font-size:.75rem;margin:6px 0 0">للمزارع التي يسجّل فيها موظفون: <b>لا يدخل الدفاتر إلا ما اعتمدته</b> (والمخزون والقطيع والديون والفواتير تتأثر فوراً فلا يتعطل التشغيل)، و<b>السجل المالي لا يُحذف</b> بل يُلغى بقيد عكسي بسبب إلزامي، وسجل التدقيق لا يُقصّ. ما تسجّله أنت — أو من تمنحه صلاحية الاعتماد — يُعتمد تلقائياً.</p>
+      <div id="ctrlPend" class="muted" style="font-size:.8rem;margin-top:8px"></div>
     </div>
     <h3>☁️ المزامنة السحابية</h3>
     <p class="muted" style="margin-bottom:8px">بياناتك تنرفع تلقائياً لسحابة مزرعتك الخاصة بعد كل حفظ، وتقدر تفتحها من أي جهاز بنفس الحساب.</p>
@@ -3703,6 +3726,8 @@ Object.assign(I18N.ur,{"⚠️ أدخل اسم الصنف":"⚠️ آئٹم نا
 Object.assign(I18N.en,{"💰 بيع المواشي والحليب":"💰 Livestock & milk sales","💸 المصروفات حسب الفئة":"💸 Expenses by category","مثال: بيت محمي مكيف 3":"e.g. Cooled greenhouse 3","⭐ تقييم أداء الموظفين":"⭐ Employee performance review","المساحة / العدد (وصف)":"Area / Count (description)","تكلفة الوحدة (⃁) *":"Unit cost (⃁) *","✅ وزن البيع المستهدف:":"✅ Target sale weight:","قيمة المخزون والأصناف":"Stock & items value","✅ لا مستحقات للموردين":"✅ No supplier dues","بيانات العميل والصفقة":"Customer & deal data","حد التنبيه (أقل كمية)":"Alert threshold (min qty)","➕ إنشاء فاتورة مبيعات":"➕ Create sales invoice","✅ تم حفظ فاتورة البيع":"✅ Sales invoice saved","📅 تسجيل حضور / انصراف":"📅 Check-in / Check-out","🐟 إجمالي السمك الحالي":"🐟 Current total fish","الموازنة مقابل الفعلي":"Budget vs actual","لا يوجد حيوانات فردية":"No individual animals","📅 طبّق فترة على الكل:":"📅 Apply period to all:","⚠️ القسم موجود مسبقاً":"⚠️ Section already exists","متوسط وزن السمكة (جم)":"Avg fish weight (g)","⏳ جارٍ تحميل الخريطة…":"⏳ Loading map…","🛠️ أنواع العمل اليومي":"🛠️ Daily work types","صافي الضريبة المستحقة":"Net VAT due","خصم على إجمالي المبلغ":"Discount on total","📈 تاريخ فحوصات التربة":"📈 Soil tests history","✅ حُدّثت حالة المهمة:":"✅ Task status updated:","إجمالي مبيعات المواشي":"Total livestock sales","عدد السمك عند الإنزال":"Fish count at stocking","آخر الإدخالات المالية":"Recent financial entries","مستحق لنا (عميل مدين)":"Owed to us (debtor)","✅ تم تقديم طلب الشراء":"✅ Purchase request submitted","🔁 مصاريف متكررة شهرية":"🔁 Monthly recurring expenses","📋 سجل استخدام الأدوية":"📋 Medicine usage log","الإنتاج المتوقع (كجم)":"Expected yield (kg)","🚚 المشتريات وفواتيرها":"🚚 Purchases & invoices","✅ لا ديون على العملاء":"✅ No customer debts","سجل النقل بين الأحواض":"Pond transfers log","🔑 استعادة كلمة المرور":"🔑 Password recovery","⚠️ اختر حوضين مختلفين":"⚠️ Choose two different ponds","لا توجد قياسات مطابقة":"No matching readings","💧 قياسات مياه الأحواض":"💧 Pond water readings","🔁 نقل سمك بين الأحواض":"🔁 Fish transfer between ponds","تاريخ انتهاء الصلاحية":"Expiry date","عدد الوجبات اليومية *":"Daily meals count *","🐟 موقف الأحواض اليومي":"🐟 Daily ponds status","🪪 صورة الهوية/الإقامة":"🪪 ID/Iqama photo","⚠️ لا توجد أصول ثابتة":"⚠️ No fixed assets","متوسط وزن الرأس (كجم)":"Avg weight/head (kg)","✅ حُفظت بيانات الشركة":"✅ Company data saved","🐾 سجل المواليد والنفوق":"🐾 Births & deaths log","لماذا تحتاج هذا الصنف؟":"Why do you need this item?","🏢 إدارة الأصول الثابتة":"🏢 Fixed assets management","🔍 مسح باركود (اختياري)":"🔍 Scan barcode (optional)","🌱 الدورات — اختر القسم":"🌱 Cycles — choose section","⚠️ اختر الحظيرة الوجهة":"⚠️ Choose destination barn","لا توجد قيود في الفترة":"No entries in period","⚠️ أدخل البيانات كاملة":"⚠️ Enter all data","كبير جداً (لكبار السن)":"Extra large","⚠️ اختر الحظيرة المصدر":"⚠️ Choose source barn","📋 تم نسخ ملخص العمليات":"📋 Summary copied","مثال: مزرعة خيرات سايه":"e.g. Khayrat Saya Farm","الكمية المضافة للمخزون":"Qty added to stock","لا توجد مهام مسندة بعد":"No tasks assigned yet","لا يوجد عملاء راكدون 🎉":"No dormant customers 🎉","تاريخ الولادة المتوقّع":"Expected birth date","💾 حفظ واعتماد الفاتورة":"💾 Save & approve invoice","⚠️ عبي التاريخ والبيان":"⚠️ Fill date & description","إغلاق الحظائر وتأمينها":"Close & secure barns","🐄 سجل التلقيح والتكاثر":"🐄 Breeding log","بداية المحصول المتوقعة":"Expected harvest start","إجمالي الالتزام الشهري":"Total monthly commitment","⚠️ المورد موجود بالسجل":"⚠️ Supplier already exists","مثال: خروف / حليب طازج":"e.g. Lamb / Fresh milk","إجمالي الرواتب الشهرية":"Total monthly salaries","💾 حفظ واختيار للفاتورة":"💾 Save & pick for invoice","✅ تم حفظ بيانات المالك":"✅ Owner data saved","📊 تحليل ربحية المنتجات":"📊 Product profitability analysis","⚠️ المنتج مسجّل مسبقاً":"⚠️ Product already exists","رقم الهوية / الإقامة *":"ID / Iqama No. *","صافي الربح / (الخسارة)":"Net profit / (loss)","— بدون إضافة للمخزون —":"— No stock addition —","نسبة الربح من المبيعات":"Profit % of sales","لا حضور مسجل هذا الشهر":"No attendance this month","الراتب الشهري (⃁) *":"Monthly salary (⃁) *","الرقم الضريبي (15 رقم)":"VAT No. (15 digits)","🔍 الجرد الدوري للمخزون":"🔍 Periodic stocktake","⬅ مركز الموارد البشرية":"⬅ HR hub","📒 سجل المبيعات والديون":"📒 Sales & debts log","🏆 أفضل المنتجات مبيعاً":"🏆 Best sellers","➕ إنشاء فاتورة مشتريات":"➕ Create purchase invoice","🎯 تقدم الأهداف الشهرية":"🎯 Monthly goals progress","✅ تم حفظ فاتورة الشراء":"✅ Purchase invoice saved","المبيعات (ضريبة خارجة)":"Sales (output VAT)","مثال: مضخة مياه رئيسية":"e.g. Main water pump","دفتر الأستاذ (أي حساب)":"Ledger (any account)","⚠️ أدخل التاريخ والاسم":"⚠️ Enter date & name","✅ تم إنشاء كشف الرواتب":"✅ Payroll generated","🌱 أداء الدورات الزراعية":"🌱 Crop cycles performance","لا توجد حركات في الفترة":"No movements in period","⚠️ أدخل اسم/رقم الحظيرة":"⚠️ Enter barn name/No.","🧮 حاسبة العليقة اليومية":"🧮 Daily ration calculator","📲 فتح روابط واتساب للكل":"📲 Open WhatsApp for all","📝 اليوميات — اختر القسم":"📝 Daily log — choose section","🥛 إنتاج الحليب (30 يوم)":"🥛 Milk production (30 days)","التكلفة المتوقعة (⃁)":"Expected cost (⃁)","👥 إدارة الموارد البشرية":"👥 HR management","مثال: تنظيف فلاتر حوض 2":"e.g. Clean pond 2 filters","— بدون خصم من المخزون —":"— No stock deduction —","📊 النظرة العامة المالية":"📊 Financial overview","حذف ملف العقد المرفق لـ":"Delete contract file of","هدف المبيعات (⃁/شهر)":"Sales target (⃁/month)","⏰ تتبع المدفوعات الآجلة":"⏰ Deferred payments tracking","↩️ تم استعادة لون الثيم":"↩️ Theme color restored","🔥 لا توجد مهام مسندة لك":"🔥 No tasks assigned to you","لا حركات على هذا الحساب":"No movements on this account","السعر لكل وحدة (⃁) *":"Price per unit (⃁) *","✅ تم تسجيل إنتاج الحليب":"✅ Milk production recorded","✅ تم حفظ التقرير اليومي":"✅ Daily report saved","📈 مقارنة الفعلي بالمخطط":"📈 Actual vs planned","لا توجد مهام مسندة لك 👍":"No tasks assigned to you 👍","❌ حدث خطأ، أعد المحاولة":"❌ Error, try again","الأصول الثابتة والإهلاك":"Fixed assets & depreciation","🛒 حُدّدت البطاقة كمباعة":"🛒 Card marked as sold","🕐 جدول مناوبات الموظفين":"🕐 Employee shifts schedule","🐐 بطاقة الحيوان الفردية":"🐐 Individual animal card","أداء المحاصيل / الدورات":"Crops / cycles performance","ملاحظات (سلوك السمك...)":"Notes (fish behavior...)","كشف حركة أي حساب تختاره":"Statement of any account","مرجع الفاتورة الأصلية *":"Original invoice ref *","وحدة جديدة — مثال: شدّة":"New unit — e.g. bundle","💵 النقدية (صندوق + بنك)":"💵 Cash (box + bank)","⚠️ أدخل التاريخ والموظف":"⚠️ Enter date & employee","مستحق علينا (مورد دائن)":"We owe (creditor)","⚖️ متابعة أوزان المواشي":"⚖️ Livestock weights tracking","📋 نسخ الملخص (للواتساب)":"📋 Copy summary (WhatsApp)","الالتزام بالدوام (0-10)":"Punctuality (0-10)","✅ تم التسعير — الإجمالي":"✅ Priced — total","✅ تمت إضافة الأصل الثابت":"✅ Fixed asset added","الاسم المختصر (للتقارير)":"Short name (for reports)","آخر القيود (آلية ويدوية)":"Recent entries (auto & manual)","ملخص المصروفات حسب البند":"Expenses summary by category","📋 التقرير اليومي للمواشي":"📋 Daily livestock report","رش مبيدات / مكافحة حشرات":"Pesticide spray / pest control","اضغط لفتح/إغلاق الموظفين":"Click to open/close employees","✅ تم تسجيل الدفعة للمورد":"✅ Supplier payment recorded","ضريبة القيمة المضافة 15%":"VAT 15%","🗑️ حُذفت المسودة نهائياً":"🗑️ Draft permanently deleted","⚠️ لا توجد حركات للإقفال":"⚠️ No movements to close","مثال: سوق الخضار المركزي":"e.g. Central vegetable market","✅ تم حفظ تعديلات الأقسام":"✅ Sections changes saved","📦 موقف الإنتاج والجاهزية":"📦 Production & readiness status","⚠️ صيانة قريبة أو متأخرة":"⚠️ Maintenance due or overdue","العمر الإنتاجي (سنوات) *":"Useful life (years) *","سعر البيع الافتراضي/وحدة":"Default sale price/unit","التكلفة التقديرية (⃁)":"Estimated cost (⃁)","⚠️ أدخل عدد السمك المباع":"⚠️ Enter fish sold count","⚠️ عبي البيانات الأساسية":"⚠️ Fill basic data","⏳ أعمار مستحقات الموردين":"⏳ Payables aging","مصروفات عامة (غير موزعة)":"General expenses (unallocated)","المبادرة والإبداع (0-10)":"Initiative & creativity (0-10)","✅ تم تسجيل الحالة الصحية":"✅ Health case recorded","⚠️ اختر حظيرتين مختلفتين":"⚠️ Choose two different barns","لا توجد رواتب مصروفة بعد":"No salaries paid yet","سقف المصروفات (⃁/شهر)":"Expenses cap (⃁/month)","⚠️ اسمح بالنوافذ المنبثقة":"⚠️ Allow pop-ups","تاريخ الزراعة / الإنزال *":"Planting / stocking date *","📍 العنوان الوطني (إلزامي)":"📍 National address (required)","السعر الخاص (⃁/وحدة) *":"Special price (⃁/unit) *","⚠️ المهمة مسندة لموظف آخر":"⚠️ Task assigned to another","إدارة الأحواض (عدد السمك)":"Ponds management (fish count)","⚠️ أدخل البريد الإلكتروني":"⚠️ Enter email","مثال: أغنام / عزل / ولادة":"e.g. Sheep / isolation / birthing","🚶 عميل نقدي (بدون بيانات)":"🚶 Cash customer (no data)","— بدون عميل (بيع مباشر) —":"— No customer (direct sale) —","⚠️ الحيوان في نفس الحظيرة":"⚠️ Animal already in this barn","🏢 بيانات الشركة (المزرعة)":"🏢 Company (farm) data","الإنجاز والإنتاجية (0-10)":"Output & productivity (0-10)","🤝 متابعة العملاء الراكدين":"🤝 Dormant customers follow-up","إدارة قوائم نموذج التسجيل":"Manage registration form lists","العنوان الوطني — لم يُعبأ":"National address — not filled","⚠️ لا توجد بيانات للطباعة":"⚠️ No data to print","📌 المهام المسندة للموظفين":"📌 Tasks assigned to employees","🛒 منتجات جاهزة للبيع الآن":"🛒 Products ready for sale","⚠️ أضف سطر واحد على الأقل":"⚠️ Add at least one line","مثال: علف بلطي 30% بروتين":"e.g. Tilapia feed 30% protein","🌱 بدأت الدورة — صارت نشطة":"🌱 Cycle started — now active","سبب النفوق أو وصف المولود":"Death cause or newborn description","لا أعمال مسجلة لهذا القسم":"No works for this section","لا يوجد ملاك إضافيون بعد.":"No additional owners yet.","سبب الرتبة، آفات، أمراض...":"Grade reason, pests, diseases...","⚠️ الاعتماد النهائي للمالك":"⚠️ Final approval is owner's","لا توجد مواعيد خلال 60 يوم":"No due dates within 60 days","🗺️ خريطة المزرعة التفاعلية":"🗺️ Interactive farm map","سعر البيع الافتراضي (⃁)":"Default sale price (⃁)","إضافة لصنف مخزون (اختياري)":"Add to stock item (optional)","🧾 تم حفظ السند كقيد متوازن":"🧾 Voucher saved as balanced entry","💲 أسعار خاصة لعملاء معينين":"💲 Special prices for customers","⚠️ الاعتماد الأولي للمحاسب":"⚠️ Initial approval is accountant's","امسح بالقارئ أو الصق الكود":"Scan or paste the code","📢 إرسال حملة واتساب جماعية":"📢 Send WhatsApp campaign","⚠️ اختر نوع الحيوان المباع":"⚠️ Choose sold animal type","🔄 حركة مخزون (إضافة / صرف)":"🔄 Stock movement (in / out)","⚡ الحفظ تلقائي مع كل مفتاح":"⚡ Auto-saves on every toggle","أولاً: المبيعات حسب المنتج":"First: sales by product","تعبئة الماء وتنظيف الأحواض":"Water refill & pond cleaning","لا حركة في الفترة المختارة":"No movement in selected period","🔧 المعدات والصيانة الدورية":"🔧 Equipment & periodic maintenance","📈 الموازنات والأداء المالي":"📈 Budgets & financial performance","— أضف منتجاً بزر ➕ أعلاه —":"— Add a product with ➕ above —","⚠️ ما لقيت صنف بهذا الكود:":"⚠️ No item with this code:","آخر أعمال الموظفين اليومية":"Recent employee daily works","عبّي الأرقام ويطلع التقدير":"Fill numbers to get estimate","ربط بدورة زراعية (اختياري)":"Link to crop cycle (optional)","ملاحظات (الجرعة، الآفة...)":"Notes (dose, pest...)","تنظيف الحظائر وإزالة الروث":"Barn cleaning & manure removal","⚠️ لا توجد دورة نشطة لمنتج":"⚠️ No active cycle for product","نوع جديد للمجموعة المختارة":"New type for selected group","مثال: مؤسسة الأعلاف المتحدة":"e.g. United Feeds Est.","📝 ملخص العمليات التشغيلية —":"📝 Operations summary —","🏦 الحسابات البنكية والنقدية":"🏦 Bank & cash accounts","كل الأقسام (مجمعة بالأعمدة)":"All sections (grouped columns)","⚠️ أمهات السمك ما لها ترقية":"⚠️ Broodstock can't be promoted","ثانياً: المصروفات حسب البند":"Second: expenses by category","⚠️ البريد الإلكتروني إلزامي":"⚠️ Email required","لا جرعات مستحقة خلال 30 يوم":"No doses due within 30 days","✅ كل الأصناف فوق حد التنبيه":"✅ All items above threshold","🔁 رجعت كل التنبيهات المخفية":"🔁 All hidden alerts restored"});
 Object.assign(I18N.en,{"نوع الري":"Irrigation type","💧 أوتوماتيكي (زر تأكيد يومي)":"💧 Automatic (daily confirm button)","🚿 يدوي (يُسجل كعمل يومي)":"🚿 Manual (logged as daily work)","💧 أوتوماتيكي (زر تأكيد)":"💧 Automatic (confirm button)","🚿 يدوي (عمل يومي)":"🚿 Manual (daily work)","الاسم المختصر":"Short name","عليه بيانات":"Has data","⚠️ القسم عليه بيانات مسجلة — لا يمكن حذفه":"⚠️ Section has recorded data — cannot delete","⚠️ حذف الأقسام للمالك فقط":"⚠️ Only the owner can delete sections"});
 Object.assign(I18N.ur,{"نوع الري":"آبپاشی کی قسم","💧 أوتوماتيكي (زر تأكيد يومي)":"💧 خودکار (روزانہ تصدیقی بٹن)","🚿 يدوي (يُسجل كعمل يومي)":"🚿 دستی (روزانہ کام میں درج)","💧 أوتوماتيكي (زر تأكيد)":"💧 خودکار (تصدیقی بٹن)","🚿 يدوي (عمل يومي)":"🚿 دستی (روزانہ کام)","الاسم المختصر":"مختصر نام","عليه بيانات":"ڈیٹا موجود ہے","⚠️ القسم عليه بيانات مسجلة — لا يمكن حذفه":"⚠️ سیکشن میں ڈیٹا موجود ہے — حذف نہیں ہو سکتا","⚠️ حذف الأقسام للمالك فقط":"⚠️ سیکشن صرف مالک حذف کر سکتا ہے"});
+Object.assign(I18N.en,{"🛡️ الوضع الرقابي (منع التلاعب)":"🛡️ Control mode (anti-tampering)","🧮 مطابقة الصندوق والبنك":"🧮 Cash & bank reconciliation","💾 حفظ المطابقة":"💾 Save reconciliation","النقد الفعلي بالصندوق (⃁)":"Actual cash on hand (⃁)","رصيد البنك من الكشف (⃁)":"Bank balance per statement (⃁)","ملاحظات / تفسير الفرق":"Notes / explanation of difference","سجل المطابقات":"Reconciliation log"});
+Object.assign(I18N.ur,{"🛡️ الوضع الرقابي (منع التلاعب)":"🛡️ کنٹرول موڈ (بے ضابطگی سے تحفظ)","🧮 مطابقة الصندوق والبنك":"🧮 کیش اور بینک ملاپ","💾 حفظ المطابقة":"💾 ملاپ محفوظ کریں","النقد الفعلي بالصندوق (⃁)":"اصل نقد (⃁)","رصيد البنك من الكشف (⃁)":"بینک اسٹیٹمنٹ بیلنس (⃁)","ملاحظات / تفسير الفرق":"نوٹس / فرق کی وضاحت","سجل المطابقات":"ملاپ کا ریکارڈ"});
 Object.assign(I18N.en,{"🧺 المبيعات (حسب الفترة)":"🧺 Sales (by period)","رقم الوسم (اختياري)":"Tag number (optional)","البدلات الشهرية (⃁)":"Monthly allowances (⃁)","الأصول":"Assets","الخصوم وحقوق الملكية":"Liabilities & Equity","إجمالي الأصول":"Total assets","إجمالي الخصوم وحقوق الملكية":"Total liabilities & equity","صافي نتيجة الفترة (غير مُقفلة)":"Period result (not closed)"});
 Object.assign(I18N.ur,{"🧺 المبيعات (حسب الفترة)":"🧺 فروخت (مدت کے مطابق)","رقم الوسم (اختياري)":"ٹیگ نمبر (اختیاری)","البدلات الشهرية (⃁)":"ماہانہ الاؤنس (⃁)","الأصول":"اثاثے","الخصوم وحقوق الملكية":"واجبات اور ایکویٹی","إجمالي الأصول":"کل اثاثے","إجمالي الخصوم وحقوق الملكية":"کل واجبات اور ایکویٹی","صافي نتيجة الفترة (غير مُقفلة)":"مدت کا نتیجہ (غیر بند)"});
 Object.assign(I18N.en,{"أساس السعر (ضريبة)":"Price basis (VAT)","شامل الضريبة":"VAT inclusive","غير شامل — تُضاف":"Exclusive — VAT added","بدون ضريبة":"No VAT","🧮 تسوية المخزون في الدفاتر":"🧮 Inventory reconciliation in the books","🧮 سوِّ المخزون الآن":"🧮 Reconcile inventory now","📅 رحّل استحقاق الشهر":"📅 Post this month's accrual","💸 صرف المكافأة":"💸 Pay end-of-service","رصيد المخصص المتراكم (كل الموظفين)":"Accrued provision balance (all employees)","المجموع قبل الضريبة":"Subtotal before VAT"});
@@ -4194,7 +4219,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.10-C";
+const KS_VER="v12.11-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4509,6 +4534,15 @@ function ksStoreWarn(){
                     : "⚠️ مساحة الجهاز "+u.pct+"% — يُنصح بإقفال سنة قديمة");
   }catch(e){}
 }
+function ctrlUI(){
+  const c=document.getElementById("ctrlChk"); if(c) c.checked=ctrlMode();
+  const el=document.getElementById("ctrlPend"); if(!el) return;
+  if(!ctrlMode()){ el.textContent=""; return; }
+  const s2=apvPendingSummary();
+  el.innerHTML = s2.n
+    ? "⏳ <b>بانتظار اعتمادك: "+s2.n+" إدخالاً بقيمة "+fmtSR(s2.amt)+"</b> — من الحسابات ← اعتماد الإدخالات"
+    : "✅ لا يوجد ما ينتظر الاعتماد";
+}
 function ksSharedUI(){
   const card=document.getElementById("shDevCard"); if(card) card.style.display=ksSharedDev()?"":"none";
   const mine=document.getElementById("shDevMine");
@@ -4529,6 +4563,13 @@ function ksWipeFarmData(){ /* مسح كامل لأثر المزرعة الساب
 function __persistNow(){
   __saveTimer=null;
   if(__skipPersist) return;
+  /* 🛡️ ختم حالة الاعتماد لأي سجل جديد: مَن له صلاحية الاعتماد يُعتمد سجله تلقائياً، وغيره ينتظر */
+  try{
+    const __st=apvStamp();
+    ["harvests","expenses","purchases","invMoves"].forEach(k=>{
+      (DB[k]||[]).forEach(r=>{ if(r && !r.apv) Object.assign(r, __st); });
+    });
+  }catch(e){}
   if(typeof ksGuardTab==="function" && !ksGuardTab()) return;   /* 🛑 نافذة يتيمة: لا تكتب على بيانات مزرعة أخرى */
   ksStampOwner();
   window.__ksDirty=true; try{ localStorage.setItem("ksPend","1"); }catch(e){} /* تغيّر محلي بانتظار الرفع (ksPend يصمد بعد إعادة التحميل) */
@@ -5227,6 +5268,84 @@ function canSettle(){
 const APV_TYPES={exp:"مصروف",pur:"فاتورة شراء",sale:"بيع",inv:"مخزون"};
 function canApprove(){ if(isOwner()) return true; const p=myPerms(); return !!(p&&p.tabs&&p.tabs.apv===true); }
 function apvState(r){ return (r&&r.apv)||"p"; }
+function ksVoidable(kind, r){
+  /* هل يجب أن يُلغى بقيد عكسي بدل الحذف؟ نعم إن كان الوضع الرقابي مفعّلاً ودخل السجل الدفاتر */
+  try{ return ctrlMode() && r && apvPosted(r) && !r.voided && !r.reversalOf; }catch(e){ return false; }
+}
+function ksVoid(kind, id){
+  /* ❌ إلغاء سجل مالي: يبقى الأصل، ويُنشأ سجل عكسي مؤرَّخ بسبب إلزامي — لا يُمحى شيء من الدفاتر */
+  const coll = kind==="sale"?"harvests" : kind==="exp"?"expenses" : "purchases";
+  const r=(DB[coll]||[]).find(x=>x.id===id); if(!r) return false;
+  if(r.voided){ toast("⚠️ هذا السجل مُلغى أصلاً"); return false; }
+  const why=String(prompt("سبب الإلغاء (إلزامي — يُحفظ في سجل التدقيق):")||"").trim();
+  if(why.length<3){ toast("⚠️ اكتب سبباً واضحاً للإلغاء"); return false; }
+  const who=(CURRENT_USER?CURRENT_USER.name:"المالك"), when=todayStr();
+  const base={id:uid(), date:when, reversalOf:r.id, voidReason:why, employee:who,
+              apv:"a", apvBy:who, apvDate:when};
+  if(kind==="sale"){
+    DB.harvests.push(Object.assign({}, base, {
+      cycleId:r.cycleId||"", section:r.section||"", productName:"❌ إلغاء — "+(r.productName||""),
+      qty:-(+r.qty||0), unit:r.unit||"", price:0,
+      total:-(+r.total||0), taxAmt:(r.taxAmt!=null?-(+r.taxAmt||0):undefined), taxRate:r.taxRate,
+      taxIncl:!!r.taxIncl, fromInvoice:!!r.fromInvoice,
+      livestockSale:!!r.livestockSale, saleType:r.saleType||"", animal:r.animal||"",
+      heads:(r.heads!=null?-(+r.heads||0):undefined),
+      customerId:r.customerId||"", paid:!!r.paid,
+      notes:"إلغاء بيع "+r.date+" — "+why}));
+  } else if(kind==="exp"){
+    DB.expenses.push(Object.assign({}, base, {
+      cat:r.cat, section:r.section||"", cycleId:r.cycleId||"", amount:-(+r.amount||0),
+      notes:"إلغاء مصروف "+r.date+" — "+why}));
+  } else {
+    DB.purchases.push(Object.assign({}, base, {
+      supplierId:r.supplierId||"", cat:r.cat, desc:"❌ إلغاء — "+(r.desc||""),
+      amount:-(+r.amount||0), vat:-(+r.vat||0), total:-pGross(r), qty:0, itemId:"",
+      paid:!!r.paid, notes:"إلغاء فاتورة "+r.date+" — "+why}));
+    /* الكمية تُعاد للواقع: عكس المخزون كما في الحذف العادي */
+    try{ if(r.itemId && (+r.qty||0)>0){ const it=(DB.inventory||[]).find(x=>x.id===r.itemId);
+      if(it){ const q=Math.min(+it.qty||0, +r.qty||0);
+        it.qty=+((+it.qty||0)-q).toFixed(2);
+        DB.invMoves.push({id:uid(), date:when, itemId:it.id, type:"صرف", qty:q, employee:who,
+          apv:"a", notes:"عكس إلغاء فاتورة شراء — "+why}); } } }catch(e){}
+  }
+  r.voided=true; r.voidBy=who; r.voidDate=when; r.voidReason=why;
+  logEdit("❌ إلغاء "+(kind==="sale"?"بيع":kind==="exp"?"مصروف":"فاتورة شراء"),
+    (r.date||"")+" — "+fmt(kind==="exp"?r.amount:(kind==="sale"?r.total:pGross(r)))+" ⃁ — السبب: "+why);
+  save();
+  try{ renderHarvests(); renderExpenses(); renderPurchases(); renderDebts(); renderCustomers(); renderInv(); acctRenderAll(); }catch(e){}
+  toast("❌ أُلغي بقيد عكسي — الأصل محفوظ في الدفاتر");
+  return true;
+}
+/* ══════════ 🛡️ الوضع الرقابي (منع التلاعب) ══════════
+   1) الاعتماد يحكم **الدفاتر فقط** — المخزون والقطيع والديون والفواتير تتأثر فوراً فلا يتعطل التشغيل.
+   2) السجل المالي لا يُحذف بعد دخوله الدفاتر — يُلغى بقيد عكسي مؤرَّخ بسبب إلزامي.
+   3) سجل تدقيق شامل لا يُقصّ ولا يُفرَّغ.
+   مطفأ افتراضياً: المزرعة التي يسجّل فيها المالك وحده لا تحتاجه. */
+function ctrlMode(){ try{ return (DB.settings||{}).ctrlMode===true; }catch(e){ return false; } }
+function ctrlSet(on){
+  DB.settings=DB.settings||{}; DB.settings.ctrlMode=!!on;
+  logEdit(on?"🛡️ تفعيل الوضع الرقابي":"🔓 إيقاف الوضع الرقابي","");
+  save(); try{ ctrlUI(); acctRenderAll(); renderApv(); }catch(e){}
+  toast(on?"🛡️ فُعّل الوضع الرقابي — الدفاتر تعتمد المعتمد فقط":"🔓 أُوقف الوضع الرقابي");
+}
+function apvAuto(){ /* من يسجّل وله صلاحية الاعتماد لا ينتظر أحداً */
+  try{ return !ctrlMode() || (typeof canApprove==="function" && canApprove()); }catch(e){ return true; }
+}
+function apvStamp(){ return apvAuto() ? {apv:"a", apvBy:(CURRENT_USER?CURRENT_USER.name:"المالك"), apvDate:today()} : {apv:"p"}; }
+function apvPosted(r){
+  /* هل يدخل هذا السجل الدفاتر؟ خارج الوضع الرقابي: كل شيء. داخله: المعتمد فقط (والسجلات القديمة معتمدة بالترحيل) */
+  if(!ctrlMode()) return true;
+  const st=(r&&r.apv)||"a";
+  return st==="a";
+}
+function apvPendingSummary(){
+  const out={n:0, amt:0};
+  if(!ctrlMode()) return out;
+  const add=(arr,val)=>(arr||[]).forEach(r=>{ if(apvState(r)!=="a"){ out.n++; out.amt+=Math.abs(+val(r)||0); } });
+  add(DB.harvests, r=>hGross(r)); add(DB.expenses, r=>r.amount); add(DB.purchases, r=>pGross(r));
+  out.amt=+out.amt.toFixed(2);
+  return out;
+}
 function apvFind(t,id){
   const arr=t==="exp"?DB.expenses:t==="pur"?DB.purchases:t==="sale"?DB.harvests:DB.invMoves;
   return arr.find(r=>r.id===id);
@@ -7945,7 +8064,10 @@ function pPaidAmt(p){
 }
 function pRemain(p){ return Math.max(0, pGross(p)-pPaidAmt(p)); }
 /* (حُذفت nextInvNo — الترقيم الموحد الوحيد الآن invNextNo عند اعتماد الفاتورة الإلكترونية) */
-function delHarvest(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(confirm("حذف السجل؟")){ const h=DB.harvests.find(x=>x.id===id); const c=DB.cycles.find(x=>x.id===h.cycleId); trashIt("harvests","عملية بيع",`${c?prodName(c.productId):"؟"} ${fmt(h.qty)} كجم — ${h.date}`,h); DB.harvests=DB.harvests.filter(x=>x.id!==id); save(); renderHarvests(); renderCycles(); renderDebts(); } }
+function delHarvest(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
+  { const _r=(DB.harvests||[]).find(x=>x.id===id);
+    if(ksVoidable("sale",_r)){ toast("🛡️ الوضع الرقابي: السجل المالي يُلغى بقيد عكسي لا يُمحى"); ksVoid("sale",id); return; } }
+  if(confirm("حذف السجل؟")){ const h=DB.harvests.find(x=>x.id===id); const c=DB.cycles.find(x=>x.id===h.cycleId); trashIt("harvests","عملية بيع",`${c?prodName(c.productId):"؟"} ${fmt(h.qty)} كجم — ${h.date}`,h); DB.harvests=DB.harvests.filter(x=>x.id!==id); save(); renderHarvests(); renderCycles(); renderDebts(); } }
 function returnHarvest(id){
   /* ↩️ مردود مبيعات: غير المدفوعة تُخفَّض مباشرة (ينخفض الدين)، والمدفوعة تُعكس بسجل استرداد سالب (ينخفض الإيراد والضريبة) */
   if(!canSettle()){ toast("⚠️ ما عندك صلاحية تسجيل المردود"); return; }
@@ -7989,6 +8111,7 @@ function markPaid(id){
   const rem = hRemain(h);
   if(rem>0.005) (h.payments = h.payments||[]).push({date:today(), amt:rem});
   h.paid=true; h.paidDate=today();
+  try{ logEdit("✅ سداد كامل", custName(h.customerId)+" — "+fmt(rem)+" ⃁ ("+(h.date||"")+")"); }catch(e){}
   if(h.invId){ const iv=(DB.invoices||[]).find(x=>x.id===h.invId);
     if(iv&&iv.status!=='paid'&&iv.status!=='draft'){
       const sibs=(DB.harvests||[]).filter(x=>x.invId===iv.id&&!x.creditNote);
@@ -8191,7 +8314,12 @@ function editExpense(id){
   exEmp.value=x.employee||""; exNotes.value=x.notes||"";
   EDIT.expense=id; exBtn.textContent="💾 حفظ التعديل"; markEditing("cardExpense",true);
 }
-function delExpense(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(confirm("حذف المصروف؟")){ const x=DB.expenses.find(r=>r.id===id); trashIt("expenses","مصروف",`${x.cat} ${fmt(x.amount)} ⃁ — ${x.date}`,x); DB.expenses=DB.expenses.filter(r=>r.id!==id); save(); renderExpenses(); } }
+function delExpense(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
+  { const _r=(DB.expenses||[]).find(x=>x.id===id);
+    if(ksVoidable("exp",_r)){ toast("🛡️ الوضع الرقابي: المصروف يُلغى بقيد عكسي لا يُمحى"); ksVoid("exp",id); return; } }
+  if(confirm("حذف المصروف؟")){ const x=DB.expenses.find(r=>r.id===id); trashIt("expenses","مصروف",`${x.cat} ${fmt(x.amount)} ⃁ — ${x.date}`,x);
+    logEdit("🗑️ حذف مصروف",(x.date||"")+" — "+x.cat+" "+fmt(x.amount)+" ⃁");
+    DB.expenses=DB.expenses.filter(r=>r.id!==id); save(); renderExpenses(); } }
 function renderExpenses(){
   const _listE = DB.expenses.filter(x=> inRange(x.date,fExFrom,fExTo)
       && (fExCat.value==="all"||x.cat===fExCat.value)
@@ -8436,6 +8564,8 @@ const SCREENS = [
   ["dash","🔔","الملخص — التنبيهات وملخص اليوم والأهداف","لوحة التحكم ملخص الأعمال اليومية داش بورد",""],
   ["acct","⚖️","ميزان المراجعة","ارصدة الحسابات مدين دائن","tb"],
   ["acct","🏛️","المركز المالي (الميزانية)","الأصول الالتزامات حقوق الملكية","bs"],
+  ["acct","🧮","مطابقة الصندوق والبنك","النقد الفعلي مقابل الدفاتر","recon"],
+  ["acct","🧺","المبيعات حسب الفترة","سجل مبيعات الفترة","sales"],
   ["acct","📒","القيود اليومية وسندات القبض والصرف","قيد يدوي يومية سند","jr"],
   ["acct","📖","دفتر الأستاذ العام","حركة حساب كشف حساب","gl"],
   ["acct","🌳","شجرة الحسابات (دليل الحسابات)","اضافة حساب","coa"],
@@ -8605,7 +8735,12 @@ function logEdit(action, detail){
   DB.editLog = DB.editLog || [];
   DB.editLog.push({id:uid(), date:today(), ts:new Date().toLocaleString("sv").slice(0,16),
     user:CURRENT_USER?CURRENT_USER.name:"المالك", action, detail:detail||""});
-  if(DB.editLog.length>1000) DB.editLog = DB.editLog.slice(-800);
+  /* 🛡️ لا يُقصّ السجل في الوضع الرقابي (القص كان يسمح بإغراقه لطمس حركة) */
+  const __cap = ctrlMode() ? 20000 : 1000;
+  if(DB.editLog.length>__cap){
+    if(ctrlMode()){ try{ toast("⚠️ سجل التدقيق ممتلئ — صدّره واحفظه قبل أن يُقصّ"); }catch(e){} }
+    else DB.editLog = DB.editLog.slice(-800);
+  }
 }
 function _diff(old, rec, map){
   const d=[];
@@ -8639,7 +8774,11 @@ function restoreTrash(id){
   save(); initAll(); renderTrash(); toast("♻️ تمت الاستعادة");
 }
 function emptyTrash(){
-  if(confirm("إفراغ السلة نهائياً؟ ما يمكن التراجع")){ DB.trash=[]; save(); renderTrash(); }
+  if(ctrlMode() && !isOwner()){ toast("🛡️ الوضع الرقابي: إفراغ السلة للمالك فقط"); return; }
+  if(confirm("إفراغ السلة نهائياً؟ ما يمكن التراجع")){
+    const __n=(DB.trash||[]).length;
+    DB.trash=[]; logEdit("🗑️ إفراغ سلة المهملات", __n+" عنصر"); save(); renderTrash();
+  }
 }
 
 /* ====== ملخص اليوم ====== */
@@ -9658,7 +9797,9 @@ function editPurchase(id){
 }
 function delPurchase(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; } 
   const p = DB.purchases.find(x=>x.id===id); if(!p) return;
+  if(ksVoidable("pur",p)){ toast("🛡️ الوضع الرقابي: الفاتورة تُلغى بقيد عكسي لا تُمحى"); ksVoid("pur",id); return; }
   if(confirm("حذف الفاتورة ومصروفها المرتبط؟ (تُعكس الكمية المضافة للمخزون)")){
+    logEdit("🗑️ حذف فاتورة شراء",(p.date||"")+" — "+supName(p.supplierId)+" "+fmt(pGross(p))+" ⃁");
     if(p.itemId && p.qty>0){ const oi=DB.inventory.find(x=>x.id===p.itemId);
       if(oi){ if(oi.qty-p.qty<-0.001){ toast("⚠️ لا يمكن الحذف: صُرف من كمية الفاتورة ("+fmt(oi.qty)+" متبقٍ من "+fmt(p.qty)+") — الرصيد سيصبح سالباً"); return; }
         oi.qty-=p.qty;
@@ -10780,6 +10921,7 @@ function autoEntries(from, to){
   const es = [];
   /* 💵 تحصيلات المبيعات بتواريخها الفعلية (تُقيَّد ولو كان البيع خارج الفترة) */
   DB.harvests.forEach(h=>{
+    if(!apvPosted(h)) return;                 /* 🛡️ غير معتمد ⇒ خارج الدفاتر (لكن المخزون والدين تأثرا فوراً) */
     const g=hGross(h);
     const pays=[];
     (h.payments||[]).forEach(x=>pays.push({date:x.date||h.date, amt:+x.amt||0, acc:x.acc||""}));
@@ -10791,7 +10933,7 @@ function autoEntries(from, to){
         lines:[{a:(x.acc||"1101"), d:x.amt, c:0},{a:"1103", d:0, c:x.amt}]}); });
   });
   DB.harvests.forEach(h=>{
-    if(!inP(h.date)) return;
+    if(!inP(h.date) || !apvPosted(h)) return;
     const c = DB.cycles.find(x=>x.id===h.cycleId);
     /* الإيراد بلا ضريبة، والضريبة التزام على 2103 (كان الإجمالي كله يُقيَّد إيراداً فيتضخم 15%) */
     const __ht=hGross(h), __hx=+h.taxAmt||0, __hnet=+(__ht-__hx).toFixed(2);
@@ -10802,12 +10944,13 @@ function autoEntries(from, to){
   });
   const purExp = new Set(DB.purchases.map(p=>p.expId||""));
   DB.expenses.forEach(x=>{
-    if(!inP(x.date) || purExp.has(x.id)) return;
+    if(!inP(x.date) || purExp.has(x.id) || !apvPosted(x)) return;
     es.push({date:x.date, desc:x.cat+(x.notes?" — "+x.notes:""), auto:true,
       lines:[{a:catAcc(x.cat), d:x.amount, c:0},{a:"1101", d:0, c:x.amount}]});
   });
   /* 💵 سداد الموردين بتواريخه الفعلية */
   DB.purchases.forEach(p=>{
+    if(!apvPosted(p)) return;
     const g=pGross(p);
     const pays=[];
     (p.payments||[]).forEach(x=>pays.push({date:x.date||p.date, amt:+x.amt||0}));
@@ -10819,7 +10962,7 @@ function autoEntries(from, to){
         lines:[{a:"2101", d:x.amt, c:0},{a:"1101", d:0, c:x.amt}]}); });
   });
   DB.purchases.forEach(p=>{
-    if(!inP(p.date)) return;
+    if(!inP(p.date) || !apvPosted(p)) return;
     const _pv2=+p.vat||0, _pg=(p.total!==undefined?+p.total:(+p.amount||0)+_pv2);
     const _ls=[{a:catAcc(p.cat), d:+p.amount||0, c:0}];
     if(_pv2>0) _ls.push({a:"2103", d:_pv2, c:0});
@@ -10838,9 +10981,9 @@ function autoEntries(from, to){
   });
   return es.sort((a,b)=>a.date.localeCompare(b.date));
 }
-const ACCT_TITLES={ov:"🏠 النظرة العامة والتدفق",coa:"🌳 دليل الحسابات",bank:"🏦 البنوك والنقد",jr:"✍️ القيود اليومية",gl:"📖 دفتر الأستاذ",stmt:"👤 كشف حساب عميل",inc:"📅 قائمة الدخل",yr:"🗓️ التقرير السنوي",tb:"⚖️ ميزان المراجعة",bs:"🏛️ المركز المالي",purch:"🚚 المشتريات وفواتيرها",fa:"🏢 الأصول الثابتة",invm:"📦 إدارة المخزون",hr:"💵 مسير الرواتب",tax:"🧾 إقرار الضريبة",perf:"📊 الموازنة والأداء",alloc:"⚙️ توزيع المصاريف المشتركة على الأقسام",adv:"📈 التقارير المتقدمة",prof:"📊 ربحية المنتج",cv:"🤝 العملاء والموردون والذمم",rpt:"📑 التقارير"};
+const ACCT_TITLES={ov:"🏠 النظرة العامة والتدفق",coa:"🌳 دليل الحسابات",bank:"🏦 البنوك والنقد",jr:"✍️ القيود اليومية",gl:"📖 دفتر الأستاذ",stmt:"👤 كشف حساب عميل",inc:"📅 قائمة الدخل",yr:"🗓️ التقرير السنوي",tb:"⚖️ ميزان المراجعة",bs:"🏛️ المركز المالي",purch:"🚚 المشتريات وفواتيرها",fa:"🏢 الأصول الثابتة",invm:"📦 إدارة المخزون",hr:"💵 مسير الرواتب",tax:"🧾 إقرار الضريبة",perf:"📊 الموازنة والأداء",alloc:"⚙️ توزيع المصاريف المشتركة على الأقسام",adv:"📈 التقارير المتقدمة",prof:"📊 ربحية المنتج",cv:"🤝 العملاء والموردون والذمم",rpt:"📑 التقارير",recon:"🧮 مطابقة الصندوق والبنك",sales:"🧺 المبيعات"};
 function acctSec(s){
-  const all = ["ov","coa","bank","jr","gl","stmt","inc","yr","tb","bs","purch","fa","invm","hr","tax","perf","cv","rpt","adv","prof","alloc","apv"];
+  const all = ["ov","coa","bank","jr","gl","stmt","inc","yr","tb","bs","purch","sales","recon","fa","invm","hr","tax","perf","cv","rpt","adv","prof","alloc","apv"];
   all.forEach(k=>{
     const el = document.getElementById("acct_"+k);
     const btn = document.getElementById("sb_"+k);
@@ -10854,6 +10997,8 @@ function acctSec(s){
   if(s==="apv"){ try{ renderApv(); }catch(e){} }
   if(s==="coa"){ try{ renderAccounts(); renderAcctSelects(); }catch(e){} }
   if(s==="purch"){ try{ renderAcPurch(); }catch(e){} }
+  if(s==="sales"){ try{ renderAcSales(); }catch(e){} }
+  if(s==="recon"){ try{ const d=document.getElementById("rcDate"); if(d&&!d.value) d.value=todayStr(); renderRecon(); }catch(e){} }
   if(s==="inc"){ try{ renderIncomeAcct(); }catch(e){} }
   if(s==="alloc"){ try{ renderAllocEditors(); }catch(e){} }
   if(s==="invm"){ try{ imFillUnit(); }catch(e){} }
@@ -10910,7 +11055,7 @@ function acctSecBack(){
 }
 function acctGoHub(){
   window.__acctPrev=null; window.__acctCur=null;
-  ["ov","coa","bank","jr","gl","stmt","inc","yr","tb","bs","purch","fa","invm","hr","tax","perf","cv","rpt","adv","prof","apv"].forEach(k=>{
+  ["ov","coa","bank","jr","gl","stmt","inc","yr","tb","bs","purch","sales","recon","fa","invm","hr","tax","perf","cv","rpt","adv","prof","apv"].forEach(k=>{
     const el=document.getElementById("acct_"+k); if(el) el.style.display="none";
   });
   const bb=document.getElementById("acctBackBar"); if(bb) bb.style.display="none";
@@ -11039,6 +11184,49 @@ function acctBalances(from, to){
   const bal = {};
   autoEntries(from, to).forEach(e=>e.lines.forEach(l=>{ const b=bal[l.a]=bal[l.a]||{d:0,c:0}; b.d+=l.d; b.c+=l.c; }));
   return bal;
+}
+function reconBook(){
+  const bal=acctBalances("", (document.getElementById("rcDate")||{}).value||"");
+  const n=c=>{ const b=bal[c]||{d:0,c:0}; return +(b.d-b.c).toFixed(2); };
+  return {cash:n("1101"), bank:n("1102")};
+}
+function renderRecon(){
+  const live=document.getElementById("rcLive");
+  if(live){
+    const b=reconBook();
+    const ac=+((document.getElementById("rcCash")||{}).value)||0;
+    const ab=+((document.getElementById("rcBank")||{}).value)||0;
+    const dc=+(ac-b.cash).toFixed(2), db2=+(ab-b.bank).toFixed(2);
+    live.innerHTML="📘 الدفاتر — صندوق: <b>"+fmtSR(b.cash)+"</b> · بنك: <b>"+fmtSR(b.bank)+"</b>"
+      +((ac||ab)?("<br>🔎 الفرق — صندوق: <b style='color:"+(Math.abs(dc)<0.01?"#166534":"#b91c1c")+"'>"+fmtSR(dc)+"</b>"
+        +" · بنك: <b style='color:"+(Math.abs(db2)<0.01?"#166534":"#b91c1c")+"'>"+fmtSR(db2)+"</b>"):"");
+  }
+  const t=document.getElementById("tblRecon"); if(!t) return;
+  const rows=(DB.recons||[]).slice().reverse();
+  t.innerHTML=`<tr><th>التاريخ</th><th>صندوق دفتري</th><th>صندوق فعلي</th><th>فرق</th><th>بنك دفتري</th><th>بنك كشف</th><th>فرق</th><th>بواسطة</th><th>ملاحظات</th></tr>`
+    +(rows.length?rows.map(r=>`<tr><td>${r.date}</td><td>${fmtSR(r.bookCash)}</td><td>${fmtSR(r.cash)}</td>
+      <td class="${Math.abs(r.diffCash)<0.01?'pos':'neg'}">${fmtSR(r.diffCash)}</td>
+      <td>${fmtSR(r.bookBank)}</td><td>${fmtSR(r.bank)}</td>
+      <td class="${Math.abs(r.diffBank)<0.01?'pos':'neg'}">${fmtSR(r.diffBank)}</td>
+      <td>${escH(r.by||"")}</td><td>${escH(r.notes||"")}</td></tr>`).join("")
+      :`<tr><td colspan="9" class="muted">لا مطابقات بعد — اعمل أول مطابقة نهاية هذا الشهر</td></tr>`);
+}
+function saveRecon(){
+  const d=(document.getElementById("rcDate")||{}).value||todayStr();
+  const cash=+((document.getElementById("rcCash")||{}).value);
+  const bank=+((document.getElementById("rcBank")||{}).value);
+  if(!isFinite(cash)&&!isFinite(bank)){ toast("⚠️ أدخل النقد الفعلي أو رصيد البنك"); return; }
+  const b=reconBook();
+  const rec={id:uid(), date:d, bookCash:b.cash, cash:+(cash||0), diffCash:+((cash||0)-b.cash).toFixed(2),
+    bookBank:b.bank, bank:+(bank||0), diffBank:+((bank||0)-b.bank).toFixed(2),
+    by:(CURRENT_USER?CURRENT_USER.name:"المالك"), notes:(document.getElementById("rcNotes")||{}).value||""};
+  if((Math.abs(rec.diffCash)>0.01||Math.abs(rec.diffBank)>0.01) && !rec.notes){
+    if(!confirm("يوجد فرق غير مفسَّر — حفظ المطابقة بلا ملاحظة توضّح السبب؟")) return;
+  }
+  DB.recons=DB.recons||[]; DB.recons.push(rec);
+  logEdit("🧮 مطابقة نقدية", d+" — فرق صندوق "+fmt(rec.diffCash)+" · فرق بنك "+fmt(rec.diffBank)+(rec.notes?" — "+rec.notes:""));
+  save(); renderRecon();
+  toast(Math.abs(rec.diffCash)<0.01&&Math.abs(rec.diffBank)<0.01?"✅ مطابقة سليمة بلا فروقات":"⚠️ سُجّلت المطابقة مع فرق — راجعه");
 }
 function renderBS(){
   /* الميزانية العمومية من أرصدة الحسابات الفعلية حتى تاريخ «إلى» (كانت الشاشة بيضاء بلا أي كود) */
@@ -11361,9 +11549,20 @@ function invBookBal(){ /* رصيد حساب المخزون 1104 دفترياً *
     return +v.toFixed(2);
   }catch(e){ return 0; }
 }
+function ksPendingStockValue(){
+  /* قيمة البضاعة الواصلة بفواتير لم تُعتمد بعد: دخلت المخزون فعلياً ولم يدخل مصروفها الدفاتر */
+  if(!ctrlMode()) return 0;
+  let v=0;
+  (DB.purchases||[]).forEach(p=>{ if(apvState(p)==="a"||p.voided) return;
+    if(!p.itemId||!(+p.qty>0)) return;
+    const it=(DB.inventory||[]).find(x=>x.id===p.itemId);
+    const unit=it?(+it.cost||0):((+p.amount||0)/(+p.qty||1));
+    v+=(+p.qty||0)*unit; });
+  return +v.toFixed(2);
+}
 function ksSyncStock(silent, desc){
-  /* يجعل حساب المخزون 1104 مطابقاً للقيمة الفعلية — يُستدعى يدوياً ومن الجرد */
-  const phys=+((DB.inventory||[]).reduce((s,i)=>s+(+i.qty||0)*(+i.cost||0),0)).toFixed(2);
+  /* يجعل حساب المخزون 1104 مطابقاً للقيمة الفعلية المعتمدة — يُستدعى يدوياً ومن الجرد */
+  const phys=+(((DB.inventory||[]).reduce((s,i)=>s+(+i.qty||0)*(+i.cost||0),0))-ksPendingStockValue()).toFixed(2);
   const book=invBookBal();
   const diff=+(phys-book).toFixed(2);
   if(Math.abs(diff)<0.01) return 0;
@@ -11448,7 +11647,7 @@ function renderCV(){
 function acctRenderAll(){
   try{ renderApv(); }catch(e){}
   [renderAcctSelects,renderAccounts,renderJournals,renderTrial,renderLedger,
-   renderOverview,renderBS,renderBank,renderAcSales,renderAcPurch,
+   renderOverview,renderBS,renderBank,renderRecon,renderAcSales,renderAcPurch,
    renderFA,renderTax,renderHR,renderHrAll,renderInvM,renderPerf,renderCV,renderCustStatement,renderIncomeAcct,renderAnnualAcct,fillPerfGoals,renderBudget,renderReports,renderProfitability
   ].forEach(fn=>{ try{ fn(); }catch(e){ console.warn("acct render:", fn.name, e.message); } });
 }
@@ -12179,6 +12378,7 @@ function payHarvest(id){
   if(!amt || amt<=0) return;
   DB.payments = DB.payments||[];
   DB.payments.push({id:uid(), date:today(), custId:h.customerId||"", harvestId:id, amount:Math.min(amt,remain)});
+  logEdit("💵 تحصيل دفعة", custName(h.customerId)+" — "+fmt(Math.min(amt,remain))+" ⃁");
   if(hRemain(h)<=0.005){ h.paid=true; h.paidDate=today(); }
   save(); renderHarvests(); renderCustomers(); try{renderDebts();}catch(e){} toast("✅ تم تسجيل الدفعة — المتبقي "+fmtSR(hRemain(h)));
 }
@@ -12190,6 +12390,7 @@ function payPurchase(id){
   if(!amt || amt<=0) return;
   DB.supPayments = DB.supPayments||[];
   DB.supPayments.push({id:uid(), date:today(), supId:p.supplierId||"", purchaseId:id, amount:Math.min(amt,remain)});
+  logEdit("💵 دفعة لمورد", supName(p.supplierId)+" — "+fmt(Math.min(amt,remain))+" ⃁");
   if(pRemain(p)<=0.005){ p.paid=true; p.paidDate=today(); }   /* اكتمل السداد ⇒ لم تعد آجلة */
   save(); renderPurchases(); renderSuppliers(); toast("✅ تم تسجيل الدفعة للمورد");
 }
@@ -12835,7 +13036,7 @@ function stView(k){
     if(k==="company"){ try{ fillCompanyInfo(); }catch(e){} }
     if(k==="perms"){ try{ permFillSelect(); }catch(e){} }
     if(k==="log"){ try{ empMovesInit(); }catch(e){} }
-    if(k==="backup"){ try{ cloudStatusUI(); }catch(e){} try{ ksStoreUI(); }catch(e){} }
+    if(k==="backup"){ try{ cloudStatusUI(); }catch(e){} try{ ksStoreUI(); }catch(e){} try{ ctrlUI(); }catch(e){} }
   }
   try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(e){}
 }

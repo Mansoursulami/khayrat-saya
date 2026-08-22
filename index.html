@@ -4273,7 +4273,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.18-A";
+const KS_VER="v12.19-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -14298,6 +14298,22 @@ function eosWage(em){
   if(!em) return 0;
   return (+em.salary||0) + (+em.allowHouse||0) + (+em.allowTrans||0);
 }
+function ksServiceYears(startISO, endISO){
+  /* 📅 مدة الخدمة بالتقويم لا بسنة متوسطة 365.25:
+     من 2020-03-01 إلى 2026-03-01 هي **ست سنوات بالضبط**، لكن القسمة على 365.25 كانت تعطي
+     5.9986 ⇒ تُعرض «5 سنة و11 شهر» في يوم الذكرى السادسة، وتُحسب المكافأة 26,239.73
+     بدل 26,250 — نقص منهجي في حق الموظف ورقم يبدو خاطئاً لعين صاحبه. */
+  try{
+    const s=new Date(String(startISO)+"T00:00:00"), e=new Date(String(endISO||todayStr())+"T00:00:00");
+    if(isNaN(s)||isNaN(e)||e<s) return 0;
+    let y=e.getFullYear()-s.getFullYear();
+    const anniv=new Date(s); anniv.setFullYear(s.getFullYear()+y);
+    if(anniv>e){ y--; anniv.setFullYear(anniv.getFullYear()-1); }
+    const next=new Date(anniv); next.setFullYear(anniv.getFullYear()+1);
+    const span=(next-anniv)||1;
+    return y+((e-anniv)/span);
+  }catch(err){ return 0; }
+}
 function eosUnclassified(){
   /* موظفون عليهم بدلات قديمة برقم واحد لم تُصنَّف بعد — تنبيه لا يخمّن نيابةً عن المالك */
   return (DB.employees||[]).filter(e=>!e.allowSplit && (+e.allowances||0)>0);
@@ -14309,7 +14325,7 @@ function eosMonthlyAccrual(em, atISO){
   /* تاريخ غير ISO (من استيراد CSV مثلاً) كان يعطي yrs=NaN فيفشل شرط <5 ⇒ استحقاق مضاعف صامت */
   if(!/^\d{4}-\d{2}-\d{2}$/.test(String(start))) return 0;
   const at=new Date((atISO||today())+"T00:00:00");
-  const yrs=Math.max(0,(at-new Date(start+"T00:00:00"))/(365.25*864e5));
+  const yrs=Math.max(0, ksServiceYears(start, (atISO||today())));
   if(!isFinite(yrs)) return 0;
   /* الأجر الأخير في م.84 يشمل البدلات المنتظمة لا الأساسي وحده */
   const sal=eosWage(em); if(sal<=0) return 0;
@@ -14376,7 +14392,7 @@ function calcEos(){
   if(__raw<0){ toast("⛔ تاريخ انتهاء الخدمة ("+end+") قبل تاريخ المباشرة ("+start+") — صحّح التاريخين"); return; }
   if(end>today()){ if(!confirm("⚠️ تاريخ انتهاء الخدمة ("+end+") في المستقبل — احتساب مدة لم تُخدم بعد. متابعة؟")) return; }
   const days=__raw;
-  const years=days/365.25;
+  const years=ksServiceYears(start, end);
   if(eosWage(em)<=0){ toast("⚠️ لا راتب مسجَّل لهذا الموظف — سجّله في ملفه أولاً"); return; }
   const salary=eosWage(em);   /* الأساسي + السكن + المواصلات (قرار المالك) */
   const reason=document.getElementById("eosReason")?.value||"";

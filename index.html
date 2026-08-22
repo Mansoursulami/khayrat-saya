@@ -4279,7 +4279,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.14-A";
+const KS_VER="v12.14-B";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4543,7 +4543,8 @@ function ksFreeze(kind){
     document.body.appendChild(d);
   }catch(e){}
 }
-function ksGuardTab(){ if(ksTabDrift()){ ksFreeze(); return false; } return !window.__ksFrozen; }
+/* ✅ true = هذه النافذة مسموح لها الكتابة/الرفع (تُستدعى منفيةً). */
+function ksTabAllowed(){ if(ksTabDrift()){ ksFreeze(); return false; } return !window.__ksFrozen; }
 /* ── سلامة البيانات: لا يُمسح شيء لم يصل السحابة ── */
 function ksIsDirty(){
   try{
@@ -4630,7 +4631,7 @@ function __persistNow(){
       (DB[k]||[]).forEach(r=>{ if(r && !r.apv) Object.assign(r, __st); });
     });
   }catch(e){}
-  if(typeof ksGuardTab==="function" && !ksGuardTab()) return;   /* 🛑 نافذة يتيمة: لا تكتب على بيانات مزرعة أخرى */
+  if(typeof ksTabAllowed==="function" && !ksTabAllowed()) return;   /* 🛑 نافذة يتيمة: لا تكتب على بيانات مزرعة أخرى */
   ksStampOwner();
   window.__ksDirty=true; try{ localStorage.setItem("ksPend","1"); }catch(e){} /* تغيّر محلي بانتظار الرفع (ksPend يصمد بعد إعادة التحميل) */
   const json=JSON.stringify(DB);
@@ -4755,7 +4756,7 @@ async function cloudPush(__preAuth, __force){
   if(window.__ksReadOnly && !__force && !__preAuth){ toast("🔒 الاشتراك منتهٍ — وضع قراءة فقط: الرفع معطّل"); return; }
   __cloudTimer=null;
   if(!cloudOn()||__cloudBusy) return;
-  if(typeof ksGuardTab==="function" && !ksGuardTab()) return;   /* 🛑 لا نرفع بهوية مزرعة غير هوية هذه النافذة */
+  if(typeof ksTabAllowed==="function" && !ksTabAllowed()) return;   /* 🛑 لا نرفع بهوية مزرعة غير هوية هذه النافذة */
   try{ if(!__preAuth && sessionStorage.getItem("ksAuthed")!=="1") return; }catch(e){}  /* لا رفع قبل الدخول إلا لرفع البقايا */
   const __fid=cloudFarmId();                                    /* 🔒 تُثبَّت هنا: أي await بعدها قد تُبدّل الجلسة */
   const __ok=()=>(!ksTabDrift() && cloudFarmId()===__fid);
@@ -4837,7 +4838,7 @@ async function cloudPull(silent){
 function ksApplyRow(expectFid, row){
   /* 🛡️ نقطة الكتابة الوحيدة لأي نسخة سحابية: هوية النافذة + هوية الجلسة + معرّف الصف، ثم ختم الملكية */
   try{
-    if(typeof ksGuardTab==="function" && !ksGuardTab()) return false;
+    if(typeof ksTabAllowed==="function" && !ksTabAllowed()) return false;
     const now=cloudFarmId();
     if(!expectFid || expectFid!==now) return false;
     if(row && row.id && String(row.id)!==String(expectFid)) return false;
@@ -5134,7 +5135,10 @@ function ksClosedDate(d){
   /* الفترة المقفلة: أي إدخال بتاريخ داخلها يفسد أرصدة مُرحَّلة لحقوق الملكية */
   try{ const c=(DB.settings||{}).closedThrough||""; return !!(c && d && String(d)<=c); }catch(e){ return false; }
 }
-function ksGuardClosed(d, what){
+/* ✅ الاسم يقول القطبية: ترجع true حين يكون التاريخ **مسموحاً**.
+   الاستعمال الصحيح: نفي الشرط قبل الاستدعاء. الاسم القديم كان يوحي بـ«ممنوع» ويرجع «مسموح»،
+   وأوقع خطأً صامتاً فعلياً عند بناء زر التراجع في v12.14. */
+function ksDateAllowed(d, what){
   if(!ksClosedDate(d)) return true;
   try{ toast("🔒 "+(what||"التاريخ")+" داخل سنة مالية مُقفلة ("+((DB.settings||{}).closedThrough||"")+") — اختر تاريخاً بعدها"); }catch(e){}
   return false;
@@ -5355,7 +5359,8 @@ function apvState(r){
      كان الافتراض هنا «معلّق» فتفتح شاشة الاعتماد على آلاف السجلات الداخلة في الدفاتر أصلاً */
   return (r&&r.apv)||"a";
 }
-function ksGuardVoided(r){
+/* ✅ سؤال لا أمر: ترجع true إذا كان السجل **ملغى فعلاً** (وتعرض السبب) — تُستدعى موجبةً. */
+function ksIsVoidedRec(r){
   /* 🛡️ الضغطة الثانية على 🗑️ كانت تمحو الأصل الملغى وتترك القيد العكسي وحده ⇒ إيراد ناقص بلا سند */
   if(!r||!ctrlMode()) return false;
   if(r.voided){ toast("🛡️ هذا السجل مُلغى بقيد عكسي — لا يُمحى (الدفتر لا يُعدَّل بأثر رجعي)"); return true; }
@@ -8262,7 +8267,7 @@ function pRemain(p){ return Math.max(0, pGross(p)-pPaidAmt(p)); }
 function delHarvest(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
   { const _r=(DB.harvests||[]).find(x=>x.id===id);
     if(ksVoidable("sale",_r)){ toast("🛡️ الوضع الرقابي: السجل المالي يُلغى بقيد عكسي لا يُمحى"); ksVoid("sale",id); return; } }
-  { const _r=(DB.harvests||[]).find(x=>x.id===id); if(ksGuardVoided(_r)) return; }
+  { const _r=(DB.harvests||[]).find(x=>x.id===id); if(ksIsVoidedRec(_r)) return; }
   if(confirm("حذف السجل؟")){ const h=DB.harvests.find(x=>x.id===id); const c=DB.cycles.find(x=>x.id===h.cycleId); trashIt("harvests","عملية بيع",`${hProdName(h)} ${fmt(h.qty)} كجم — ${h.date}`,h); DB.harvests=DB.harvests.filter(x=>x.id!==id); save(); renderHarvests(); renderCycles(); renderDebts(); } }
 function returnHarvest(id){
   /* ↩️ مردود مبيعات: غير المدفوعة تُخفَّض مباشرة (ينخفض الدين)، والمدفوعة تُعكس بسجل استرداد سالب (ينخفض الإيراد والضريبة) */
@@ -8489,7 +8494,7 @@ function viewExpFile(id){
 function addExpense(e){
   e.preventDefault();
   if(!EDIT.expense && !window.__expFiles.ex){ toast("⚠️ أرفق فاتورة المصروف أولاً (إلزامية)"); return; }
-  if(!ksGuardClosed(exDate.value,"تاريخ المصروف")) return;
+  if(!ksDateAllowed(exDate.value,"تاريخ المصروف")) return;
   /* كان الإقرار يفترض ضريبة داخلة 15% على كل مصروف بلا استثناء — بما فيه الرسوم الحكومية غير الخاضعة */
   const __vt=(document.getElementById("exVatable")||{}).value;
   const rec = {date:exDate.value, cat:exCat.value, section:exSection.value, cycleId:exCycle.value||"",
@@ -8525,7 +8530,7 @@ function editExpense(id){
 function delExpense(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
   { const _r=(DB.expenses||[]).find(x=>x.id===id);
     if(ksVoidable("exp",_r)){ toast("🛡️ الوضع الرقابي: المصروف يُلغى بقيد عكسي لا يُمحى"); ksVoid("exp",id); return; } }
-  { const _r=(DB.expenses||[]).find(x=>x.id===id); if(ksGuardVoided(_r)) return; }
+  { const _r=(DB.expenses||[]).find(x=>x.id===id); if(ksIsVoidedRec(_r)) return; }
   if(confirm("حذف المصروف؟")){ const x=DB.expenses.find(r=>r.id===id); trashIt("expenses","مصروف",`${x.cat} ${fmt(x.amount)} ⃁ — ${x.date}`,x);
     logEdit("🗑️ حذف مصروف",(x.date||"")+" — "+x.cat+" "+fmt(x.amount)+" ⃁");
     DB.expenses=DB.expenses.filter(r=>r.id!==id); save(); renderExpenses(); } }
@@ -9115,7 +9120,7 @@ function autoSnap(json){
   }catch(e){}
 }
 function takeSnap(manual){
-  if(typeof ksGuardTab==="function" && !ksGuardTab()) return;
+  if(typeof ksTabAllowed==="function" && !ksTabAllowed()) return;
   try{
     const snaps = getSnaps();
     snaps.push({ts:new Date().toLocaleString("sv").slice(0,16), farm:(typeof cloudFarmId==="function"?cloudFarmId():""), data:JSON.stringify(DB)});
@@ -9126,7 +9131,7 @@ function takeSnap(manual){
   }catch(e){ if(manual) toast("❌ مساحة المتصفح ممتلئة — صدّر نسخة JSON بدلاً"); }
 }
 function restoreSnap(i){
-  if(typeof ksGuardTab==="function" && !ksGuardTab()) return;
+  if(typeof ksTabAllowed==="function" && !ksTabAllowed()) return;
   const snaps = getSnaps(); const s = snaps[i]; if(!s) return;
   if(s.farm && typeof cloudFarmId==="function" && cloudFarmId() && s.farm!==cloudFarmId()){ toast("⛔ اللقطة تخص مزرعة أخرى"); return; }
   if(!confirm("⚠️ استعادة لقطة "+s.ts+"؟\nكل التغييرات بعدها بتنحذف. الأفضل تاخذ لقطة جديدة قبل الاستعادة."))return;
@@ -9139,7 +9144,7 @@ function restoreSnap(i){
     location.reload();
   }catch(e){ __skipPersist=false; toast("❌ فشلت الاستعادة"); }
 }
-function delSnap(i){ if(typeof ksGuardTab==="function" && !ksGuardTab()) return;
+function delSnap(i){ if(typeof ksTabAllowed==="function" && !ksTabAllowed()) return;
   if(!isOwner()){ toast("⚠️ للمالك فقط"); return; } const sn=getSnaps(); const s=sn[i]; if(!s)return;
   if(!confirm("حذف اللقطة "+s.ts+"؟"))return;
   let all=[]; try{ all=JSON.parse(localStorage.getItem("ksFarmSnaps")||"[]"); }catch(e){}
@@ -10044,7 +10049,7 @@ function addPurchase(e){
       if(!confirm("وحدة الفاتورة «"+_u+"» تخالف وحدة الصنف «"+__it0.unit+"».\nسيُحوَّل "+fmt(+puQty.value||0)+" "+_u+" إلى "+fmt((+puQty.value||0)*k1/k2)+" "+__it0.unit+".\nمتابعة؟")) return;
     }
   }
-  if(!ksGuardClosed(puDate.value,"تاريخ الفاتورة")) return;
+  if(!ksDateAllowed(puDate.value,"تاريخ الفاتورة")) return;
   const rec = {date:puDate.value, supplierId:puSupplier.value, cat:puCat.value, desc:puDesc.value,
     itemId:puItem.value||"", unit:document.getElementById("puUnit")?.value||"", qty:puQty.value===""?0:+puQty.value,
     net:+puNet.value||0, discEarned:+puDiscE.value||0, vat:+puVatAmt.value||0,
@@ -10136,7 +10141,7 @@ function editPurchase(id){
 function delPurchase(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; } 
   const p = DB.purchases.find(x=>x.id===id); if(!p) return;
   if(ksVoidable("pur",p)){ toast("🛡️ الوضع الرقابي: الفاتورة تُلغى بقيد عكسي لا تُمحى"); ksVoid("pur",id); return; }
-  if(ksGuardVoided(p)) return;
+  if(ksIsVoidedRec(p)) return;
   if(confirm("حذف الفاتورة ومصروفها المرتبط؟ (تُعكس الكمية المضافة للمخزون)")){
     logEdit("🗑️ حذف فاتورة شراء",(p.date||"")+" — "+supName(p.supplierId)+" "+fmt(pGross(p))+" ⃁");
     const __sq=(p.stockQty!==undefined?+p.stockQty:+p.qty)||0;
@@ -11946,7 +11951,7 @@ function jrCalc(){
 function saveJournal(){
   const jrDate=document.getElementById("jrDate"), jrDesc=document.getElementById("jrDesc");
   if(!jrDate.value || !jrDesc.value.trim()){ toast("⚠️ عبي التاريخ والبيان"); return; }
-  if(!ksGuardClosed(jrDate.value,"تاريخ القيد")) return;
+  if(!ksDateAllowed(jrDate.value,"تاريخ القيد")) return;
   const lines = [];
   let d=0,c=0;
   document.querySelectorAll("#jrLines .jrRow").forEach(r=>{
@@ -12021,7 +12026,7 @@ function saveVoucher(){
   const vCash=document.getElementById("vCash"), vAcc=document.getElementById("vAcc");
   const vAmount=document.getElementById("vAmount"), vType=document.getElementById("vType");
   if(!vDate||!vDate.value||!vDesc||!vDesc.value.trim()||!(+vAmount.value>0)){ toast("⚠️ عبي التاريخ والمبلغ والبيان"); return; }
-  if(!ksGuardClosed(vDate.value,"تاريخ السند")) return;
+  if(!ksDateAllowed(vDate.value,"تاريخ السند")) return;
   if(vCash && vAcc && vCash.value===vAcc.value){ toast("⚠️ لا يمكن أن يكون الطرفان نفس الحساب"); return; }
   const amt = +vAmount.value, receipt = vType.value==="سند قبض";
   const lines = receipt
@@ -12757,7 +12762,7 @@ function legalLocked(){
 async function cloudRegisterLegal(){
   try{
     if(!cloudOn()) return;
-    if(typeof ksGuardTab==="function" && !ksGuardTab()) return;
+    if(typeof ksTabAllowed==="function" && !ksTabAllowed()) return;
     const __fid=cloudFarmId();
     if(!__fid || ksDataOwner()!==__fid) return;   /* 🛡️ لا نسجّل هوية قانونية من بيانات لا تخص هذه المزرعة */
     const t=DB.settings.taxNo||"", c=DB.settings.unifiedNo||"";
@@ -15002,7 +15007,7 @@ function addLvSale(e){
   const g=id=>document.getElementById(id);
   const qty=+g("lvSlQty").value||0, price=+g("lvSlPrice").value||0;
   if(qty<=0){ toast("⚠️ أدخل الكمية"); return; }
-  try{ const _d=(g("lvSlDate")||{}).value; if(_d && !ksGuardClosed(_d,"تاريخ البيع")) return; }catch(e){}
+  try{ const _d=(g("lvSlDate")||{}).value; if(_d && !ksDateAllowed(_d,"تاريخ البيع")) return; }catch(e){}
   const type=g("lvSlType").value, desc=(g("lvSlDesc").value.trim()||type);
   let heads=0;
   if(type==="حيوان"){
@@ -15611,8 +15616,13 @@ function unmarkPayrollPaid(runId,empId){
   const row=(run.rows||[]).find(r=>r.empId===empId); if(!row) return;
   if(row.status!=="مدفوع"){ toast("ℹ️ هذا الصف غير مدفوع أصلاً"); return; }
   if(!canSettle() && !isOwner()){ toast("⚠️ التراجع عن الدفع بصلاحية السداد"); return; }
-  /* ⚠️ ksGuardClosed ترجع true عند السماح (لا عند المنع) — نفس نمط بقية النماذج */
-  if(!ksGuardClosed(row.paidDate||today(),"التراجع عن دفع راتب")) return;
+  /* 🎯 الحارس يجب أن يفحص تاريخ **ما سيُعكس فعلاً** (مصروف الراتب وقيده = آخر يوم في شهر الكشف)،
+     لا تاريخ الضغطة. كشف يونيو 2025 مدفوع اليوم كان يمر لأن paidDate اليوم — ثم يحذف مصروفاً
+     مؤرَّخاً 2025-06-30 داخل سنة مقفلة رُحّلت أرباحها. */
+  const __rm=(run.month||todayStr().slice(0,7));
+  const __rl=new Date(+__rm.slice(0,4), +__rm.slice(5,7), 0);
+  const __rd=`${__rm}-${String(__rl.getDate()).padStart(2,'0')}`;
+  if(!ksDateAllowed(__rd,"التراجع عن دفع راتب "+__rm)) return;
   const advBack=+row.advances||0;
   if(!confirm(`التراجع عن دفع راتب «${row.name}» لشهر ${run.month||""}؟\n\nسيُعكس:\n`
     +`• مصروف الراتب من الدفاتر\n• قيد سداد السلفة${advBack>0?" ("+fmt(advBack)+" ⃁ ترجع لرصيد السلفة)":""}\n`
@@ -16352,7 +16362,7 @@ function saveInvoice(e,asDraft){
   const items = getInvItems();
   if(!items.length){ toast('⚠️ أضف بنداً واحداً على الأقل'); return; }
   /* كان يمكن إصدار فاتورة بتاريخ داخل سنة رُحّلت أرباحها ⇒ أرصدة 3103 خاطئة بصمت */
-  try{ const _d=(document.getElementById('invDate')||{}).value; if(_d && !ksGuardClosed(_d,"تاريخ الفاتورة")) return; }catch(e){}
+  try{ const _d=(document.getElementById('invDate')||{}).value; if(_d && !ksDateAllowed(_d,"تاريخ الفاتورة")) return; }catch(e){}
   /* الحد الائتماني كان يُدخَل ويُعرض ولا يمنع ولا ينبّه ⇒ حقل إعلامي بلا فاعلية */
   try{
     const _cid=(document.getElementById('invCust')||{}).value||"";

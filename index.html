@@ -4272,7 +4272,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.16-A";
+const KS_VER="v12.17-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -6379,6 +6379,10 @@ function natQa2(sel){
     }});
 }
 function fillSelects(){
+  /* 🔽 قائمة «الوحدة *» في نموذج صنف المخزون كانت تُملأ من `renderProducts` وحدها:
+     من يدخل المخزون مباشرة يجد القائمة **فارغة تماماً** فلا يستطيع إضافة صنف إطلاقاً،
+     و`editInvItem` يفقد وحدة الصنف عند التعديل. تُملأ الآن مع كل تعبئة للقوائم. */
+  try{ prUnitFill(); }catch(e){}
   try{
     const _ry=document.getElementById("ryYear");
     if(_ry && !_ry.options.length){
@@ -6992,7 +6996,38 @@ function addSpray(e){
     name:(spName.value==="__other"?(document.getElementById("spNameOther")?.value||"").trim():spName.value), safety:+spSafety.value||0, employee:(spEmp.value.trim()||(CURRENT_USER?CURRENT_USER.name:'')), notes:spNotes.value};
   /* 📦 الكمية والصنف يُخزَّنان على السجل — كانا يعيشان في ملاحظة حركة مخزون فقط فاستحال عكسهما */
   rec.qty=+((document.getElementById("spQty")||{}).value)||0;
-  if(EDIT.spray){ Object.assign(DB.sprays.find(x=>x.id===EDIT.spray), rec); EDIT.spray=null; spBtn.textContent="حفظ الرش"; markEditing("cardSpray",false); }
+  if(EDIT.spray){
+    /* 🛡️ التعديل كان **يبدّل السجل فقط** ولا يمسّ المخزون إطلاقاً — بخلاف تعديل فاتورة
+       الشراء وسجل التغذية اللذين يصحّحان أثرهما. النتيجة: رش 4 لتر ثم تعديله إلى 1 يترك
+       المخزون ناقصاً 4 والسجل يقول 1، وتغيير اسم المبيد يترك الخصم على الصنف الخطأ.
+       الآن: يُعاد المخصوم القديم أولاً، ثم يُخصم الجديد بنفس حراس الإضافة. */
+    const __old=DB.sprays.find(x=>x.id===EDIT.spray);
+    const __oq=+((__old||{}).qty)||0;
+    if(__oq>0){
+      const __oi=(DB.inventory||[]).find(x=>x.id===__old.itemId)
+        || (DB.inventory||[]).find(x=>(x.cat==="مبيدات"||x.cat==="أسمدة")&&(x.name||"").trim()===(__old.name||"").trim());
+      if(__oi){ __oi.qty=+((+__oi.qty||0)+__oq).toFixed(2);
+        DB.invMoves.push({id:uid(), date:rec.date||today(), itemId:__oi.id, type:"إضافة (شراء/توريد)", qty:__oq,
+          employee:(rec.employee||""), notes:"تصحيح تعديل رش (عكس الكمية السابقة)"}); }
+    }
+    delete rec.itemId;
+    const __nq=+rec.qty||0;
+    if(__nq>0){
+      const __ni=(DB.inventory||[]).find(x=>(x.cat==="مبيدات"||x.cat==="أسمدة")&&(x.name||"").trim()===rec.name);
+      if(__ni){
+        if(__nq<=__ni.qty){
+          rec.itemId=__ni.id;
+          __ni.qty=+(__ni.qty-__nq).toFixed(2);
+          DB.invMoves.push({id:uid(), date:rec.date||today(), itemId:__ni.id, type:"صرف", qty:__nq, sprayId:EDIT.spray,
+            employee:(rec.employee||""), notes:"رش (بعد التعديل) — "+(rec.section||"")});
+        } else { rec.qty=0; toast("⚠️ الكمية أكبر من المتوفر ("+__ni.qty+") — حُفظ التعديل بدون خصم"); }
+      } else { rec.qty=0; toast("ℹ️ «"+rec.name+"» غير موجود بالمخزون — حُفظ التعديل بدون خصم"); }
+    }
+    Object.assign(__old, rec);
+    if(rec.itemId===undefined) delete __old.itemId;
+    EDIT.spray=null; spBtn.textContent="حفظ الرش"; markEditing("cardSpray",false);
+    try{ renderInv(); }catch(e){}
+  }
   else{
     const __sid=uid();
     const q=rec.qty;
@@ -7510,6 +7545,7 @@ function editFish(id){
   EDIT.fish=id; fsBtn.textContent="💾 حفظ التعديل"; markEditing("cardFish",true);
 }
 function delFish(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
+  if(!ksOwnRec((DB.fishLogs||[]).find(x=>x.id===id),"هذا السجل")) return;
   if(confirm("حذف السجل؟ (تُعاد كمية العلف للمخزون)")){
     const f=DB.fishLogs.find(x=>x.id===id); if(!f) return;
     /* ↩️ إعادة العلف المخصوم — الإضافة تخصم والتعديل يسوّي، فالحذف يجب أن يعكس */
@@ -8187,7 +8223,8 @@ function startCycle(id){
   c.status="نشطة"; save(); fillSelects(); renderCycles(); toast("🌱 بدأت الدورة — صارت نشطة");
 }
 function endCycle(id){ const c=DB.cycles.find(x=>x.id===id); if(c){ c.status = c.status==="نشطة"?"منتهية":"نشطة"; save(); fillSelects(); renderCycles(); } }
-function delCycle(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; } 
+function delCycle(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
+  if(!ksOwnRec((DB.cycles||[]).find(x=>x.id===id),"هذه الدورة")) return;
   if(!confirm("حذف الدورة وكل إنتاجها؟ (تقدر تستعيدها من سلة المهملات)")) return;
   const c = DB.cycles.find(x=>x.id===id);
   const hs = DB.harvests.filter(x=>x.cycleId===id);
@@ -8260,6 +8297,7 @@ function pPaidAmt(p){
 function pRemain(p){ return Math.max(0, pGross(p)-pPaidAmt(p)); }
 /* (حُذفت nextInvNo — الترقيم الموحد الوحيد الآن invNextNo عند اعتماد الفاتورة الإلكترونية) */
 function delHarvest(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
+  if(!ksOwnRec((DB.harvests||[]).find(x=>x.id===id),"هذه العملية")) return;
   { const _r=(DB.harvests||[]).find(x=>x.id===id);
     if(ksVoidable("sale",_r)){ toast("🛡️ الوضع الرقابي: السجل المالي يُلغى بقيد عكسي لا يُمحى"); ksVoid("sale",id); return; } }
   { const _r=(DB.harvests||[]).find(x=>x.id===id); if(ksIsVoidedRec(_r)) return; }
@@ -8489,6 +8527,7 @@ function viewExpFile(id){
 function addExpense(e){
   e.preventDefault();
   if(!EDIT.expense && !window.__expFiles.ex){ toast("⚠️ أرفق فاتورة المصروف أولاً (إلزامية)"); return; }
+  if(!ksSane(exAmount.value, exDate.value, "مبلغ المصروف")) return;
   if(!ksDateAllowed(exDate.value,"تاريخ المصروف")) return;
   /* كان الإقرار يفترض ضريبة داخلة 15% على كل مصروف بلا استثناء — بما فيه الرسوم الحكومية غير الخاضعة */
   const __vt=(document.getElementById("exVatable")||{}).value;
@@ -8523,6 +8562,7 @@ function editExpense(id){
   EDIT.expense=id; exBtn.textContent="💾 حفظ التعديل"; markEditing("cardExpense",true);
 }
 function delExpense(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
+  if(!ksOwnRec((DB.expenses||[]).find(x=>x.id===id),"هذا المصروف")) return;
   { const _r=(DB.expenses||[]).find(x=>x.id===id);
     if(ksVoidable("exp",_r)){ toast("🛡️ الوضع الرقابي: المصروف يُلغى بقيد عكسي لا يُمحى"); ksVoid("exp",id); return; } }
   { const _r=(DB.expenses||[]).find(x=>x.id===id); if(ksIsVoidedRec(_r)) return; }
@@ -8679,6 +8719,12 @@ function nextItemNo(){
 }
 function editInvItem(id){
   const i = DB.inventory.find(x=>x.id===id); if(!i) return;
+  /* 🛡️ وحدة محذوفة من قائمة الوحدات كانت تختفي من السجل عند أول تعديل (تُحفظ "") */
+  try{ prUnitFill(); }catch(e){}
+  if(i.unit && ![...ivUnit.options].some(o=>o.value===i.unit))
+    ivUnit.insertAdjacentHTML("afterbegin",`<option>${i.unit}</option>`);
+  if(i.cat && ![...ivCat.options].some(o=>o.value===i.cat))
+    ivCat.insertAdjacentHTML("afterbegin",`<option>${i.cat}</option>`);
   ivName.value=i.name; ivCat.value=i.cat; ivUnit.value=i.unit; ivQty.value=i.qty; ivCost.value=i.cost||""; ivExp.value=i.exp||""; ivMin.value=i.min;
   const _ia=document.getElementById("ivAcc"); if(_ia) _ia.value=i.acc||"";
   const _is=document.getElementById("ivSec"); if(_is) _is.value=i.section||"";
@@ -8717,6 +8763,7 @@ function addInvMove(e){
 }
 function invValue(){ return DB.inventory.reduce((s,i)=>s+(i.qty*(i.cost||0)),0); }
 function renderInv(){
+  try{ prUnitFill(); }catch(e){}   /* ضمان امتلاء «الوحدة *» متى فُتحت شاشة المخزون */
   const exp30 = new Date(Date.now()+30*864e5).toISOString().slice(0,10);
   const rows = DB.inventory.map(i=>{
     /* 🔁 قاعدة واحدة للنقص في كل السستم: كمية ≤ حد أدنى مُحدَّد (>0).
@@ -8992,6 +9039,34 @@ function ksNeed(list){
     return (typeof v==="number") ? !(v>0) : !String(v==null?"":v).trim(); }).map(function(x){ return x[1]; });
   if(miss.length){ try{ toast("⚠️ أكمل الحقول المطلوبة: "+miss.join("، ")); }catch(e){} return false; }
   return true;
+}
+/* 🔐 ملكية السجل: كانت تُفحص في **زر الشاشة فقط** (`canDelete(rec.employee)`)، بينما الحارس
+   داخل دوال الحذف يقارن اسم المستخدم بنفسه (`canDelete(CURRENT_USER.name)`) فيمرّ دائماً.
+   فأي مسار يصل للدالة بغير الزر (شاشة ثانية، سجل قديم، استدعاء مباشر) يتخطى الملكية.
+   الآن الفحص داخل الدالة أيضاً — دفاع بطبقتين لا بطبقة واحدة. */
+/* 🔢 حارس المعقولية: القيم التي تمرّ نحوياً وتفسد كل التقارير معنىً.
+   السالب يُمنع (التصحيح يكون بإشعار دائن أو قيد عكسي لا بمبلغ سالب)، والمبلغ الضخم
+   والتاريخ البعيد يُستأذن فيهما — صفر إضافي أو سنة خاطئة يمرّان بلا أي سؤال. */
+function ksSane(amount, dateStr, what){
+  const a=(amount===""||amount===undefined||amount===null)?null:+amount;
+  if(a!==null && !isNaN(a)){
+    if(a<0){ try{ toast("⚠️ "+(what||"المبلغ")+" لا يقبل قيمة سالبة — صحّح بإشعار دائن أو قيد عكسي"); }catch(e){} return false; }
+    if(a>=1e9 && !confirm("⚠️ المبلغ المُدخل "+fmt(a)+" ⃁ — رقم كبير جداً. متأكد أنه صحيح؟")) return false;
+  }
+  if(dateStr){
+    const d=new Date(dateStr);
+    if(!isNaN(d)){
+      const lim=new Date(); lim.setFullYear(lim.getFullYear()+1);
+      if(d>lim && !confirm("⚠️ التاريخ "+dateStr+" أبعد من سنة من اليوم — متأكد؟")) return false;
+    }
+  }
+  return true;
+}
+function ksOwnRec(rec, what){
+  if(!rec || rec.employee===undefined) return true;
+  if(canDelete(rec.employee)) return true;
+  try{ toast("⚠️ ما عندك صلاحية حذف "+(what||"هذا الإدخال")+" — سجّله «"+(rec.employee||"موظف آخر")+"»"); }catch(e){}
+  return false;
 }
 function trashIt(type, label, desc, data){
   DB.trash.push({id:uid(), ts:new Date().toLocaleString("sv").slice(0,16),
@@ -9525,7 +9600,11 @@ function addEmployee(e){
     allowances:(+((document.getElementById("emAllowHouse")||{}).value)||0)
               +(+((document.getElementById("emAllowTrans")||{}).value)||0)
               +(+((document.getElementById("emAllowOther")||{}).value)||0),
-    hireDate:((document.getElementById("emCnStart")||{}).value)||"",   /* أساس مكافأة نهاية الخدمة */
+    /* 🛡️ أساس مكافأة نهاية الخدمة. كان يُؤخذ من خانة «بداية العقد» وحدها: موظف قديم بلا سجل
+       عقد ⇒ الخانة فارغة ⇒ **أول تعديل للراتب يمحو تاريخ المباشرة صامتاً** فتصير مدة الخدمة
+       صفراً وتنهار مخصصات نهاية الخدمة والتصفية. الآن: القديم يُحفظ إن كانت الخانة فارغة. */
+    hireDate:(((document.getElementById("emCnStart")||{}).value)||"")
+             || (EDIT.employee ? (((DB.employees||[]).find(x=>x.id===EDIT.employee)||{}).hireDate||"") : ""),
     phone:emPhone.value, email:emEmail.value.trim(), section:emSection.value};
   if(!rec.phone){ toast("⚠️ رقم الجوال إلزامي"); emPhone.focus(); return; }
   if(!rec.email){ toast("⚠️ البريد الإلكتروني إلزامي"); emEmail.focus(); return; }
@@ -9638,7 +9717,8 @@ function editEmployee(id){
     emAllowSync(); } if(typeof emSection!=="undefined"&&emSection) emSection.value=em.section||"عام (كل المزرعة)"; emPhone.value=em.phone||""; emEmail.value=em.email||"";
   EM_CONTRACT=null; EM_DOCS={};
   const cn = DB.contracts.find(x=>x.empId===id);
-  emCnStart.value = cn?cn.start:""; emCnEnd.value = (cn&&cn.end)||""; emCnType.value = cn?cn.type:"محدد المدة";
+  /* 🗓️ بلا سجل عقد نعرض تاريخ المباشرة المحفوظ حتى لا يبدو فارغاً ثم يُمحى عند الحفظ */
+  emCnStart.value = (cn&&cn.start) || em.hireDate || ""; emCnEnd.value = (cn&&cn.end)||""; emCnType.value = cn?cn.type:"محدد المدة";
   EDIT.employee=id; emBtn.textContent="💾 حفظ التعديل"; markEditing("cardEmployee",true);
   renderEmDocsList();
 }
@@ -9842,7 +9922,8 @@ function editOrder(id){
   orQty.value=o.qty; orUnit.value=o.unit||"كجم"; orEmp.value=o.employee; orNotes.value=o.notes||"";
   EDIT.order=id; orBtn.textContent="💾 حفظ التعديل"; markEditing("cardOrder",true);
 }
-function delOrder(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; } 
+function delOrder(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
+  if(!ksOwnRec((DB.orders||[]).find(x=>x.id===id),"هذا الطلب")) return;
   if(confirm("حذف الطلب؟")){
     const o = DB.orders.find(x=>x.id===id);
     trashIt("orders","طلب عميل",`${custName(o.customerId)} — ${prodName(o.productId)} (${o.due})`,o);
@@ -9964,6 +10045,10 @@ function addCustomer(e){
   const rec = {name:cuName.value.trim(), phone:cuPhone.value, vatNo:cuVat.value.trim(), unifiedNo:cuUnified.value.trim(), creditLimit:+cuLimit.value||0, payDays:+cuPayDays.value||0,
     street:cuStreet.value.trim(), bldg:cuBldg.value.trim(), addl:cuAddl.value.trim(), city:cuCity.value.trim(),
     region:cuRegion.value.trim(), country:cuCountry.value.trim()||"السعودية", zip:cuZip.value.trim()};
+  /* 🔁 نافذة «عميل جديد» السريعة تمنع التكرار صراحةً، وهذا النموذج لا يفحص شيئاً —
+     قاعدتان مختلفتان لنفس الشيء. عميلان بنفس الاسم = دين مقسوم على سجلين وكشفان ناقصان. */
+  { const __d=(DB.customers||[]).find(x=>x.id!==EDIT.customer && (x.name||"").trim()===rec.name);
+    if(__d && !confirm("⚠️ يوجد عميل بنفس الاسم («"+__d.name+"» — "+(__d.custNo||"بلا رقم")+").\nعميلان بنفس الاسم يقسمان الدين والكشوف بين سجلين.\nمتابعة؟")) return; }
   if(!EDIT.customer) rec.custNo=nextCustNo();
   if(EDIT.customer){ Object.assign(DB.customers.find(x=>x.id===EDIT.customer), rec); EDIT.customer=null; cuBtn.textContent="إضافة العميل"; markEditing("cardCustomer",false); }
   else DB.customers.push({id:uid(), ...rec});
@@ -10070,6 +10155,8 @@ function addSupplier(e){
   const rec = {name:suName.value.trim(), phone:suPhone.value, contact:suContact.value.trim(),
     email:suEmail.value.trim(), bank:suBank.value.trim(), vatNo:suVat.value.trim(),
     curr:"SAR", idType:suIdType.value, idNo:suIdNo.value.trim()};
+  { const __d=(DB.suppliers||[]).find(x=>x.id!==EDIT.supplier && (x.name||"").trim()===rec.name);
+    if(__d && !confirm("⚠️ يوجد مورد بنفس الاسم («"+__d.name+"» — "+(__d.supNo||"بلا رقم")+").\nمتابعة؟")) return; }
   if(EDIT.supplier){ Object.assign(DB.suppliers.find(x=>x.id===EDIT.supplier), rec); EDIT.supplier=null; suBtn.textContent="إضافة المورد"; markEditing("cardSupplier",false); }
   else DB.suppliers.push({id:uid(), supNo:nextSupNo(), ...rec});
   save(); e.target.reset(); fillSelects(); renderSuppliers(); toast("✅ تم الحفظ");
@@ -10113,6 +10200,7 @@ function addPurchase(e){
   /* 🛡️ فاتورة شراء بتاريخ فارغ ومبلغ صفر كانت تُحفظ وتُنشئ **مصروفاً بلا تاريخ**
      يسقط من كل تقارير الفترات ويبقى في الدفاتر */
   if(!ksNeed([[puDate.value,"تاريخ الفاتورة"],[+puNet.value,"المبلغ قبل الضريبة"]])) return;
+  if(!ksSane(puNet.value, puDate.value, "مبلغ الفاتورة")) return;
   if(!ksDateAllowed(puDate.value,"تاريخ الفاتورة")) return;
   const rec = {date:puDate.value, supplierId:puSupplier.value, cat:puCat.value, desc:puDesc.value,
     itemId:puItem.value||"", unit:document.getElementById("puUnit")?.value||"", qty:puQty.value===""?0:+puQty.value,
@@ -10204,6 +10292,7 @@ function editPurchase(id){
 }
 function delPurchase(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; } 
   const p = DB.purchases.find(x=>x.id===id); if(!p) return;
+  if(!ksOwnRec(p,"هذه الفاتورة")) return;
   if(ksVoidable("pur",p)){ toast("🛡️ الوضع الرقابي: الفاتورة تُلغى بقيد عكسي لا تُمحى"); ksVoid("pur",id); return; }
   if(ksIsVoidedRec(p)) return;
   if(confirm("حذف الفاتورة ومصروفها المرتبط؟ (تُعكس الكمية المضافة للمخزون)")){
@@ -10378,6 +10467,8 @@ function addProduct(e){
   e.preventDefault();
   if(!(+prUnitW.value>0)){ toast("⚠️ وزن الوحدة إجباري — للكجم اكتب 1"); return; }
   const rec = {section:(document.getElementById("prSec")?.value||""), name:prName.value.trim(), desc:(document.getElementById("prDesc")?.value||"").trim(), type:prType.value, unit:prUnit.value, unitW:+prUnitW.value, price:+prPrice.value||0};
+  { const __d=(DB.products||[]).find(x=>x.id!==EDIT.product && (x.name||"").trim()===rec.name);
+    if(__d && !confirm("⚠️ يوجد منتج بنفس الاسم («"+__d.name+"»).\nمنتجان بنفس الاسم يشتّتان تقارير الربحية والأسعار.\nمتابعة؟")) return; }
   if(EDIT.product){ Object.assign(DB.products.find(x=>x.id===EDIT.product), rec); EDIT.product=null; prBtn.textContent="إضافة"; markEditing("cardProduct",false); }
   else DB.products.push({id:uid(), prodNo:nextProdNo(), ...rec});
   save(); e.target.reset(); fillSelects(); renderProducts(); toast("✅ تم الحفظ");
@@ -17015,6 +17106,7 @@ function saveDeferred(e){
   if(!ksNeed([[document.getElementById('defParty').value,"الطرف"],
               [+document.getElementById('defAmount').value,"المبلغ"],
               [document.getElementById('defDue').value,"تاريخ الاستحقاق"]])) return;
+  if(!ksSane(document.getElementById('defAmount').value, null, "مبلغ السند")) return;
   const entry={id:uid(), type:document.getElementById('defType').value, party:document.getElementById('defParty').value,
     amount:document.getElementById('defAmount').value, dueDate:document.getElementById('defDue').value,
     harvestId:document.getElementById('defHarvest')?.value||"",

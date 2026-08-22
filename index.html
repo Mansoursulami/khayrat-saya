@@ -4273,7 +4273,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.20-A";
+const KS_VER="v12.21-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -5263,7 +5263,7 @@ function __ksSanDeep(o,depth){ if(depth>8||o==null) return o;
   return o; }
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.style.display="block"; setTimeout(()=>t.style.display="none",2200); }
 function today(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-function prodName(id){ const p=DB.products.find(x=>x.id===id); return p?p.name:"— منتج محذوف —"; }
+function prodName(id){ const p=DB.products.find(x=>x.id===id); return p?ksNm(p.name):"— منتج محذوف —"; }
 function hProdName(h){
   /* اسم صنف البيع: «؟» كانت تظهر لكل بيع بلا دورة (مواشي/أسماك/فواتير) وتجمعها كلها تحت بند واحد بلا معنى في التقارير */
   if(!h) return "—";
@@ -5275,11 +5275,17 @@ function hProdName(h){
   if(h.animalType) return h.animalType;
   return "بيع مباشر";
 }
-function empOpts(sel){ return `<option value="">— اختر موظفاً —</option>`+DB.employees.map(e=>`<option value="${e.id}"${e.id===sel?" selected":""}>${e.name}</option>`).join(""); }
+function empOpts(sel){ return `<option value="">— اختر موظفاً —</option>`+DB.employees.map(e=>`<option value="${e.id}"${e.id===sel?" selected":""}>${ksNm(e.name)}</option>`).join(""); }
+/* 🏷️ اسم آمن: سجل موجود لكن **بلا اسم** (بيانات مستوردة أو من نسخة قديمة) كان يطبع
+   حرفياً «undefined» في القوائم المنسدلة وفي الجداول — نص بلا أي معنى أمام المالك. */
+function ksNm(v, alt){ const t=String(v==null?"":v).trim(); return t || (alt||"— بلا اسم —"); }
+/* 🔤 نص خلية آمن: حقل اختياري غائب (سجل مستورد أو من نسخة قديمة) كان يُطبع حرفياً
+   «undefined» داخل الجداول — نص بلا معنى. الآن يُعرض «—» صراحةً. */
+function ksTxt(v, alt){ const t=String(v==null?"":v).trim(); return t ? escH(t) : (alt||"—"); }
 function custName(id){
   /* ⚠️ «نقدي» كانت تُلبس العميل المحذوف ثوب البيع النقدي فيختفي دينه في سطر لا يُطالَب به */
   if(!id) return "نقدي";
-  const c=DB.customers.find(x=>x.id===id); return c?c.name:"— عميل محذوف —";
+  const c=DB.customers.find(x=>x.id===id); return c?ksNm(c.name):"— عميل محذوف —";
 }
 function inRange(d, from, to){ return (!from.value || d>=from.value) && (!to.value || d<=to.value); }
 function markEditing(cardId, on){ const c=document.getElementById(cardId); if(c) c.classList.toggle("editing", on); if(on){ showCardTab(cardId); c.scrollIntoView({behavior:"smooth"}); } }
@@ -5581,7 +5587,7 @@ function renderApv(){
   if(bP) bP.className="btn small"+(tab==="p"?"":" secondary");
   if(bR) bR.className="btn small"+(tab==="rej"?"":" secondary");
   if(tab==="rej"){
-    const rows=(DB.rejects||[]).slice().reverse().map(R=>`<tr><td>${R.date}</td><td>${APV_TYPES[R.t]||R.t}</td><td>${R.desc}</td><td>${R.emp||"—"}</td><td>${R.by}</td><td>${R.reason}</td><td><button class="btn small secondary" onclick="apvRestore('${R.id}')">↩️ استعادة</button></td></tr>`).join("");
+    const rows=(DB.rejects||[]).slice().reverse().map(R=>`<tr><td>${ksTxt(R.date)}</td><td>${APV_TYPES[R.t]||R.t}</td><td>${ksTxt(R.desc)}</td><td>${R.emp||"—"}</td><td>${R.by}</td><td>${ksTxt(R.reason)}</td><td><button class="btn small secondary" onclick="apvRestore('${R.id}')">↩️ استعادة</button></td></tr>`).join("");
     tbl.innerHTML=`<tr><th>التاريخ</th><th>النوع</th><th>البيان</th><th>المنشئ</th><th>رفضه</th><th>السبب</th><th></th></tr>`+(rows||`<tr><td colspan="7" class="muted">لا مرفوضات 🎉</td></tr>`);
     return;
   }
@@ -5619,12 +5625,12 @@ function buildNotifications(){
   // دورات متأخرة (تجاوزت تاريخ الحصاد)
   DB.cycles.filter(c=>c.status==="نشطة" && c.harvestDate && c.harvestDate < d).forEach(c=>{
     const days = Math.round((new Date(d)-new Date(c.harvestDate))/(86400000));
-    alerts.push({level:"urgent", ico:"🌾", title:"دورة متأخرة عن الحصاد", sub:`${prodName(c.productId)} — ${c.section} (${days} يوم تأخير)`, tab:"cycles"});
+    alerts.push({level:"urgent", ico:"🌾", title:"دورة متأخرة عن الحصاد", sub:`${prodName(c.productId)} — ${ksTxt(c.section)} (${days} يوم تأخير)`, tab:"cycles"});
   });
   // دورات تقترب من الحصاد (خلال 7 أيام)
   DB.cycles.filter(c=>c.status==="نشطة" && c.harvestDate && c.harvestDate >= d).forEach(c=>{
     const days = Math.round((new Date(c.harvestDate)-new Date(d))/(86400000));
-    if(days <= 7) alerts.push({level:"warn", ico:"⏳", title:"اقتراب موعد الحصاد", sub:`${prodName(c.productId)} — ${c.section} (بعد ${days} أيام)`, tab:"cycles"});
+    if(days <= 7) alerts.push({level:"warn", ico:"⏳", title:"اقتراب موعد الحصاد", sub:`${prodName(c.productId)} — ${ksTxt(c.section)} (بعد ${days} أيام)`, tab:"cycles"});
   });
   // رواتب لم تُصرف هذا الشهر
   if(isOwner()){
@@ -5642,9 +5648,9 @@ function buildNotifications(){
   // طلبات شراء بانتظار الاعتماد (حسب دور المستخدم)
   (DB.purchaseRequests||[]).forEach(r=>{
     if(r.status==="قيد الانتظار" && (isOwner()||canTab("acct")))
-      alerts.push({level:"warn", ico:"🛒", title:"طلب شراء بانتظار الاعتماد الأولي", sub:`${r.item} — ${r.section||"عام"}`, tab:"purchasereq"});
+      alerts.push({level:"warn", ico:"🛒", title:"طلب شراء بانتظار الاعتماد الأولي", sub:`${ksTxt(r.item)} — ${r.section||"عام"}`, tab:"purchasereq"});
     if(r.status==="اعتماد أولي" && isOwner())
-      alerts.push({level:"warn", ico:"🛒", title:"طلب شراء بانتظار اعتمادك النهائي", sub:`${r.item} — ${r.section||"عام"}`, tab:"purchasereq"});
+      alerts.push({level:"warn", ico:"🛒", title:"طلب شراء بانتظار اعتمادك النهائي", sub:`${ksTxt(r.item)} — ${r.section||"عام"}`, tab:"purchasereq"});
   });
   // مخزون منخفض
   /* minStock لا يُكتب في أي مكان — الحقول الفعلية min/minQty ⇒ الجرس لم يُنبّه على نقص ولا مرة */
@@ -5871,7 +5877,7 @@ function renderDashExtras(){
     if(act.length){
       sb.style.display="block";
       sb.innerHTML=`<div class="safetyBand"><span class="sbIco">⛔</span><b>فترات أمان نشطة — ممنوع الحصاد:</b> `+
-        act.map(s=>`<span class="sbItem">🧪 ${s.section} — حتى ${sprayEnd(s)}</span>`).join("")+`</div>`;
+        act.map(s=>`<span class="sbItem">🧪 ${ksTxt(s.section)} — حتى ${sprayEnd(s)}</span>`).join("")+`</div>`;
     } else { sb.style.display="none"; sb.innerHTML=""; }
   }
   // الصف المصغر: نبض الفريق / الذمم / رواتب الشهر / أداء الأقسام
@@ -6408,11 +6414,11 @@ function fillSelects(){
   if(_ps){ const _pv2=_ps.value; _ps.innerHTML='<option value="">عام (كل الأقسام)</option>'+SECTIONS.map(s=>`<option>${s}</option>`).join(""); if(_pv2)_ps.value=_pv2; }
   fillCyProducts();
   mvItem.innerHTML = (DB.inventory.length
-    ? DB.inventory.map(i=>`<option value="${i.id}">${i.name} (متوفر ${fmt(i.qty)} ${i.unit})</option>`).join("")
+    ? DB.inventory.map(i=>`<option value="${i.id}">${ksNm(i.name)} (متوفر ${fmt(i.qty)} ${ksTxt(i.unit)})</option>`).join("")
     : `<option value="">— لا أصناف بعد —</option>`)+'<option value="__new">➕ صنف جديد…</option>';
   qaHook(mvItem,el=>qaSelNew(el,"invItem"));
   empList.innerHTML = DB.employees.map(e=>`<option value="${e.name}">`).join("");
-  const tnkOpts = DB.tanks.map(t=>`<option>${t.name}</option>`).join("");
+  const tnkOpts = DB.tanks.map(t=>`<option>${ksNm(t.name)}</option>`).join("");
   const wtSel = wtTank.value, fsSel = fsTank.value;
   const _tnkNew='<option value="__new">➕ حوض جديد…</option>';
   wtTank.innerHTML = (tnkOpts||`<option value="">— لا أحواض بعد —</option>`)+_tnkNew;
@@ -6425,13 +6431,13 @@ function fillSelects(){
   if([...fsTank.options].some(o=>o.value===fsSel)) fsTank.value=fsSel;
   updateMealOpts();
   fsInv.innerHTML = `<option value="">— بدون خصم من المخزون —</option>`
-    + DB.inventory.filter(i=>i.cat==="أعلاف").map(i=>`<option value="${i.id}">${i.name} (متوفر ${fmt(i.qty)} ${i.unit})</option>`).join("");
+    + DB.inventory.filter(i=>i.cat==="أعلاف").map(i=>`<option value="${i.id}">${ksNm(i.name)} (متوفر ${fmt(i.qty)} ${ksTxt(i.unit)})</option>`).join("");
   try{ updateFeedInvVisibility(); }catch(e){}
   const anSel = anProd.value;
-  anProd.innerHTML = DB.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join("");
+  anProd.innerHTML = DB.products.map(p=>`<option value="${p.id}">${ksNm(p.name)}</option>`).join("");
   if([...anProd.options].some(o=>o.value===anSel)) anProd.value=anSel;
   puSupplier.innerHTML = (DB.suppliers.length
-    ? DB.suppliers.map(s=>`<option value="${s.id}">${s.name}</option>`).join("")
+    ? DB.suppliers.map(s=>`<option value="${s.id}">${ksNm(s.name)}</option>`).join("")
     : `<option value="">— لا موردون بعد —</option>`)+'<option value="__new">➕ مورد جديد…</option>';
   qaHook(puSupplier,el=>qaSelNew(el,"supplier"));
   { const _iva=document.getElementById("ivAcc");
@@ -6440,38 +6446,38 @@ function fillSelects(){
     if(_ivs){ const _v2=_ivs.value; _ivs.innerHTML='<option value="">عام (كل المزرعة)</option>'+SECTIONS.map(s=>`<option>${s}</option>`).join(""); if(_v2) _ivs.value=_v2; } }
   const _asC=document.getElementById("asCustomer");
   if(_asC){ const _v=_asC.value;
-    _asC.innerHTML='<option value="">🚶 عميل نقدي (بدون بيانات)</option>'+DB.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join("")+'<option value="__new">➕ عميل جديد…</option>';
+    _asC.innerHTML='<option value="">🚶 عميل نقدي (بدون بيانات)</option>'+DB.customers.map(c=>`<option value="${c.id}">${ksNm(c.name)}</option>`).join("")+'<option value="__new">➕ عميل جديد…</option>';
     if(_v&&_v!=="__new") _asC.value=_v; qaHook(_asC,el=>custSelNew(el)); }
   const _apS=document.getElementById("apSupplier");
   if(_apS){ const _v2=_apS.value;
-    _apS.innerHTML=(DB.suppliers.length?DB.suppliers.map(x=>`<option value="${x.id}">${x.name}</option>`).join(""):`<option value="">— لا موردون بعد —</option>`)+'<option value="__new">➕ مورد جديد…</option>';
+    _apS.innerHTML=(DB.suppliers.length?DB.suppliers.map(x=>`<option value="${x.id}">${ksNm(x.name)}</option>`).join(""):`<option value="">— لا موردون بعد —</option>`)+'<option value="__new">➕ مورد جديد…</option>';
     if(_v2&&_v2!=="__new") _apS.value=_v2; qaHook(_apS,el=>qaSelNew(el,"supplier")); }
   ivCat.innerHTML = invCatsList().map(c=>`<option>${c}</option>`).join("")+'<option value="__new">➕ تصنيف جديد…</option>';
   puCat.innerHTML = expCatsList().map(c=>`<option>${c}</option>`).join("")+'<option value="__new">➕ بند جديد…</option>';
   qaHook(puCat,el=>qaSelNew(el,"expCat"));
   puItem.innerHTML = `<option value="">— بدون إضافة للمخزون —</option>`
-    + DB.inventory.map(i=>`<option value="${i.id}">${i.name} (${i.unit})</option>`).join("")
+    + DB.inventory.map(i=>`<option value="${i.id}">${i.name} (${ksTxt(i.unit)})</option>`).join("")
     + '<option value="__new">➕ صنف جديد…</option>';
   qaHook(puItem,el=>qaSelNew(el,"invItem"));
   puFillUnit(); imFillUnit();
   exCycle.innerHTML = `<option value="">— بدون ربط —</option>`
-    + DB.cycles.filter(c=>c.status==="نشطة").map(c=>`<option value="${c.id}">${prodName(c.productId)} — ${c.section}</option>`).join("");
-  const tnkOpts2 = DB.tanks.map(t=>`<option>${t.name}</option>`).join("");
+    + DB.cycles.filter(c=>c.status==="نشطة").map(c=>`<option value="${c.id}">${prodName(c.productId)} — ${ksTxt(c.section)}</option>`).join("");
+  const tnkOpts2 = DB.tanks.map(t=>`<option>${ksNm(t.name)}</option>`).join("");
   trFrom.innerHTML = tnkOpts2 || `<option value="">لا أحواض</option>`;
   trTo.innerHTML = tnkOpts2 || `<option value="">لا أحواض</option>`;
   spSection.innerHTML = SECTIONS.map(s=>`<option>${s}</option>`).join("");
   eqSection.innerHTML = `<option>عام (كل المزرعة)</option>`+SECTIONS.map(s=>`<option>${s}</option>`).join("");
   const plSel = plProduct.value;
-  plProduct.innerHTML = DB.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join("");
+  plProduct.innerHTML = DB.products.map(p=>`<option value="${p.id}">${ksNm(p.name)}</option>`).join("");
   if([...plProduct.options].some(o=>o.value===plSel)) plProduct.value=plSel;
   orCustomer.innerHTML = (DB.customers.length
-    ? DB.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join("")
+    ? DB.customers.map(c=>`<option value="${c.id}">${ksNm(c.name)}</option>`).join("")
     : `<option value="">— لا عملاء بعد —</option>`)+'<option value="__new">➕ عميل جديد…</option>';
   qaHook(orCustomer,el=>custSelNew(el));
-  orProduct.innerHTML = DB.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join("")+'<option value="__new">➕ منتج جديد…</option>';
+  orProduct.innerHTML = DB.products.map(p=>`<option value="${p.id}">${ksNm(p.name)}</option>`).join("")+'<option value="__new">➕ منتج جديد…</option>';
   qaHook(orProduct,el=>prodSelNewById(el));
   spCycle.innerHTML = `<option value="">— بدون ربط —</option>`
-    + DB.cycles.filter(c=>c.status==="نشطة").map(c=>`<option value="${c.id}">${prodName(c.productId)} — ${c.section}</option>`).join("");
+    + DB.cycles.filter(c=>c.status==="نشطة").map(c=>`<option value="${c.id}">${prodName(c.productId)} — ${ksTxt(c.section)}</option>`).join("");
   recCat.innerHTML = expCatsList().map(c=>`<option>${c}</option>`).join("")+'<option value="__new">➕ بند جديد…</option>';
   qaHook(recCat,el=>{
     if(el.value==="__new"){ qaSelNew(el,"expCat"); return; }
@@ -6516,7 +6522,7 @@ function renderAssigns(){
     tblAssigns.innerHTML = `<tr><th>المهمة</th><th>الموظف</th><th>القسم</th><th>الموعد</th><th>الأولوية</th><th>الحالة</th><th></th></tr>`
       + (list.slice(0,50).map(a=>{
         const late = a.status==="معلقة" && a.due<today();
-        return `<tr><td><b>${a.desc}</b></td><td>${empName2(a.empId)}</td><td>${a.section||"—"}</td>
+        return `<tr><td><b>${ksTxt(a.desc)}</b></td><td>${empName2(a.empId)}</td><td>${a.section||"—"}</td>
           <td class="${late?"neg":""}">${a.due}${late?" ⚠️":""}</td>
           <td>${a.pr==="عاجلة"?'<span class="badge danger">عاجلة</span>':"عادية"}</td>
           <td>${a.status==="منجزة"?`<span class="badge active">منجزة ${a.doneDate||""}</span>`:late?'<span class="badge danger">متأخرة</span>':'<span class="badge warn">معلقة</span>'}</td>
@@ -6536,7 +6542,7 @@ function renderMyTasks(){
   const rows = [...pending, ...done].map(a=>{
     const late = a.status==="معلقة" && a.due<today();
     return `<tr>
-      <td><b>${a.desc}</b></td>
+      <td><b>${ksTxt(a.desc)}</b></td>
       <td>${a.section||"—"}</td>
       <td class="${late?"neg":""}">${a.due}${late?" ⚠️":""}</td>
       <td>${a.pr==="عاجلة"?'<span class="badge danger">عاجلة</span>':"عادية"}</td>
@@ -6891,11 +6897,11 @@ function addTask(e){
 function editTask(id){
   const t = DB.tasks.find(x=>x.id===id); if(!t) return;
   tkDate.value=t.date; tkSection.value=t.section;
-  if(t.type && tkType && ![...tkType.options].some(o=>o.value===t.type)) tkType.insertAdjacentHTML("beforeend", `<option>${t.type}</option>`);
+  if(t.type && tkType && ![...tkType.options].some(o=>o.value===t.type)) tkType.insertAdjacentHTML("beforeend", `<option>${ksTxt(t.type)}</option>`);
   tkType.value=t.type; tkDesc.value=t.desc||""; tkEmp.value=t.employee;
   EDIT.task=id; tkBtn.textContent="💾 حفظ التعديل"; markEditing("cardTask",true);
 }
-function delTask(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(confirm("حذف السجل؟")){ const t=DB.tasks.find(x=>x.id===id); trashIt("tasks","عمل يومي",`${t.type} — ${t.date}`,t); DB.tasks=DB.tasks.filter(x=>x.id!==id); save(); renderTasks(); } }
+function delTask(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(confirm("حذف السجل؟")){ const t=DB.tasks.find(x=>x.id===id); trashIt("tasks","عمل يومي",`${ksTxt(t.type)} — ${t.date}`,t); DB.tasks=DB.tasks.filter(x=>x.id!==id); save(); renderTasks(); } }
 function renderTasks(){
   try{
     const w8=document.getElementById("fTkSecWrap");
@@ -6906,7 +6912,7 @@ function renderTasks(){
       && (fTkSec.value==="all"||t.section===fTkSec.value)
       && (!fTkEmp.value||t.employee.includes(fTkEmp.value.trim())))
     .slice().reverse().slice(0,200).map(t=>
-    `<tr><td>${t.date}</td><td><b>${t.type}</b></td><td>${t.section}</td><td>${t.desc||""}</td><td>${t.employee}</td>
+    `<tr><td>${ksTxt(t.date)}</td><td><b>${ksTxt(t.type)}</b></td><td>${ksTxt(t.section)}</td><td>${t.desc||""}</td><td>${ksTxt(t.employee)}</td>
      <td>${canEdit(t.employee)?`<button class="edt" onclick="editTask('${t.id}')">✏️</button>`:""}${canDelete(t.employee)?`<button class="del" onclick="delTask('${t.id}')">🗑️</button>`:""}</td></tr>`).join("");
   tblTasks.innerHTML = `<tr><th>التاريخ</th><th>العمل</th><th>القسم</th><th>التفاصيل</th><th>الموظف</th><th></th></tr>`
     + (rows || `<tr><td colspan="6" class="muted">📝 لا أعمال مسجلة — سجّل أعمال اليوم من النموذج أعلاه، أو عدّل الفلاتر</td></tr>`);
@@ -6936,7 +6942,7 @@ function editWater(id){
   wtEmp.value=w.employee; wtNotes.value=w.notes||"";
   EDIT.water=id; wtBtn.textContent="💾 حفظ التعديل"; markEditing("cardWater",true);
 }
-function delWater(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(confirm("حذف القياس؟")){ const w=DB.waterLogs.find(x=>x.id===id); trashIt("waterLogs","قياس مياه",`${w.tank} — ${w.date}`,w); DB.waterLogs=DB.waterLogs.filter(x=>x.id!==id); save(); renderWater(); } }
+function delWater(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(confirm("حذف القياس؟")){ const w=DB.waterLogs.find(x=>x.id===id); trashIt("waterLogs","قياس مياه",`${ksTxt(w.tank)} — ${w.date}`,w); DB.waterLogs=DB.waterLogs.filter(x=>x.id!==id); save(); renderWater(); } }
 function waterBad(w){
   return (w.temp!==null&&(w.temp<WLIM.temp[0]||w.temp>WLIM.temp[1]))
     || (w.o2!==null&&w.o2<WLIM.o2[0])
@@ -6947,9 +6953,9 @@ function renderWater(){
   const rows = DB.waterLogs.filter(w=> inRange(w.date,fWtFrom,fWtTo)
       && (!fWtTank.value||w.tank.includes(fWtTank.value.trim())))
     .slice().reverse().slice(0,200).map(w=>
-    `<tr><td>${w.date}</td><td><b>${w.tank}</b></td>
+    `<tr><td>${ksTxt(w.date)}</td><td><b>${ksTxt(w.tank)}</b></td>
      <td>${wVal(w.temp,WLIM.temp)}</td><td>${wVal(w.o2,WLIM.o2)}</td><td>${wVal(w.ph,WLIM.ph)}</td><td>${wVal(w.amm,WLIM.amm)}</td>
-     <td>${w.employee}</td><td>${w.notes||""}</td>
+     <td>${ksTxt(w.employee)}</td><td>${w.notes||""}</td>
      <td>${canEdit(w.employee)?`<button class="edt" onclick="editWater('${w.id}')">✏️</button>`:""}${canDelete(w.employee)?`<button class="del" onclick="delWater('${w.id}')">🗑️</button>`:""}</td></tr>`).join("");
   tblWater.innerHTML = `<tr><th>التاريخ</th><th>الحوض</th><th>حرارة °م</th><th>أكسجين</th><th>pH</th><th>أمونيا</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
     + (rows || `<tr><td colspan="9" class="muted">لا توجد قياسات مطابقة</td></tr>`);
@@ -7054,7 +7060,7 @@ function editSpray(id){
   spDate.value=s.date; spSection.value=s.section;
   if(s.cycleId && ![...spCycle.options].some(o=>o.value===s.cycleId)){
     const c = DB.cycles.find(y=>y.id===s.cycleId);
-    if(c) spCycle.insertAdjacentHTML("beforeend", `<option value="${c.id}">${prodName(c.productId)} — ${c.section} (${c.status})</option>`);
+    if(c) spCycle.insertAdjacentHTML("beforeend", `<option value="${c.id}">${prodName(c.productId)} — ${ksTxt(c.section)} (${ksTxt(c.status)})</option>`);
   }
   spCycle.value=s.cycleId||"";
   try{ fillSprayNames(); }catch(e){}
@@ -7085,7 +7091,7 @@ function fillSprayNames(){
   const sel=document.getElementById("spName"); if(!sel) return;
   const v=sel.value;
   const mats=(DB.inventory||[]).filter(x=>x.cat==="مبيدات"||x.cat==="أسمدة");
-  sel.innerHTML=mats.map(m=>`<option>${m.name}</option>`).join("")
+  sel.innerHTML=mats.map(m=>`<option>${ksNm(m.name)}</option>`).join("")
     +'<option value="__other">➕ أخرى / غير مسجلة بالمخزون…</option>';
   if(v&&[...sel.options].some(o=>o.value===v)) sel.value=v;
   spNameSel(sel);
@@ -7101,10 +7107,10 @@ function renderSprays(){
   const rows = spList.slice().reverse().slice(0,100).map(s=>{
     const end = sprayEnd(s);
     const cyc = s.cycleId ? DB.cycles.find(c=>c.id===s.cycleId) : null;
-    return `<tr><td>${s.date}</td><td><b>${s.name}</b></td><td>${s.section}</td><td>${cyc?prodName(cyc.productId):"—"}</td>
+    return `<tr><td>${ksTxt(s.date)}</td><td><b>${ksNm(s.name)}</b></td><td>${ksTxt(s.section)}</td><td>${cyc?prodName(cyc.productId):"—"}</td>
       <td>${fmt(s.safety)} يوم</td>
       <td>${end>=t?`<span class="badge danger">⛔ ممنوع الحصاد حتى ${end}</span>`:`<span class="badge active">انتهت (${end})</span>`}</td>
-      <td>${s.employee}</td><td>${s.notes||""}</td>
+      <td>${ksTxt(s.employee)}</td><td>${s.notes||""}</td>
       <td>${canEdit(s.employee)?`<button class="edt" onclick="editSpray('${s.id}')">✏️</button>`:""}${canDelete(s.employee)?`<button class="del" onclick="delSpray('${s.id}')">🗑️</button>`:""}</td></tr>`;
   }).join("");
   tblSprays.innerHTML = `<tr><th>تاريخ الرش</th><th>المبيد</th><th>القسم</th><th>الدورة</th><th>فترة الأمان</th><th>الحالة</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
@@ -7132,13 +7138,13 @@ function editClimate(id){
   ghEmp.value=c.employee; ghNotes.value=c.notes||"";
   EDIT.climate=id; ghBtn.textContent="💾 حفظ التعديل"; markEditing("cardClimate",true);
 }
-function delClimate(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(confirm("حذف القياس؟")){ const c=DB.climateLogs.find(x=>x.id===id); trashIt("climateLogs","قياس مناخ",`${c.house} — ${c.date}`,c); DB.climateLogs=DB.climateLogs.filter(x=>x.id!==id); save(); renderClimate(); } }
+function delClimate(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(confirm("حذف القياس؟")){ const c=DB.climateLogs.find(x=>x.id===id); trashIt("climateLogs","قياس مناخ",`${ksTxt(c.house)} — ${c.date}`,c); DB.climateLogs=DB.climateLogs.filter(x=>x.id!==id); save(); renderClimate(); } }
 function renderClimate(){
   const clList = CUR_DAILY_SEC ? DB.climateLogs.filter(c=>c.house===CUR_DAILY_SEC) : DB.climateLogs;
   const rows = clList.slice().reverse().slice(0,100).map(c=>
-    `<tr><td>${c.date}</td><td><b>${c.house}</b></td>
+    `<tr><td>${ksTxt(c.date)}</td><td><b>${ksTxt(c.house)}</b></td>
      <td>${wVal(c.temp,GLIM.temp)}</td><td>${wVal(c.hum,GLIM.hum)}</td>
-     <td>${c.employee}</td><td>${c.notes||""}</td>
+     <td>${ksTxt(c.employee)}</td><td>${c.notes||""}</td>
      <td>${canEdit(c.employee)?`<button class="edt" onclick="editClimate('${c.id}')">✏️</button>`:""}${canDelete(c.employee)?`<button class="del" onclick="delClimate('${c.id}')">🗑️</button>`:""}</td></tr>`).join("");
   tblClimate.innerHTML = `<tr><th>التاريخ</th><th>البيت</th><th>حرارة °م</th><th>رطوبة %</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
     + (rows || `<tr><td colspan="7" class="muted">🌡️ لا قراءات مناخ — سجّل أول قراءة من النموذج أعلاه</td></tr>`);
@@ -7282,8 +7288,8 @@ function delTransfer(id){
 }
 function renderTransfers(){
   const rows = DB.transfers.slice().reverse().slice(0,30).map(tr=>
-    `<tr><td>${tr.date}</td><td><b>${tr.from}</b> ⬅️ <b>${tr.to}</b></td><td>${fmt(tr.count)} 🐟</td>
-     <td>${tr.employee}</td><td>${tr.notes||""}</td>
+    `<tr><td>${ksTxt(tr.date)}</td><td><b>${ksTxt(tr.from)}</b> ⬅️ <b>${ksTxt(tr.to)}</b></td><td>${fmt(tr.count)} 🐟</td>
+     <td>${ksTxt(tr.employee)}</td><td>${tr.notes||""}</td>
      <td>${canDelete(tr.employee)?`<button class="del" onclick="delTransfer('${tr.id}')">🗑️</button>`:""}</td></tr>`).join("");
   tblTransfers.innerHTML = `<tr><th>التاريخ</th><th>النقل</th><th>العدد</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
     + (rows || `<tr><td colspan="6" class="muted">🔁 لا عمليات نقل — استخدم النموذج أعلاه لنقل السمك بين الأحواض مع تحديث الأعداد تلقائياً</td></tr>`);
@@ -7433,10 +7439,10 @@ function priceFishSale(id){
   const h=DB.harvests.find(x=>x.id===id); if(!h||!h.fishSale) return;
   if(!isOwner() && !canSettle()){ toast("⚠️ التسعير للمسؤول المخوّل فقط"); return; }
   _fpId=id;
-  document.getElementById("fpInfo").textContent = `${h.date} — ${h.tank} — ${fmt(h.qty)} ${h.unit||"كجم"} (${fmt(h.fishCount||0)} سمكة)`;
+  document.getElementById("fpInfo").textContent = `${h.date} — ${ksTxt(h.tank)} — ${fmt(h.qty)} ${h.unit||"كجم"} (${fmt(h.fishCount||0)} سمكة)`;
   document.getElementById("fpPrice").value = h.price||"";
   { const _fp=document.getElementById("fpCustomer");
-  _fp.innerHTML = `<option value="">— بدون عميل (بيع مباشر) —</option>`+DB.customers.map(c=>`<option value="${c.id}"${c.id===h.customerId?" selected":""}>${c.name}</option>`).join("")+'<option value="__new">➕ عميل جديد…</option>';
+  _fp.innerHTML = `<option value="">— بدون عميل (بيع مباشر) —</option>`+DB.customers.map(c=>`<option value="${c.id}"${c.id===h.customerId?" selected":""}>${ksNm(c.name)}</option>`).join("")+'<option value="__new">➕ عميل جديد…</option>';
   qaHook(_fp,el=>custSelNew(el)); }
   document.getElementById("fpPaid").value = h.paid?"1":"0";
   document.getElementById("fishPriceModal").style.display="flex";
@@ -7567,13 +7573,13 @@ function delFish(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ م�
     if(__priced.length){ toast("⚠️ لا يمكن حذف السجل — بيعه سُعِّر بالفعل. عدّله أو سجّل مردوداً"); return; }
     if(__gen.length){ DB.harvests=(DB.harvests||[]).filter(h=>h.fishLogId!==f.id);
       toast("↩️ حُذف معه البيع غير المسعّر ("+fmt(__gen[0].fishCount||0)+" سمكة)"); }
-    trashIt("fishLogs","سجل أسماك",`${f.tank} — ${f.date}`,f);
+    trashIt("fishLogs","سجل أسماك",`${ksTxt(f.tank)} — ${f.date}`,f);
     DB.fishLogs=DB.fishLogs.filter(x=>x.id!==id); save(); renderFish(); try{ renderInv(); renderHarvests(); }catch(e){} } }
 function renderFish(){
   const rows = DB.fishLogs.slice().reverse().slice(0,200).map(f=>
-    `<tr><td>${f.date}</td><td><b>${f.tank}</b></td><td>${f.meal?`<span class="badge active">وجبة ${f.meal}</span>`:"—"}</td><td>${fmt(f.feed)} كجم</td>
+    `<tr><td>${ksTxt(f.date)}</td><td><b>${ksTxt(f.tank)}</b></td><td>${f.meal?`<span class="badge active">وجبة ${f.meal}</span>`:"—"}</td><td>${fmt(f.feed)} كجم</td>
      <td class="${f.dead>0?"neg":""}">${fmt(f.dead)}</td><td>${f.sold?fmt(f.sold):"—"}</td><td>${f.avgW?fmt(f.avgW)+" جم":"—"}</td>
-     <td>${f.employee}</td><td>${f.notes||""}</td>
+     <td>${ksTxt(f.employee)}</td><td>${f.notes||""}</td>
      <td>${canEdit(f.employee)?`<button class="edt" onclick="editFish('${f.id}')">✏️</button>`:""}${canDelete(f.employee)?`<button class="del" onclick="delFish('${f.id}')">🗑️</button>`:""}</td></tr>`).join("");
   tblFish.innerHTML = `<tr><th>التاريخ</th><th>الحوض</th><th>الوجبة</th><th>العلف</th><th>النافق</th><th>المحصود</th><th>متوسط الوزن</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
     + (rows || `<tr><td colspan="10" class="muted">🐟 لا سجلات تغذية بعد — سجّل العلف والنافق يومياً من النموذج أعلاه</td></tr>`);
@@ -7624,7 +7630,7 @@ function renderFish(){
       : `<span class="badge done">🐣 إنتاج${cls.eta?" — متوقع "+cls.eta:""}</span>`;
     const lw = lastWater[t.name];
     const wstat = lw ? (waterBad(lw)?`<span class="badge danger">⚠️ خارج المعدل (${lw.date})</span>`:`<span class="badge active">سليمة (${lw.date})</span>`) : `<span class="badge warn">لا قياس</span>`;
-    return `<tr><td><b>${t.name}</b></td><td>${t.type||"—"}</td><td>${t.startDate||"—"}</td><td>${fmt(t.initCount)}</td>
+    return `<tr><td><b>${ksNm(t.name)}</b></td><td>${t.type||"—"}</td><td>${t.startDate||"—"}</td><td>${fmt(t.initCount)}</td>
       <td class="${a.dead>0?"neg":""}">${fmt(a.dead)}</td><td>${fmt(a.sold)}</td>
       <td class="pos" style="font-size:1rem"><b>${fmt(cur)} 🐟</b></td>
       <td>${readyBadge}</td>
@@ -7641,8 +7647,18 @@ function renderFish(){
   const _tp=document.getElementById("tnProd");
   if(_tp && document.activeElement!==_tp){
     const _v=_tp.value;
-    _tp.innerHTML='<option value="">— اختر المنتج —</option>'+(DB.products||[]).map(pp=>`<option value="${pp.id}">${pp.name}</option>`).join("");
+    /* ➕ كل قائمة في السستم تتيح إضافة عنصر جديد من مكانها إلا هذه: «منتج الدفعة» إلزامي
+       لإنشاء حوض، ومن لا يملك منتج أسماك مسجّلاً كان **يعجز عن إنشاء حوض** حتى يخرج
+       لشاشة المنتجات ويعود. أُضيف الخيار وربطه بنفس نافذة المنتج السريع. */
+    _tp.innerHTML='<option value="">— اختر المنتج —</option>'
+      +(DB.products||[]).map(pp=>`<option value="${pp.id}">${ksNm(pp.name)}</option>`).join("")
+      +'<option value="__new">➕ منتج جديد…</option>';
     if(_v&&[..._tp.options].some(o=>o.value===_v)) _tp.value=_v;
+    if(!_tp.dataset.qaNew){ _tp.dataset.qaNew="1";
+      _tp.addEventListener("change", function(){
+        if(this.value==="__new"){ this.value=""; window.__prodIdSelTarget=this; try{ openQuickProduct(); }catch(e){} }
+      });
+    }
   }
   /* سجل إدارة الأحواض — نسخة اليوميات (تعديل وحذف وترقية) */
   const tmEl=document.getElementById("tblTankMgr");
@@ -7650,7 +7666,7 @@ function renderFish(){
     const mrows = DB.tanks.map(t=>{
       const a = agg[t.name] || {feed:0, dead:0, sold:0, lastW:null, lastWDate:""};
       const cur = tankCurrent(t, a);
-      return `<tr><td><b>${t.name}</b></td><td>${t.type||"—"}</td><td>${t.startDate||"—"}</td>
+      return `<tr><td><b>${ksNm(t.name)}</b></td><td>${t.type||"—"}</td><td>${t.startDate||"—"}</td>
         <td>${fmt(t.initCount)}</td><td class="${a.dead>0?"neg":""}">${fmt(a.dead)}</td><td>${fmt(a.sold)}</td>
         <td class="pos"><b>${fmt(cur)} 🐟</b></td><td>${fmt(t.meals||3)}</td>
         <td>${t.type==="أمهات سمك"?`<button class="edt" title="تفريخة جديدة" onclick="hatchTank('${t.id}')">🥚</button>`:""}<button class="edt" title="ترقية المرحلة" onclick="promoteTank('${t.id}')">⬆️</button></td></tr>`;
@@ -7710,7 +7726,7 @@ function renderFeedPlan(){
     total += daily;
     const meals = t.meals||3;
     const fedToday = DB.fishLogs.filter(f=>f.tank===t.name && f.date===today() && f.feed>0).length;
-    return `<tr><td><b>${t.name}</b></td><td>${fmt(cur)} 🐟</td><td>${fmt(lw)} جم</td>
+    return `<tr><td><b>${ksNm(t.name)}</b></td><td>${fmt(cur)} 🐟</td><td>${fmt(lw)} جم</td>
       <td>${fmt(bio)} كجم</td><td>${fmt(rate)}%</td><td class="pos"><b>${fmt(daily)} كجم/يوم</b></td>
       <td>${meals} وجبات</td><td>${fmt(daily/meals)} كجم</td>
       <td><span class="badge ${fedToday>=meals?"active":fedToday>0?"warn":"danger"}">${fedToday} / ${meals}</span></td></tr>`;
@@ -7925,9 +7941,9 @@ function renderSecView(){
       const ready = c.status==="نشطة" && c.harvestDate ? (c.harvestDate<=t
         ? '<span class="badge active">✅ جاهز</span>'
         : `<span class="badge warn">بعد ${Math.round((new Date(c.harvestDate)-new Date(t))/864e5)} يوم</span>`) : "—";
-      return `<tr><td><b>${prodName(c.productId)}</b></td><td>${c.plantDate}</td><td>${c.harvestDate||"—"}</td>
+      return `<tr><td><b>${prodName(c.productId)}</b></td><td>${ksTxt(c.plantDate)}</td><td>${c.harvestDate||"—"}</td>
         <td>${ready}</td><td>${c.qtyInfo||"—"}</td><td>${fmtSR(rev)}</td>
-        <td><span class="badge ${c.status==="نشطة"?"active":"done"}">${c.status}</span></td></tr>`;
+        <td><span class="badge ${c.status==="نشطة"?"active":"done"}">${ksTxt(c.status)}</span></td></tr>`;
     }).join("") || `<tr><td colspan="7" class="muted">لا توجد دورات لهذا القسم — أضفها من تبويب الدورات</td></tr>`);
   const acts = [
     ...DB.tasks.filter(x=>x.section===sec).map(x=>({d:x.date, t:x.type, det:x.desc||"", emp:x.employee})),
@@ -7941,7 +7957,7 @@ function renderSecView(){
   if(isGreenhouse){
     const logs = DB.climateLogs.filter(c=>c.house===sec).slice().reverse().slice(0,5);
     tblSecClimate.innerHTML = `<tr><th>التاريخ</th><th>حرارة °م</th><th>رطوبة %</th><th>الموظف</th><th>ملاحظات</th></tr>`
-      + (logs.map(c=>`<tr><td>${c.date}</td><td>${wVal(c.temp,GLIM.temp)}</td><td>${wVal(c.hum,GLIM.hum)}</td><td>${c.employee}</td><td>${c.notes||""}</td></tr>`).join("")
+      + (logs.map(c=>`<tr><td>${ksTxt(c.date)}</td><td>${wVal(c.temp,GLIM.temp)}</td><td>${wVal(c.hum,GLIM.hum)}</td><td>${ksTxt(c.employee)}</td><td>${c.notes||""}</td></tr>`).join("")
          || `<tr><td colspan="5" class="muted">لا قياسات مناخ لهذا البيت — سجلها من اليوميات</td></tr>`);
   }
 }
@@ -7958,14 +7974,14 @@ function printLvReport(){
   const milk30=(lv.milkLogs||[]).filter(r=>r.date>=m30).reduce((s,r)=>s+(+r.morning||0)+(+r.evening||0),0);
   const feed30=(lv.feedLogs||[]).filter(r=>r.date>=m30).reduce((s,r)=>s+(+r.qty||0),0);
   const rev=(DB.harvests||[]).filter(h=>h.livestockSale).reduce((s,h)=>s+(+h.total||0),0);
-  const rows=(lv.animals||[]).map(a=>`<tr><td>${a.type}</td><td>${a.count}</td><td>${a.gender||"—"}</td><td>${a.barn||"—"}</td></tr>`).join("")||`<tr><td colspan="4">لا يوجد</td></tr>`;
+  const rows=(lv.animals||[]).map(a=>`<tr><td>${ksTxt(a.type)}</td><td>${ksTxt(a.count)}</td><td>${a.gender||"—"}</td><td>${a.barn||"—"}</td></tr>`).join("")||`<tr><td colspan="4">لا يوجد</td></tr>`;
   const _s30r=new Date(Date.now()+30*864e5).toISOString().slice(0,10);
   const vacRows=(lv.vaccines||[]).filter(v=>v.next&&v.next<=_s30r).sort((a,b)=>a.next.localeCompare(b.next))
-    .map(v=>`<tr><td>${v.next}${v.next<t?" ⚠️":""}</td><td>${v.name}</td><td>${v.animal||"—"}</td></tr>`).join("")||`<tr><td colspan="3">لا جرعات مستحقة خلال 30 يوم</td></tr>`;
+    .map(v=>`<tr><td>${v.next}${v.next<t?" ⚠️":""}</td><td>${ksNm(v.name)}</td><td>${v.animal||"—"}</td></tr>`).join("")||`<tr><td colspan="3">لا جرعات مستحقة خلال 30 يوم</td></tr>`;
   const _lastW={};
   (lv.weightLogs||[]).forEach(r=>{ if(!_lastW[r.tag]||r.date>_lastW[r.tag].date) _lastW[r.tag]=r; });
   const wtRows=Object.values(_lastW).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10)
-    .map(r=>`<tr><td>${r.tag}</td><td>${fmt(r.weight)} كجم</td><td>${r.date}</td></tr>`).join("")||`<tr><td colspan="3">لا أوزان مسجلة</td></tr>`;
+    .map(r=>`<tr><td>${ksTxt(r.tag)}</td><td>${fmt(r.weight)} كجم</td><td>${ksTxt(r.date)}</td></tr>`).join("")||`<tr><td colspan="3">لا أوزان مسجلة</td></tr>`;
   const w=window.open("","_blank","width=760,height=900");
   if(!w){ toast("⚠️ اسمح بالنوافذ المنبثقة"); return; }
   w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>تقرير القطيع</title>
@@ -8055,7 +8071,7 @@ function renderLivestockSecView(fs, cost){
   const animals = lv.animals||[];
   tblSecCycles.innerHTML = `<tr><th>نوع الحيوان</th><th>العدد</th><th>الجنس</th><th>ملاحظات</th><th>تاريخ الإضافة</th></tr>`
     + (animals.length
-      ? animals.map(a=>`<tr><td><b>${a.type}</b></td><td>${a.count}</td><td>${a.gender||"—"}</td><td>${a.notes||"—"}</td><td>${a.date||"—"}</td></tr>`).join("")
+      ? animals.map(a=>`<tr><td><b>${ksTxt(a.type)}</b></td><td>${ksTxt(a.count)}</td><td>${a.gender||"—"}</td><td>${a.notes||"—"}</td><td>${a.date||"—"}</td></tr>`).join("")
       : `<tr><td colspan="5" class="muted">لا توجد حيوانات مسجلة — أضفها من بنية القسم أدناه</td></tr>`);
 
   // آخر التقارير اليومية بدل أعمال القسم
@@ -8069,7 +8085,7 @@ function renderLivestockSecView(fs, cost){
           if(r.vent)done.push("تهوية");if(r.pest)done.push("رش");if(r.secure)done.push("تأمين");
           const sc=r.status==="سليمة"?"#166534":r.status==="يوجد مريض"?"#dc2626":"#92400e";
           return `<tr>
-            <td>${r.date}</td><td>${r.emp||"—"}</td>
+            <td>${ksTxt(r.date)}</td><td>${r.emp||"—"}</td>
             <td><span style="color:${sc};font-weight:700">${r.status||"—"}</span></td>
             <td style="font-size:.82rem">${done.join("، ")||"—"}</td>
           </tr>`;
@@ -8138,12 +8154,12 @@ function renderFishSecView(fs, cost){
   tblSecCycles.innerHTML = `<tr><th>الحوض</th><th>النوع</th><th>العدد الحالي</th><th>آخر وزن (جم)</th><th>نافق تراكمي</th><th>علف تراكمي</th></tr>`
     + (DB.tanks.map(tk=>{
       const a = agg[tk.name];
-      return `<tr><td><b>${tk.name}</b></td><td>${tk.type||"—"}</td><td>${fmt(tankCurrent(tk,a))}</td>
+      return `<tr><td><b>${ksNm(tk.name)}</b></td><td>${tk.type||"—"}</td><td>${fmt(tankCurrent(tk,a))}</td>
         <td>${a&&a.lastW?fmt(a.lastW):"—"}</td><td>${a?fmt(a.dead):0}</td><td>${a?fmt(a.feed):0} كجم</td></tr>`;
     }).join("") || `<tr><td colspan="6" class="muted">لا أحواض بعد — تضاف من شاشة الأسماك</td></tr>`);
   const acts = DB.fishLogs.slice().reverse().slice(0,10);
   tblSecTasks.innerHTML = `<tr><th>التاريخ</th><th>الحوض</th><th>علف (كجم)</th><th>نافق</th><th>الموظف</th></tr>`
-    + (acts.map(f=>`<tr><td>${f.date}</td><td><b>${f.tank}</b></td><td>${fmt(f.feed||0)}</td><td>${f.dead?`<span class="neg">${fmt(f.dead)}</span>`:"0"}</td><td>${f.employee||""}</td></tr>`).join("")
+    + (acts.map(f=>`<tr><td>${ksTxt(f.date)}</td><td><b>${ksTxt(f.tank)}</b></td><td>${fmt(f.feed||0)}</td><td>${f.dead?`<span class="neg">${fmt(f.dead)}</span>`:"0"}</td><td>${f.employee||""}</td></tr>`).join("")
        || `<tr><td colspan="5" class="muted">لا سجلات أسماك بعد</td></tr>`);
   secClimateBox.style.display = "none";
   const _lw={}; (DB.waterLogs||[]).forEach(w=>{ if(!_lw[w.tank]||w.date>_lw[w.tank].date) _lw[w.tank]=w; });
@@ -8229,7 +8245,7 @@ function delCycle(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ م
   if(!confirm("حذف الدورة وكل إنتاجها؟ (تقدر تستعيدها من سلة المهملات)")) return;
   const c = DB.cycles.find(x=>x.id===id);
   const hs = DB.harvests.filter(x=>x.cycleId===id);
-  trashIt("cycles","دورة زراعية",`${prodName(c.productId)} — ${c.section} (${hs.length} عملية بيع)`,{cycle:c, harvests:hs});
+  trashIt("cycles","دورة زراعية",`${prodName(c.productId)} — ${ksTxt(c.section)} (${hs.length} عملية بيع)`,{cycle:c, harvests:hs});
   DB.cycles = DB.cycles.filter(x=>x.id!==id);
   DB.harvests = DB.harvests.filter(x=>x.cycleId!==id);
   save(); fillSelects(); renderCycles(); renderHarvests();
@@ -8241,8 +8257,8 @@ function renderCycles(){
     .slice().reverse().map(c=>{
     const rev = DB.harvests.filter(h=>h.cycleId===c.id).reduce((s,h)=>s+hNet(h),0);
     return `<tr>
-      <td><b>${prodName(c.productId)}</b></td><td>${c.section}</td>
-      <td>${c.plantDate}</td><td>${c.harvestDate||"—"}</td>
+      <td><b>${prodName(c.productId)}</b></td><td>${ksTxt(c.section)}</td>
+      <td>${ksTxt(c.plantDate)}</td><td>${c.harvestDate||"—"}</td>
       <td>${c.qtyInfo||"—"}</td><td>${fmtSR(c.initCost)}</td><td>${fmtSR(rev)}</td>
       <td><span class="badge ${c.status==="نشطة"?"active":c.status==="مخططة"?"warn":"done"}">${c.status==="مخططة"?"🔵 مخططة":c.status}</span></td>
       <td>${c.employee||""}</td>
@@ -8389,7 +8405,7 @@ function printHarvestInvoice(id){
   const custN = h.customerId ? custName(h.customerId) : "بيع نقدي";
   const remain = hRemain(h);
   const payments = h.payments||[];
-  const payRows = payments.map(p=>`<tr><td>${p.date}</td><td style="color:#166534;font-weight:700">${fmt(p.amt)} ⃁</td></tr>`).join("");
+  const payRows = payments.map(p=>`<tr><td>${ksTxt(p.date)}</td><td style="color:#166534;font-weight:700">${fmt(p.amt)} ⃁</td></tr>`).join("");
   const paySection = payments.length ? `<h4 style="margin:14px 0 6px;color:#065f46;border-right:3px solid #065f46;padding-right:8px">سجل الدفعات</h4><table><tr><th>التاريخ</th><th>المبلغ</th></tr>${payRows}</table>` : "";
   const statusBadge = h.paid
     ? `<span style="background:#dcfce7;color:#166534;padding:4px 14px;border-radius:999px;font-weight:700;font-size:10pt">✅ مدفوع بالكامل</span>`
@@ -8464,7 +8480,7 @@ function printHarvestInvoice(id){
     </div>
 
     ${paySection}
-    ${h.notes?`<div class="sec-title">ملاحظات</div><p style="font-size:9.5pt;color:#444;padding:8px;background:#f9fafb;border-radius:6px;border:1px solid #e5e7eb">${h.notes}</p>`:""}
+    ${h.notes?`<div class="sec-title">ملاحظات</div><p style="font-size:9.5pt;color:#444;padding:8px;background:#f9fafb;border-radius:6px;border:1px solid #e5e7eb">${ksTxt(h.notes)}</p>`:""}
 
     <div class="sig-row">
       <div>البائع<br><b>${h.employee||owner||"—"}</b></div>
@@ -8488,7 +8504,7 @@ function renderHarvests(){
   const rows = _listH.slice(0,_capH).map(h=>{
     const c = DB.cycles.find(x=>x.id===h.cycleId);
     const _orph=!h.cycleId;
-    return `<tr><td>${h.date}</td><td><b>${escH(hProdName(h))}</b>${_orph?' <span class="badge warn" title="لا تدخل في ربحية الأقسام">⚠️ بلا دورة</span> <button class="edt" title="ربط بدورة" onclick="linkHarvestCycle(\''+h.id+'\')">🔗</button>':''}</td><td>${escH(hSecOf(h)||"—")}</td>
+    return `<tr><td>${ksTxt(h.date)}</td><td><b>${escH(hProdName(h))}</b>${_orph?' <span class="badge warn" title="لا تدخل في ربحية الأقسام">⚠️ بلا دورة</span> <button class="edt" title="ربط بدورة" onclick="linkHarvestCycle(\''+h.id+'\')">🔗</button>':''}</td><td>${escH(hSecOf(h)||"—")}</td>
       <td>${fmt(h.qty)} ${h.unit||"كجم"}</td><td>${h.unpriced?"—":hUnitPriceTxt(h)}</td><td class="pos">${h.unpriced?'<span class="badge warn">بانتظار التسعير</span>':fmtSR(h.total)}</td>
       <td>${h.customerId?custName(h.customerId):"نقدي"}</td>
       <td>${apvBadge('sale',h)}${h.paid?'<span class="badge active">مدفوع'+(h.paidDate?" "+h.paidDate:"")+'</span>'
@@ -8573,7 +8589,7 @@ function editExpense(id){
   { const _v=document.getElementById("exVatable"); if(_v){ _v.value=(x.vatable===false)?"0":"1"; _v.dataset.touched="1"; } }
   if(x.cycleId && ![...exCycle.options].some(o=>o.value===x.cycleId)){
     const c = DB.cycles.find(y=>y.id===x.cycleId);
-    if(c) exCycle.insertAdjacentHTML("beforeend", `<option value="${c.id}">${prodName(c.productId)} — ${c.section} (${c.status})</option>`);
+    if(c) exCycle.insertAdjacentHTML("beforeend", `<option value="${c.id}">${prodName(c.productId)} — ${ksTxt(c.section)} (${ksTxt(c.status)})</option>`);
   }
   exCycle.value=x.cycleId||"";
   exEmp.value=x.employee||""; exNotes.value=x.notes||"";
@@ -8584,7 +8600,7 @@ function delExpense(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ 
   { const _r=(DB.expenses||[]).find(x=>x.id===id);
     if(ksVoidable("exp",_r)){ toast("🛡️ الوضع الرقابي: المصروف يُلغى بقيد عكسي لا يُمحى"); ksVoid("exp",id); return; } }
   { const _r=(DB.expenses||[]).find(x=>x.id===id); if(ksIsVoidedRec(_r)) return; }
-  if(confirm("حذف المصروف؟")){ const x=DB.expenses.find(r=>r.id===id); trashIt("expenses","مصروف",`${x.cat} ${fmt(x.amount)} ⃁ — ${x.date}`,x);
+  if(confirm("حذف المصروف؟")){ const x=DB.expenses.find(r=>r.id===id); trashIt("expenses","مصروف",`${ksTxt(x.cat)} ${fmt(x.amount)} ⃁ — ${x.date}`,x);
     logEdit("🗑️ حذف مصروف",(x.date||"")+" — "+x.cat+" "+fmt(x.amount)+" ⃁");
     DB.expenses=DB.expenses.filter(r=>r.id!==id); save(); renderExpenses(); } }
 function renderExpenses(){
@@ -8596,7 +8612,7 @@ function renderExpenses(){
   const _capE = window.__exShowAll ? _listE.length : 300;
   const rows = _listE.slice(0,_capE).map(x=>{
     const cyc = x.cycleId ? DB.cycles.find(c=>c.id===x.cycleId) : null;
-    return `<tr><td>${x.date}</td><td><b>${x.cat}</b></td><td>${x.section}</td>
+    return `<tr><td>${ksTxt(x.date)}</td><td><b>${ksTxt(x.cat)}</b></td><td>${ksTxt(x.section)}</td>
      <td>${cyc?prodName(cyc.productId):"—"}</td>
      <td class="neg">${fmtSR(x.amount)}</td><td>${x.employee||""}${apvBadge('exp',x)}</td><td>${x.notes||""}</td>
      <td>${(x.invFile||x.invFileRef)?`<button class="edt" title="عرض الفاتورة" onclick="viewExpFile('${x.id}')">📎</button>`:""}${canEdit(x.employee)?`<button class="edt" onclick="editExpense('${x.id}')">✏️</button>`:""}${canDelete(x.employee)?`<button class="del" onclick="delExpense('${x.id}')">🗑️</button>`:""}</td></tr>`;
@@ -8667,7 +8683,7 @@ function renderRecurring(){
   const m = today().slice(0,7);
   tblRecurring.innerHTML = `<tr><th>الوصف</th><th>البند</th><th>القسم</th><th>المبلغ</th><th>اليوم</th><th>شهر ${m}</th><th></th></tr>`
     + (DB.recurring.map(r=>
-      `<tr><td><b>${r.desc}</b>${r.meter?`<br><span style="font-size:.68rem;color:var(--muted)">⚡ عداد — آخر قراءة: ${fmt(r.lastReading)} × ${r.unitCost} ⃁</span>`:""}</td><td>${r.cat}</td><td>${r.section}</td><td class="neg">${r.meter?'<span class="muted" style="font-size:.7rem">حسب الاستهلاك</span>':fmtSR(r.amount)}</td><td>${r.day}</td>
+      `<tr><td><b>${ksTxt(r.desc)}</b>${r.meter?`<br><span style="font-size:.68rem;color:var(--muted)">⚡ عداد — آخر قراءة: ${fmt(r.lastReading)} × ${r.unitCost} ⃁</span>`:""}</td><td>${ksTxt(r.cat)}</td><td>${ksTxt(r.section)}</td><td class="neg">${r.meter?'<span class="muted" style="font-size:.7rem">حسب الاستهلاك</span>':fmtSR(r.amount)}</td><td>${r.day}</td>
        <td>${r.lastGen===m?'<span class="badge active">مولد ✓</span>':'<span class="badge warn">لم يولد</span>'}</td>
        <td>${isOwner()?`<button class="del" onclick="delRecurring('${r.id}')">🗑️</button>`:""}</td></tr>`).join("")
       || `<tr><td colspan="7" class="muted">🔁 لا مصاريف متكررة — سجّل التزاماتك الثابتة (إيجار، فواتير) مرة واحدة وولّدها شهرياً بضغطة</td></tr>`)
@@ -8688,8 +8704,8 @@ function delCustPrice(custId, prodId){
 }
 function renderCustPrices(){
   const sel1=cpCust.value, sel2=cpProd.value;
-  cpCust.innerHTML = DB.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join("") || `<option value="">— لا عملاء بعد: أضفهم من التجارة ← العملاء —</option>`;
-  cpProd.innerHTML = DB.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join("");
+  cpCust.innerHTML = DB.customers.map(c=>`<option value="${c.id}">${ksNm(c.name)}</option>`).join("") || `<option value="">— لا عملاء بعد: أضفهم من التجارة ← العملاء —</option>`;
+  cpProd.innerHTML = DB.products.map(p=>`<option value="${p.id}">${ksNm(p.name)}</option>`).join("");
   if(sel1) cpCust.value=sel1; if(sel2) cpProd.value=sel2;
   const c = DB.customers.find(x=>x.id===cpCust.value);
   const prices = (c && c.prices) || {};
@@ -8740,9 +8756,9 @@ function editInvItem(id){
   /* 🛡️ وحدة محذوفة من قائمة الوحدات كانت تختفي من السجل عند أول تعديل (تُحفظ "") */
   try{ prUnitFill(); }catch(e){}
   if(i.unit && ![...ivUnit.options].some(o=>o.value===i.unit))
-    ivUnit.insertAdjacentHTML("afterbegin",`<option>${i.unit}</option>`);
+    ivUnit.insertAdjacentHTML("afterbegin",`<option>${ksTxt(i.unit)}</option>`);
   if(i.cat && ![...ivCat.options].some(o=>o.value===i.cat))
-    ivCat.insertAdjacentHTML("afterbegin",`<option>${i.cat}</option>`);
+    ivCat.insertAdjacentHTML("afterbegin",`<option>${ksTxt(i.cat)}</option>`);
   ivName.value=i.name; ivCat.value=i.cat; ivUnit.value=i.unit; ivQty.value=i.qty; ivCost.value=i.cost||""; ivExp.value=i.exp||""; ivMin.value=i.min;
   const _ia=document.getElementById("ivAcc"); if(_ia) _ia.value=i.acc||"";
   const _is=document.getElementById("ivSec"); if(_is) _is.value=i.section||"";
@@ -8790,11 +8806,11 @@ function renderInv(){
     const __m = +i.min || +i.minQty || +i.minStock || 0;
     const low = __m>0 && (+i.qty||0)<=__m;
     const expSt = !i.exp ? "—" : i.exp<today() ? '<span class="badge danger">منتهي!</span>' : i.exp<=exp30 ? `<span class="badge warn">${i.exp}</span>` : i.exp;
-    return `<tr><td style="font-size:.72rem;color:var(--muted)">${i.itemNo||"—"}</td><td><b>${i.name}</b>${i.section?`<br><span class="muted" style="font-size:.68rem">🏡 ${i.section}</span>`:""}${i.acc?`<br><span class="muted" style="font-size:.68rem">🌳 ${i.acc}</span>`:""}</td><td>${i.cat}</td>
-      <td class="${low?"neg":"pos"}">${fmt(i.qty)} ${i.unit}</td>
+    return `<tr><td style="font-size:.72rem;color:var(--muted)">${i.itemNo||"—"}</td><td><b>${ksNm(i.name)}</b>${i.section?`<br><span class="muted" style="font-size:.68rem">🏡 ${ksTxt(i.section)}</span>`:""}${i.acc?`<br><span class="muted" style="font-size:.68rem">🌳 ${i.acc}</span>`:""}</td><td>${ksTxt(i.cat)}</td>
+      <td class="${low?"neg":"pos"}">${fmt(i.qty)} ${ksTxt(i.unit)}</td>
       <td>${i.cost?fmtSR(i.cost):"—"}</td><td>${i.cost?fmtSR(i.qty*i.cost):"—"}</td>
       <td>${expSt}</td>
-      <td>${fmt(i.min)} ${i.unit}</td>
+      <td>${fmt(i.min)} ${ksTxt(i.unit)}</td>
       <td>${low?'<span class="badge danger">⚠️ ناقص — اطلب توريد</span>':'<span class="badge active">متوفر</span>'}</td>
       <td><button class="edt" title="باركود" onclick="printBarcode('${i.id}')">🏷️</button><button class="edt" onclick="editInvItem('${i.id}')">✏️</button>${isOwner()?`<button class="del" onclick="delInvItem('${i.id}')">🗑️</button>`:""}</td></tr>`;
   }).join("");
@@ -8803,17 +8819,21 @@ function renderInv(){
     + (rows?`<tr><th colspan="4">إجمالي قيمة المخزون</th><th class="pos">${fmtSR(invValue())}</th><th colspan="4"></th></tr>`:"");
   const mrows = DB.invMoves.slice().reverse().slice(0,30).map(m=>{
     const it = DB.inventory.find(x=>x.id===m.itemId);
-    return `<tr><td>${m.date}</td><td><b>${escH(it?it.name:(m.itemName||"— صنف محذوف —"))}</b></td>
+    return `<tr><td>${ksTxt(m.date)}</td><td><b>${escH(it?it.name:(m.itemName||"— صنف محذوف —"))}</b></td>
       <td>${m.type==="صرف"?'<span class="neg">صرف</span>':'<span class="pos">إضافة</span>'}</td>
-      <td>${fmt(m.qty)} ${it?it.unit:""}</td><td>${m.employee}</td><td>${m.notes||""}</td></tr>`;
+      <td>${fmt(m.qty)} ${it?it.unit:""}</td><td>${ksTxt(m.employee)}</td><td>${m.notes||""}</td></tr>`;
   }).join("");
   tblInvMoves.innerHTML = `<tr><th>التاريخ</th><th>الصنف</th><th>النوع</th><th>الكمية</th><th>الموظف</th><th>ملاحظات</th></tr>`
     + (mrows || `<tr><td colspan="6" class="muted">🔄 لا حركات مخزون — تُسجَّل تلقائياً مع الشراء والصرف، أو يدوياً من نموذج الحركة أعلاه</td></tr>`);
 }
 /* ====== المعدات والصيانة ====== */
 function eqNext(eq){
-  const d = new Date(eq.last); d.setDate(d.getDate() + (+eq.interval||30));
-  return d.toISOString().slice(0,10);
+  /* 🛡️ معدة بلا «آخر صيانة» (أو بتاريخ تالف) كانت ترمي «Invalid time value»
+     فتسقط شاشة المعدات **ولوحة الملخص كلها** معها. */
+  const base=(eq&&eq.last)?new Date(eq.last):null;
+  if(!base || isNaN(base.getTime())) return "—";
+  base.setDate(base.getDate() + (+((eq&&eq.interval))||30));
+  return base.toISOString().slice(0,10);
 }
 function addEquip(e){
   e.preventDefault();
@@ -8847,7 +8867,7 @@ function renderEquip(){
     const st = next<=t ? `<span class="badge danger">⚠️ صيانة مستحقة</span>`
       : next<=soon ? `<span class="badge warn">قريباً (${next})</span>`
       : `<span class="badge active">سليمة — القادمة ${next}</span>`;
-    return `<tr><td><b>${eq.name}</b></td><td>${eq.section}</td><td>كل ${fmt(eq.interval)} يوم</td>
+    return `<tr><td><b>${ksNm(eq.name)}</b></td><td>${ksTxt(eq.section)}</td><td>كل ${fmt(eq.interval)} يوم</td>
       <td>${eq.last}</td><td>${next}</td><td>${st}</td><td>${eq.notes||""}</td>
       <td><button class="edt" title="تمت الصيانة" onclick="maintDone('${eq.id}')">🔧</button>
           <button class="edt" onclick="editEquip('${eq.id}')">✏️</button>
@@ -9006,26 +9026,26 @@ function globalSearch(){
   DB.harvests.forEach(h=>{ const c=DB.cycles.find(x=>x.id===h.cycleId);
     add("prod","🧺",`بيع: ${c?prodName(c.productId):""} ${fmt(h.qty)} كجم — ${custName(h.customerId)} — ${h.employee||""} ${h.notes||""}`,h.date); });
   DB.expenses.filter(x=>isOwner()||x.cat!=="رواتب وعمالة").forEach(x=>
-    add("exp","💸",`مصروف: ${x.cat} ${x.section} ${fmtSR(x.amount)} — ${x.employee||""} ${x.notes||""}`,x.date));
-  DB.tasks.forEach(x=>add("daily","📝",`عمل: ${x.type} ${x.section} ${x.desc||""} — ${x.employee}`,x.date));
-  DB.cycles.forEach(c=>add("cycles","🌱",`دورة: ${prodName(c.productId)} ${c.section} ${c.status} ${c.notes||""}`,c.plantDate));
-  DB.sprays.forEach(s=>add("daily","🧪",`رش: ${s.name} ${s.section} — أمان حتى ${sprayEnd(s)}`,s.date));
-  DB.climateLogs.forEach(c=>add("daily","🌡️",`مناخ: ${c.house} ${c.notes||""} — ${c.employee}`,c.date));
-  DB.waterLogs.forEach(w=>add("fish","💧",`مياه: ${w.tank} ${w.notes||""} — ${w.employee}`,w.date));
-  DB.fishLogs.forEach(f=>add("fish","🐟",`أسماك: ${f.tank} علف ${fmt(f.feed)} نافق ${fmt(f.dead)} ${f.notes||""}`,f.date));
-  DB.tanks.forEach(t=>add("fish","<svg viewBox='0 0 24 24' style='width:1.15em;height:1.15em;vertical-align:-.18em'><circle cx='12' cy='12' r='10' fill='#7dd3fc' stroke='#0369a1' stroke-width='2'/><ellipse cx='9.5' cy='9.8' rx='3' ry='1.8' fill='#f97316'/><path d='M12.2 9.8 L14.6 8.4 L14.6 11.2 Z' fill='#f97316'/><circle cx='8.2' cy='9.4' r='.45' fill='#7c2d12'/><ellipse cx='14.2' cy='15' rx='2.6' ry='1.5' fill='#fbbf24'/><path d='M11.8 15 L9.8 13.8 L9.8 16.2 Z' fill='#fbbf24'/><circle cx='15.3' cy='14.7' r='.4' fill='#7c2d12'/></svg>",`حوض: ${t.name} ${t.type} ${t.notes||""}`,t.startDate));
+    add("exp","💸",`مصروف: ${ksTxt(x.cat)} ${ksTxt(x.section)} ${fmtSR(x.amount)} — ${x.employee||""} ${x.notes||""}`,x.date));
+  DB.tasks.forEach(x=>add("daily","📝",`عمل: ${ksTxt(x.type)} ${ksTxt(x.section)} ${x.desc||""} — ${ksTxt(x.employee)}`,x.date));
+  DB.cycles.forEach(c=>add("cycles","🌱",`دورة: ${prodName(c.productId)} ${ksTxt(c.section)} ${ksTxt(c.status)} ${c.notes||""}`,c.plantDate));
+  DB.sprays.forEach(s=>add("daily","🧪",`رش: ${s.name} ${ksTxt(s.section)} — أمان حتى ${sprayEnd(s)}`,s.date));
+  DB.climateLogs.forEach(c=>add("daily","🌡️",`مناخ: ${ksTxt(c.house)} ${c.notes||""} — ${ksTxt(c.employee)}`,c.date));
+  DB.waterLogs.forEach(w=>add("fish","💧",`مياه: ${ksTxt(w.tank)} ${w.notes||""} — ${ksTxt(w.employee)}`,w.date));
+  DB.fishLogs.forEach(f=>add("fish","🐟",`أسماك: ${ksTxt(f.tank)} علف ${fmt(f.feed)} نافق ${fmt(f.dead)} ${f.notes||""}`,f.date));
+  DB.tanks.forEach(t=>add("fish","<svg viewBox='0 0 24 24' style='width:1.15em;height:1.15em;vertical-align:-.18em'><circle cx='12' cy='12' r='10' fill='#7dd3fc' stroke='#0369a1' stroke-width='2'/><ellipse cx='9.5' cy='9.8' rx='3' ry='1.8' fill='#f97316'/><path d='M12.2 9.8 L14.6 8.4 L14.6 11.2 Z' fill='#f97316'/><circle cx='8.2' cy='9.4' r='.45' fill='#7c2d12'/><ellipse cx='14.2' cy='15' rx='2.6' ry='1.5' fill='#fbbf24'/><path d='M11.8 15 L9.8 13.8 L9.8 16.2 Z' fill='#fbbf24'/><circle cx='15.3' cy='14.7' r='.4' fill='#7c2d12'/></svg>",`حوض: ${t.name} ${ksTxt(t.type)} ${t.notes||""}`,t.startDate));
   DB.transfers.forEach(tr=>add("fish","🔁",`نقل: ${tr.from} إلى ${tr.to} عدد ${fmt(tr.count)}`,tr.date));
-  DB.purchases.forEach(p=>add("sup","🧾",`فاتورة: ${supName(p.supplierId)} ${p.cat} ${p.desc||""} ${fmtSR(p.amount)}`,p.date));
+  DB.purchases.forEach(p=>add("sup","🧾",`فاتورة: ${supName(p.supplierId)} ${ksTxt(p.cat)} ${p.desc||""} ${fmtSR(p.amount)}`,p.date));
   DB.suppliers.forEach(s=>add("sup","🚚",`مورد: ${s.supNo||""} ${s.name} ${s.phone||""}`,""));
   DB.customers.forEach(c=>add("cust","🤝",`عميل: ${c.custNo||""} ${c.name} ${c.phone||""}`,""));
-  DB.inventory.forEach(i=>add("inv","📦",`مخزون: ${i.itemNo||""} ${i.name} ${i.cat} رصيد ${fmt(i.qty)} ${i.unit}`,""));
-  DB.equipment.forEach(eq=>add("inv","🔧",`معدة: ${eq.name} ${eq.section} — صيانة قادمة ${eqNext(eq)}`,eq.last));
-  DB.products.forEach(p=>add("products","🏷️",`منتج: ${p.prodNo||""} ${p.name} ${p.type}`,""));
+  DB.inventory.forEach(i=>add("inv","📦",`مخزون: ${i.itemNo||""} ${i.name} ${ksTxt(i.cat)} رصيد ${fmt(i.qty)} ${ksTxt(i.unit)}`,""));
+  DB.equipment.forEach(eq=>add("inv","🔧",`معدة: ${eq.name} ${ksTxt(eq.section)} — صيانة قادمة ${eqNext(eq)}`,eq.last));
+  DB.products.forEach(p=>add("products","🏷️",`منتج: ${p.prodNo||""} ${p.name} ${ksTxt(p.type)}`,""));
   if(isOwner()) DB.employees.forEach(em=>add("emp","👷",`موظف: ${em.empNo||""} ${em.name} ${em.role||""} ${em.nationality||""} ${em.idNo||""} ${em.phone||""} ${em.email||""}`,""));
   if(!res.length){ gResults.innerHTML=`<div class="res muted">لا توجد نتائج لـ «${q}»</div>`; gResults.style.display="block"; return; }
   gResults.innerHTML = res.map(r=>
     `<div class="res" onclick="showTab('${r.tab}');${r.sec?`acctSec('${r.sec}');`:""}gResults.style.display='none';gSearch.value=''">
-      <span>${r.icon}</span><span>${r.txt.slice(0,90)}</span><span class="d">${r.date}</span></div>`).join("");
+      <span>${r.icon}</span><span>${r.txt.slice(0,90)}</span><span class="d">${ksTxt(r.date)}</span></div>`).join("");
   gResults.style.display="block";
 }
 
@@ -9305,7 +9325,7 @@ function qtUnitChange(sel){
 function addQtLine(){
   document.getElementById("qtLines").insertAdjacentHTML("beforeend",
     `<tr class="qtRow">
-      <td><select class="qlProd" oninput="qtCalc()"><option value="">— اختر —</option>${DB.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join("")}</select></td>
+      <td><select class="qlProd" oninput="qtCalc()"><option value="">— اختر —</option>${DB.products.map(p=>`<option value="${p.id}">${ksNm(p.name)}</option>`).join("")}</select></td>
       <td><input class="qlDesc" style="min-width:100px"></td>
       <td><input type="number" class="qlQty" min="0" step="0.01" style="width:80px" oninput="qtCalc()"></td>
       <td><select class="qlUnit" style="width:95px" onchange="qtUnitChange(this)">${qtUnitOpts()}</select></td>
@@ -9372,7 +9392,7 @@ function editQuote(id){
     if(l.productId){ const ps=r.querySelector(".qlProd"); if(![...ps.options].some(o=>o.value===l.productId)) ps.insertAdjacentHTML("beforeend",`<option value="${l.productId}">${prodName(l.productId)}</option>`); ps.value=l.productId; }
     r.querySelector(".qlDesc").value=l.desc||"";
     r.querySelector(".qlQty").value=l.qty||"";
-    const us=r.querySelector(".qlUnit"); if(l.unit){ if(![...us.options].some(o=>o.value===l.unit)) us.insertAdjacentHTML("afterbegin",`<option>${l.unit}</option>`); us.value=l.unit; }
+    const us=r.querySelector(".qlUnit"); if(l.unit){ if(![...us.options].some(o=>o.value===l.unit)) us.insertAdjacentHTML("afterbegin",`<option>${ksTxt(l.unit)}</option>`); us.value=l.unit; }
     r.querySelector(".qlPrice").value=l.price||"";
     const vs=r.querySelector(".qlVat"); if(vs&&l.vat!==undefined) vs.value=l.vat;
   });
@@ -9384,7 +9404,7 @@ function editQuote(id){
 }
 function quoteTotals(q){
   let net=0, tax=0;
-  q.lines.forEach(l=>{ const n=l.qty*l.price; net+=n; tax+=n*l.vat/100; });
+  ((q&&q.lines)||[]).forEach(l=>{ const n=(+l.qty||0)*(+l.price||0); net+=n; tax+=n*(+l.vat||0)/100; });
   return {net, tax, gross:net+tax};
 }
 function quoteToInvoice(id){
@@ -9400,7 +9420,7 @@ function quoteToInvoice(id){
   if(missing.length){ toast("⚠️ لا دورة نشطة لـ: "+missing.map(l=>prodName(l.productId)).join("، ")); return; }
   if(!confirm("تحويل العرض "+q.qNo+" إلى مسودة فاتورة إلكترونية للمراجعة والاعتماد؟")) return;
   const cust=DB.customers.find(c=>c.id===q.customerId);
-  const items=q.lines.map(l=>{
+  const items=((q&&q.lines)||[]).map(l=>{
     const cyc=DB.cycles.find(c=>c.status==="نشطة"&&c.productId===l.productId);
     let kg=0; try{ kg=invUnitKg(l.unit||"")||0; }catch(e){}
     return {name:prodName(l.productId), desc:l.desc||"", qty:+l.qty||0, unit:l.unit||"كجم",
@@ -9438,7 +9458,7 @@ function printQuote(id){
   const taxT=q.lines.reduce((t,l)=>t+lTax(l),0);
   const total=sub+taxT;
   const ln=(lbl,en,val)=>val?`<p style="margin:3px 0;font-size:12.5px"><span style="color:#6b7280">${lbl} <span style="font-size:9.5px;color:#9aa39a">${en}</span>:</span> ${val}</p>`:'';
-  const rows=q.lines.map((l,ix)=>`<tr${ix%2?'':' style="background:#f8faf8"'}><td>${prodName(l.productId)}</td><td style="font-size:10.5px;color:#555">${l.desc||'—'}</td><td style="text-align:center">${l.qty}</td><td style="text-align:center">${l.unit||'—'}</td><td style="text-align:center">${(+l.price||0).toFixed(2)}</td><td style="text-align:center">—</td><td style="text-align:center">${lNet(l).toFixed(2)}</td><td style="text-align:center">${+l.vat||0}%</td><td style="text-align:center">${lTax(l).toFixed(2)}</td><td style="text-align:center"><b>${(lNet(l)+lTax(l)).toFixed(2)}</b></td></tr>`).join('');
+  const rows=q.lines.map((l,ix)=>`<tr${ix%2?'':' style="background:#f8faf8"'}><td>${prodName(l.productId)}</td><td style="font-size:10.5px;color:#555">${l.desc||'—'}</td><td style="text-align:center">${ksTxt(l.qty)}</td><td style="text-align:center">${l.unit||'—'}</td><td style="text-align:center">${(+l.price||0).toFixed(2)}</td><td style="text-align:center">—</td><td style="text-align:center">${lNet(l).toFixed(2)}</td><td style="text-align:center">${+l.vat||0}%</td><td style="text-align:center">${lTax(l).toFixed(2)}</td><td style="text-align:center"><b>${(lNet(l)+lTax(l)).toFixed(2)}</b></td></tr>`).join('');
   const win=window.open('','_blank');
   if(!win){ toast("⚠️ اسمح بالنوافذ المنبثقة"); return; }
   win.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>عرض سعر ${q.qNo||''}</title>
@@ -9507,14 +9527,14 @@ function printQuote(id){
 }
 function renderQuotes(){
   const sel = qtCust.value;
-  qtCust.innerHTML = (DB.customers.length ? DB.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join("") : `<option value="">— لا عملاء بعد —</option>`)+'<option value="__new">➕ عميل جديد…</option>';
+  qtCust.innerHTML = (DB.customers.length ? DB.customers.map(c=>`<option value="${c.id}">${ksNm(c.name)}</option>`).join("") : `<option value="">— لا عملاء بعد —</option>`)+'<option value="__new">➕ عميل جديد…</option>';
   qaHook(qtCust,el=>custSelNew(el));
   if(sel) qtCust.value = sel;
   tblQuotes.innerHTML = `<tr><th>الرقم</th><th>التاريخ</th><th>العميل</th><th>الإجمالي</th><th>صالح حتى</th><th>الحالة</th><th></th></tr>`
     + (DB.quotes.slice().reverse().map(q=>{
       const t = quoteTotals(q);
       const expired = q.valid && q.valid<today() && q.status==="ساري";
-      return `<tr><td><b>${q.qNo}</b></td><td>${q.date}</td><td>${custName(q.customerId)}</td>
+      return `<tr><td><b>${q.qNo}</b></td><td>${ksTxt(q.date)}</td><td>${custName(q.customerId)}</td>
         <td class="pos">${fmtSR(t.gross)}</td><td>${q.valid||"—"}</td>
         <td><span class="badge ${q.status==="محول لفاتورة"?"active":expired?"danger":q.status==="مرفوض"?"done":"warn"}">${expired?"منتهي":q.status}</span></td>
         <td><button class="edt" onclick="printQuote('${q.id}')">🖨️</button>
@@ -9537,14 +9557,14 @@ function stkDiff(id, book){
 function renderStocktake(){
   tblStk.innerHTML = `<tr><th>الصنف</th><th>الرصيد الدفتري</th><th>العد الفعلي</th><th>الفرق</th></tr>`
     + (DB.inventory.map(i=>
-      `<tr><td><b>${i.name}</b> (${i.unit})</td><td>${fmt(i.qty)}</td>
+      `<tr><td><b>${ksNm(i.name)}</b> (${ksTxt(i.unit)})</td><td>${fmt(i.qty)}</td>
        <td><input type="number" step="0.01" min="0" id="stk_${i.id}" style="width:100px" placeholder="${fmt(i.qty)}" oninput="stkDiff('${i.id}',${+i.qty||0})"></td>
        <td class="muted" id="stkd_${i.id}">—</td></tr>`).join("")
       || `<tr><td colspan="4" class="muted">🏷️ لا منتجات بعد — أضف منتجاً من النموذج أعلاه ليظهر في الدورات والمبيعات والتحليلات</td></tr>`);
   tblStkHist.innerHTML = `<tr><th>التاريخ</th><th>أصناف معدلة</th><th>قيمة الفروقات</th><th>قيمة المخزون بعده</th><th>بواسطة</th></tr>`
     + (DB.stockTakes.slice().reverse().slice(0,10).map(s=>{
       const dv=(s.diffValue!==undefined)?+s.diffValue:(s.totalDiff!==undefined?null:(+s.value||0));
-      return `<tr><td>${s.date}</td><td>${s.itemCount??(s.items||[]).length}</td>`
+      return `<tr><td>${ksTxt(s.date)}</td><td>${s.itemCount??(s.items||[]).length}</td>`
         +`<td class="${dv===null?"muted":(dv<0?"neg":"pos")}">${dv===null?"—":fmtSR(dv)}</td>`
         +`<td>${s.stockValue!==undefined?fmtSR(s.stockValue):"—"}</td><td>${escH(s.employee||"—")}</td></tr>`;}).join("")
       || `<tr><td colspan="5" class="muted">لا جلسات جرد سابقة</td></tr>`);
@@ -9798,7 +9818,7 @@ function empProfile(id){
     <h3 style="margin-top:14px">💰 آخر الرواتب</h3>
     <div class="table-wrap"><table>
       <tr><th>الشهر</th><th>المبلغ</th><th>الصافي</th><th>تاريخ الصرف</th></tr>
-      ${pays.map(s=>`<tr><td>${s.month}</td><td>${fmtSR(s.amount)}</td><td>${s.net!==undefined?fmtSR(s.net):"—"}</td><td>${s.date}</td></tr>`).join("") || `<tr><td colspan="4" class="muted">لم يصرف راتب بعد</td></tr>`}
+      ${pays.map(s=>`<tr><td>${ksTxt(s.month)}</td><td>${fmtSR(s.amount)}</td><td>${s.net!==undefined?fmtSR(s.net):"—"}</td><td>${ksTxt(s.date)}</td></tr>`).join("") || `<tr><td colspan="4" class="muted">لم يصرف راتب بعد</td></tr>`}
     </table></div>
     <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
       <button class="btn small" onclick="printEmpCard('${em.id}')">📇 طباعة بطاقة تعريف</button>
@@ -9818,7 +9838,7 @@ function printEmpCard(id){
   <div class="card">
     ${logoTag(50)}<h2>🌴 مزرعة خيرات سايه</h2>
     ${em.docs&&em.docs.photo&&(em.docs.photo.type||"").startsWith("image")?`<img src="${em.docs.photo.data}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:2px solid #065f46;margin-top:6px">`:""}
-    <div class="nm">${em.name}</div>
+    <div class="nm">${ksNm(em.name)}</div>
     <div class="rl">${em.role||""}${em.nationality?" — "+em.nationality:""}</div>
     <svg id="bc"></svg>
     <div class="no">الرقم الوظيفي: ${em.empNo||"—"}${em.idNo?"<br>الهوية/الإقامة: "+em.idNo:""}</div>
@@ -9859,14 +9879,14 @@ function renderEmployees(){
     const last = DB.salaryPays.filter(s=>s.empId===em.id).map(s=>s.month).sort().pop();
     const d60 = new Date(Date.now()+60*864e5).toISOString().slice(0,10);
     const idBadge = !em.idExp ? "" : em.idExp<today() ? ' <span class="badge danger">منتهية</span>' : em.idExp<=d60 ? ' <span class="badge warn">تنتهي قريباً</span>' : "";
-    return `<tr><td><b>${em.empNo||"—"}</b></td><td><b style="cursor:pointer;color:var(--green-dark);text-decoration:underline" title="فتح ملف الموظف" onclick="empProfile('${em.id}')">${em.name}</b></td><td>${em.role||"—"}${em.section?`<br><span class="muted" style="font-size:.7rem">🏡 ${em.section}</span>`:""}</td><td>${em.nationality||"—"}</td><td>${em.idNo||"—"}${idBadge}</td><td>${fmtSR(em.salary)}</td><td>${em.phone||"—"}${em.email?`<br><span class="muted" style="font-size:.78rem">✉️ ${em.email}</span>`:""}</td>
+    return `<tr><td><b>${em.empNo||"—"}</b></td><td><b style="cursor:pointer;color:var(--green-dark);text-decoration:underline" title="فتح ملف الموظف" onclick="empProfile('${em.id}')">${ksNm(em.name)}</b></td><td>${em.role||"—"}${em.section?`<br><span class="muted" style="font-size:.7rem">🏡 ${ksTxt(em.section)}</span>`:""}</td><td>${em.nationality||"—"}</td><td>${em.idNo||"—"}${idBadge}</td><td>${fmtSR(em.salary)}</td><td>${em.phone||"—"}${em.email?`<br><span class="muted" style="font-size:.78rem">✉️ ${em.email}</span>`:""}</td>
       <td>${last?`<span class="badge active">آخر راتب: ${last}</span>`:'<span class="badge warn">لم يصرف بعد</span>'}</td>
       <td>${em.contractFile?`<button class="edt" title="عرض عقد العمل" onclick="viewEmContract('${em.id}')">📎</button><button class="edt" title="حذف المرفق" onclick="delEmContract('${em.id}')">✖</button>`:""}<button class="edt" onclick="editEmployee('${em.id}')">✏️</button><button class="del" onclick="delEmployee('${em.id}')">🗑️</button></td></tr>`;
   }).join("");
   tblEmployees.innerHTML = `<tr><th>الرقم الوظيفي</th><th>الاسم</th><th>الوظيفة</th><th>الجنسية</th><th>الهوية/الإقامة</th><th>الراتب الشهري</th><th>الجوال</th><th>الحالة</th><th></th></tr>`
     + (rows || `<tr><td colspan="9" class="muted">👷 لا موظفين بعد — أضفهم من هنا، وامنحهم الصلاحيات من (الإعدادات ← 🛡️ الصلاحيات)</td></tr>`);
   const srows = DB.salaryPays.slice().reverse().slice(0,30).map(s=>
-    `<tr><td>${s.date}</td><td><b>${escH(s.empName||empName2(s.empId)||"—")}</b></td><td>${s.month}</td><td class="neg">${fmtSR(s.amount)}</td></tr>`).join("");
+    `<tr><td>${ksTxt(s.date)}</td><td><b>${escH(s.empName||empName2(s.empId)||"—")}</b></td><td>${ksTxt(s.month)}</td><td class="neg">${fmtSR(s.amount)}</td></tr>`).join("");
   tblSalaries.innerHTML = `<tr><th>تاريخ الصرف</th><th>الموظف</th><th>الشهر</th><th>المبلغ</th></tr>`
     + (srows || `<tr><td colspan="4" class="muted">لا توجد رواتب مصروفة بعد</td></tr>`);
   try{ renderJoinReqs(); }catch(e){}
@@ -9992,7 +10012,7 @@ function renderOrders(){
     const when = o.status!=="جديد" ? "—" : d<0 ? `<span class="neg">متأخر ${-d} يوم</span>` : d===0 ? "<b>اليوم</b>" : `بعد ${d} يوم`;
     return `<tr><td>${o.due}</td><td><b>${custName(o.customerId)}</b></td><td>${prodName(o.productId)}</td>
       <td>${fmt(o.qty)} ${o.unit||"كجم"}</td><td>${when}</td>
-      <td><span class="badge ${o.status==="جديد"?(d<0?"danger":"warn"):"active"}">${o.status}</span></td>
+      <td><span class="badge ${o.status==="جديد"?(d<0?"danger":"warn"):"active"}">${ksTxt(o.status)}</span></td>
       <td>${o.notes||""}</td>
       <td>${o.status==="جديد"?`<button class="edt" title="تحويل لفاتورة بيع" onclick="orderToInvoice('${o.id}')">🧾</button>`:""}<button class="edt" title="تسليم/إرجاع" onclick="orderDone('${o.id}')">✅</button>${canEdit(o.employee)?`<button class="edt" onclick="editOrder('${o.id}')">✏️</button>`:""}${canDelete(o.employee)?`<button class="del" onclick="delOrder('${o.id}')">🗑️</button>`:""}</td></tr>`;
   }).join("");
@@ -10009,7 +10029,7 @@ function printPayroll(){
   const rows = DB.employees.map(em=>{
     const p = DB.salaryPays.find(s=>s.empId===em.id && s.month===m);
     tot += em.salary; if(p) paidTot += p.amount;
-    return `<tr><td>${em.name}</td><td>${em.role||"—"}</td><td>${fmt(em.salary)} ⃁</td>
+    return `<tr><td>${ksNm(em.name)}</td><td>${em.role||"—"}</td><td>${fmt(em.salary)} ⃁</td>
       <td>${p?`مصروف (${p.date}) — ${fmt(p.amount)} ⃁`:"لم يصرف"}</td><td style="width:110px"></td></tr>`;
   }).join("");
   w.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>كشف رواتب ${m}</title>
@@ -10032,7 +10052,7 @@ function empName2(id){
      empName2(a.empId) باسم المستخدم كانت تفشل ⇒ الموظف يفقد مهامه ولا يقدر يغلقها */
   if(!id) return "—";
   const e=(DB.employees||[]).find(x=>x.id===id);
-  return e ? e.name : "— موظف محذوف —";
+  return e ? ksNm(e.name) : "— موظف محذوف —";
 }
 function bcScanGo(){
   const inp=document.getElementById("bcScan"); const code=(inp?.value||"").trim();
@@ -10114,7 +10134,7 @@ function renderDebts(){
   const __shown = unpaid.slice(0,__CAP);
   const rows = __shown.map(h=>{
     const c = DB.cycles.find(x=>x.id===h.cycleId);
-    return `<tr><td>${h.date}</td><td><b>${custName(h.customerId)}</b></td>
+    return `<tr><td>${ksTxt(h.date)}</td><td><b>${custName(h.customerId)}</b></td>
       <td>${c?prodName(c.productId):(h.productName||h.item||"—")}</td><td>${fmt(h.qty)} ${h.unit||"كجم"}</td>
       <td>${fmtSR(hGross(h))}</td><td class="pos">${hPaidAmt(h)?fmtSR(hPaidAmt(h)):"—"}</td>
       <td class="neg"><b>${fmtSR(__rem(h))}</b></td>
@@ -10161,7 +10181,7 @@ function renderCustomers(){
     const debt = sales.reduce((s,h)=>s+hRemain(h),0);
     const lim = c.creditLimit||0;
     const _adr=[c.street,c.bldg?("مبنى "+c.bldg):"",c.city,c.region,c.zip].filter(Boolean).join("، ");
-    return `<tr><td style="font-size:.72rem;color:var(--muted)">${c.custNo||"—"}</td><td><b>${c.name}</b></td><td>${c.vatNo||"—"}${c.unifiedNo?`<br><span style="font-size:.68rem;color:var(--muted)">موحد: ${c.unifiedNo}</span>`:""}</td><td>${c.phone||"—"}</td><td style="font-size:.75rem">${_adr||"—"}</td><td>${fmtSR(tot)}</td>
+    return `<tr><td style="font-size:.72rem;color:var(--muted)">${c.custNo||"—"}</td><td><b>${ksNm(c.name)}</b></td><td>${c.vatNo||"—"}${c.unifiedNo?`<br><span style="font-size:.68rem;color:var(--muted)">موحد: ${c.unifiedNo}</span>`:""}</td><td>${c.phone||"—"}</td><td style="font-size:.75rem">${_adr||"—"}</td><td>${fmtSR(tot)}</td>
       <td class="${debt?"neg":"pos"}">${fmtSR(debt)}</td>
       <td>${lim?fmtSR(lim)+(debt>lim?' <span class="badge danger">⚠️ تجاوز</span>':debt>lim*0.8?' <span class="badge warn">قارب</span>':""):"—"}</td>
       <td>${debt>0?`<button class="edt" title="تذكير واتساب" onclick="waCustomer('${c.id}')">💬</button>`:""}<button class="edt" title="كشف حساب" onclick="printStatement('${c.id}')">📄</button><button class="edt" onclick="editCustomer('${c.id}')">✏️</button>${isOwner()?`<button class="del" onclick="delCustomer('${c.id}')">🗑️</button>`:""}</td></tr>`;
@@ -10172,7 +10192,7 @@ function renderCustomers(){
 }
 
 /* ====== الموردين والمشتريات ====== */
-function supName(id){ const s=DB.suppliers.find(x=>x.id===id); return s?s.name:"— مورد محذوف —"; }
+function supName(id){ const s=DB.suppliers.find(x=>x.id===id); return s?ksNm(s.name):"— مورد محذوف —"; }
 function addSupplier(e){
   e.preventDefault();
   if(!ksNeed([[suName.value,"اسم المورد"]])) return;
@@ -10282,7 +10302,7 @@ function addPurchase(e){
           it.cost = +(((oldQ>0?oldQ*oldC:0) + addQ*unitCost) / (Math.max(0,oldQ)+addQ)).toFixed(4);
         }
         it.qty = oldQ + addQ;
-        DB.invMoves.push({id:uid(), date:rec.date, itemId:it.id, type:"إضافة (شراء/توريد)", qty:addQ, employee:rec.employee, notes:"شراء من "+supName(rec.supplierId)+(addQ!==(+rec.qty||0)?` (محوَّل من ${fmt(rec.qty)} ${rec.unit})`:"")});
+        DB.invMoves.push({id:uid(), date:rec.date, itemId:it.id, type:"إضافة (شراء/توريد)", qty:addQ, employee:rec.employee, notes:"شراء من "+supName(rec.supplierId)+(addQ!==(+rec.qty||0)?` (محوَّل من ${fmt(rec.qty)} ${ksTxt(rec.unit)})`:"")});
         rec.stockQty=addQ;
       }
     }
@@ -10346,7 +10366,7 @@ function markPurchasePaid(id){
 }
 function renderPurchases(){
   const rows = DB.purchases.slice().reverse().map(p=>
-    `<tr><td>${p.date}</td><td><b>${supName(p.supplierId)}</b></td><td>${p.cat}</td><td>${p.desc||"—"}</td>
+    `<tr><td>${ksTxt(p.date)}</td><td><b>${supName(p.supplierId)}</b></td><td>${ksTxt(p.cat)}</td><td>${p.desc||"—"}</td>
      <td class="neg">${fmtSR(p.amount)}</td>
      <td>${apvBadge('pur',p)}${p.paid?'<span class="badge active">مدفوع</span>':'<span class="badge danger">آجل</span> <button class="btn small secondary" onclick="markPurchasePaid(\''+p.id+'\')">سداد</button>'}</td>
      <td>${p.employee||""}</td>
@@ -10355,7 +10375,7 @@ function renderPurchases(){
     + (rows || `<tr><td colspan="8" class="muted">🧾 لا فواتير شراء بعد — سجّلها من النموذج أعلاه وتنعكس تلقائياً على المصروفات والمخزون</td></tr>`);
   const unpaid = DB.purchases.filter(p=>pRemain(p)>0.005).slice().reverse();
   const drows = unpaid.map(p=>
-    `<tr><td>${p.date}</td><td><b>${supName(p.supplierId)}</b></td><td>${p.desc||p.cat}</td>
+    `<tr><td>${ksTxt(p.date)}</td><td><b>${supName(p.supplierId)}</b></td><td>${p.desc||p.cat}</td>
      <td class="neg">${fmtSR(pRemain(p))}${pPaidAmt(p)?` <span class="muted">(مدفوع ${fmt(pPaidAmt(p))})</span>`:""}</td>
      <td><button class="btn small secondary" onclick="payPurchase('${p.id}')">💵 دفعة</button>
          <button class="btn small" onclick="markPurchasePaid('${p.id}')">✅ سداد كامل</button></td></tr>`).join("");
@@ -10369,7 +10389,7 @@ function renderSuppliers(){
     const ps = DB.purchases.filter(p=>p.supplierId===s.id);
     const tot = ps.reduce((x,p)=>x+pGross(p),0);
     const debt = ps.reduce((x,p)=>x+pRemain(p),0);
-    return `<tr><td style="font-size:.72rem;color:var(--muted)">${s.supNo||"—"}</td><td><b>${s.name}</b>${s.contact?`<br><span style="font-size:.7rem;color:var(--muted)">👤 ${s.contact}</span>`:""}</td>
+    return `<tr><td style="font-size:.72rem;color:var(--muted)">${s.supNo||"—"}</td><td><b>${ksNm(s.name)}</b>${s.contact?`<br><span style="font-size:.7rem;color:var(--muted)">👤 ${ksTxt(s.contact)}</span>`:""}</td>
       <td>${s.phone||"—"}${s.email?`<br><span style="font-size:.7rem;color:var(--muted)" dir="ltr">${s.email}</span>`:""}</td>
       <td>${s.vatNo||"—"}${s.idType?`<br><span style="font-size:.68rem;color:var(--muted)">${s.idType}: ${s.idNo||"—"}</span>`:""}</td><td>${fmtSR(tot)}</td>
       <td class="${debt?"neg":"pos"}">${fmtSR(debt)}</td>
@@ -10452,7 +10472,7 @@ function exportProductsCSV(){
     ...DB.products.map(p2=>[p2.prodNo||"",p2.name,p2.type||"",p2.unit||"",p2.unitW||"",p2.price||0,p2.section||"عام"])],"المنتجات");
 }
 function printProducts(){
-  const rows=DB.products.map(p2=>`<tr><td>${p2.prodNo||""}</td><td><b>${p2.name}</b></td><td>${p2.type||""}</td><td>${p2.unit||""}</td><td>${p2.unitW||"—"}</td><td>${fmt(p2.price||0)} ⃁</td><td>${p2.section||"عام"}</td></tr>`).join("");
+  const rows=DB.products.map(p2=>`<tr><td>${p2.prodNo||""}</td><td><b>${ksNm(p2.name)}</b></td><td>${p2.type||""}</td><td>${p2.unit||""}</td><td>${p2.unitW||"—"}</td><td>${fmt(p2.price||0)} ⃁</td><td>${p2.section||"عام"}</td></tr>`).join("");
   const w=window.open("","_blank");
   w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>قائمة المنتجات</title>
   <style>*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}@page{margin:8mm}
@@ -10484,7 +10504,7 @@ function fillCyProducts(){
     if(sec) return p.type!=="أسماك";
     return true;
   });
-  el.innerHTML = list.length ? list.map(p=>`<option value="${p.id}">${p.name}${p.type?` (${p.type})`:""}</option>`).join("") : `<option value="">— لا منتجات مناسبة لهذا القسم: أضف بزر ➕ —</option>`;
+  el.innerHTML = list.length ? list.map(p=>`<option value="${p.id}">${p.name}${p.type?` (${ksTxt(p.type)})`:""}</option>`).join("") : `<option value="">— لا منتجات مناسبة لهذا القسم: أضف بزر ➕ —</option>`;
   if(cur && list.some(p=>p.id===cur)) el.value=cur;
 }
 function addProduct(e){
@@ -10510,7 +10530,7 @@ function delProduct(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ 
 function renderProducts(){
   try{ prTypeFill(); prUnitFill(); }catch(e){}
   const rows = DB.products.map(p=>
-    `<tr><td style="font-size:.72rem;color:var(--muted)">${p.prodNo||"—"}</td><td><b>${p.name}</b>${p.desc?`<br><span class="muted" style="font-size:.72rem">${p.desc}</span>`:""}</td><td>${p.type}</td><td>${p.unit||"كجم"}</td><td>${p.unitW?fmt(p.unitW)+" كجم":"—"}</td><td>${fmtSR(p.price)}</td>
+    `<tr><td style="font-size:.72rem;color:var(--muted)">${p.prodNo||"—"}</td><td><b>${ksNm(p.name)}</b>${p.desc?`<br><span class="muted" style="font-size:.72rem">${ksTxt(p.desc)}</span>`:""}</td><td>${ksTxt(p.type)}</td><td>${p.unit||"كجم"}</td><td>${p.unitW?fmt(p.unitW)+" كجم":"—"}</td><td>${fmtSR(p.price)}</td>
      <td><button class="edt" onclick="editProduct('${p.id}')">✏️</button>${isOwner()?`<button class="del" onclick="delProduct('${p.id}')">🗑️</button>`:""}</td></tr>`).join("");
   tblProducts.innerHTML = `<tr><th>الرقم</th><th>المنتج</th><th>التصنيف</th><th>الوحدة</th><th>وزن الوحدة</th><th>سعر البيع الافتراضي/وحدة</th><th></th></tr>` + rows;
 }
@@ -10581,11 +10601,11 @@ function inPeriod(dateStr){
 function getAlerts(){
   const items = [];
   DB.inventory.filter(i=>i.qty<=i.min && i.min>0).forEach(i=>
-    items.push(`📦 المخزون ناقص: <b>${i.name}</b> (متبقي ${fmt(i.qty)} ${i.unit})`));
+    items.push(`📦 المخزون ناقص: <b>${ksNm(i.name)}</b> (متبقي ${fmt(i.qty)} ${ksTxt(i.unit)})`));
   const now = new Date(), week = new Date(Date.now()+7*864e5);
   DB.cycles.filter(c=>c.status==="نشطة"&&c.harvestDate).forEach(c=>{
     const d = new Date(c.harvestDate);
-    if(d<=week) items.push(`🌱 <b>${prodName(c.productId)}</b> (${c.section}) ${d<now?"تجاوز موعد بداية المحصول":"يقترب موعد بداية المحصول"}: ${c.harvestDate}`);
+    if(d<=week) items.push(`🌱 <b>${prodName(c.productId)}</b> (${ksTxt(c.section)}) ${d<now?"تجاوز موعد بداية المحصول":"يقترب موعد بداية المحصول"}: ${c.harvestDate}`);
   });
   const debt = DB.harvests.reduce((s,h)=>s+hRemain(h),0);
   if(debt>0) items.push(`💰 ديون عملاء غير مسددة: <b>${fmtSR(debt)}</b>`);
@@ -10612,12 +10632,12 @@ function getAlerts(){
   if(recDue.length) items.push(`🔁 ${recDue.length} مصروف متكرر مستحق لشهر ${curM} لم يولد بعد — من تبويب المصاريف اضغط "توليد"`);
   const d60 = new Date(Date.now()+60*864e5).toISOString().slice(0,10);
   DB.employees.filter(e=>e.idExp).forEach(e=>{
-    if(e.idExp < today()) items.push(`🪪 هوية/إقامة <b>${e.name}</b> منتهية منذ ${e.idExp} — جددها فوراً`);
-    else if(e.idExp <= d60) items.push(`🪪 هوية/إقامة <b>${e.name}</b> تنتهي في ${e.idExp} — باقي أقل من 60 يوم`);
+    if(e.idExp < today()) items.push(`🪪 هوية/إقامة <b>${ksNm(e.name)}</b> منتهية منذ ${e.idExp} — جددها فوراً`);
+    else if(e.idExp <= d60) items.push(`🪪 هوية/إقامة <b>${ksNm(e.name)}</b> تنتهي في ${e.idExp} — باقي أقل من 60 يوم`);
   });
   const tanks = {};
   DB.waterLogs.forEach(w=>{ if(!tanks[w.tank]||w.date>tanks[w.tank].date) tanks[w.tank]=w; });
-  Object.values(tanks).forEach(w=>{ if(waterBad(w)) items.push(`🐟 آخر قياس مياه في <b>${w.tank}</b> (${w.date}) خارج المعدل الآمن للبلطي`); });
+  Object.values(tanks).forEach(w=>{ if(waterBad(w)) items.push(`🐟 آخر قياس مياه في <b>${ksTxt(w.tank)}</b> (${w.date}) خارج المعدل الآمن للبلطي`); });
   if(DB.waterLogs.length && !DB.waterLogs.some(w=>w.date===today()))
     items.push(`🐟 لم يُسجل قياس مياه اليوم`);
   const last3 = DB.fishLogs.filter(f=>f.date>=new Date(Date.now()-3*864e5).toISOString().slice(0,10));
@@ -10629,11 +10649,11 @@ function getAlerts(){
     if(t.initCount>0){
       const a = agg[t.name];
       const __mb=(+t.initCount||0)+Math.max(0,tankNet(t.name));
-      if(a && __mb>0 && a.dead/__mb>=0.1) items.push(`🐟 نسبة النفوق في <b>${t.name}</b> وصلت ${fmt(a.dead/__mb*100)}% — افحص الحوض`);
+      if(a && __mb>0 && a.dead/__mb>=0.1) items.push(`🐟 نسبة النفوق في <b>${ksNm(t.name)}</b> وصلت ${fmt(a.dead/__mb*100)}% — افحص الحوض`);
     }
     const a2 = agg[t.name];
     if(t.type==="التسمين" && a2 && a2.lastW && a2.lastW>=target)
-      items.push(`🐟 <b>${t.name}</b> جاهز للبيع — متوسط الوزن ${fmt(a2.lastW)} جم (${fmt(tankCurrent(t,a2))} سمكة)`);
+      items.push(`🐟 <b>${ksNm(t.name)}</b> جاهز للبيع — متوسط الوزن ${fmt(a2.lastW)} جم (${fmt(tankCurrent(t,a2))} سمكة)`);
   });
   const feedStock = DB.inventory.filter(i=>i.cat==="أعلاف").reduce((s,i)=>s+i.qty,0);
   const since14 = new Date(Date.now()-14*864e5).toISOString().slice(0,10);
@@ -10648,22 +10668,22 @@ function getAlerts(){
   DB.orders.filter(o=>o.status==="جديد"&&o.due<=ord3).forEach(o=>
     items.push(`🛒 طلب ${o.due<today()?"<b>متأخر</b>":"قريب"}: <b>${custName(o.customerId)}</b> — ${prodName(o.productId)} ${fmt(o.qty)} ${o.unit||"كجم"} (${o.due})`));
   DB.sprays.filter(s=>sprayEnd(s)>=today()).forEach(s=>
-    items.push(`🧪 فترة أمان رش سارية في <b>${s.section}</b> حتى ${sprayEnd(s)} (${s.name}) — لا تحصد قبلها`));
+    items.push(`🧪 فترة أمان رش سارية في <b>${ksTxt(s.section)}</b> حتى ${sprayEnd(s)} (${s.name}) — لا تحصد قبلها`));
   const con30 = new Date(Date.now()+30*864e5).toISOString().slice(0,10);
   DB.contracts.filter(c=>c.end && c.end>=today() && c.end<=con30).forEach(c=>
     items.push(`📜 عقد <b>${empName2(c.empId)}</b> ينتهي في ${c.end} — جدد أو سوّي نهاية الخدمة`));
   const soonD = new Date(Date.now()+7*864e5).toISOString().slice(0,10);
   DB.equipment.forEach(eq=>{
     const next = eqNext(eq);
-    if(next<=today()) items.push(`🔧 صيانة مستحقة: <b>${eq.name}</b> (${eq.section}) — كانت في ${next}`);
-    else if(next<=soonD) items.push(`🔧 صيانة قريبة: <b>${eq.name}</b> في ${next}`);
+    if(next<=today()) items.push(`🔧 صيانة مستحقة: <b>${ksNm(eq.name)}</b> (${ksTxt(eq.section)}) — كانت في ${next}`);
+    else if(next<=soonD) items.push(`🔧 صيانة قريبة: <b>${ksNm(eq.name)}</b> في ${next}`);
   });
   const lateA = DB.assigns.filter(a=>a.status==="معلقة" && a.due<today());
   if(lateA.length) items.push(`📌 مهام مسندة متأخرة: <b>${lateA.length}</b> — ${lateA.slice(0,3).map(a=>a.desc+" ("+empName2(a.empId)+")").join("، ")}`);
   const exp30b = new Date(Date.now()+30*864e5).toISOString().slice(0,10);
   DB.inventory.filter(i=>i.exp).forEach(i=>{
-    if(i.exp<today()) items.push(`⏰ <b>${i.name}</b> منتهي الصلاحية منذ ${i.exp} — لا تستخدمه`);
-    else if(i.exp<=exp30b) items.push(`⏰ <b>${i.name}</b> تنتهي صلاحيته ${i.exp}`);
+    if(i.exp<today()) items.push(`⏰ <b>${ksNm(i.name)}</b> منتهي الصلاحية منذ ${i.exp} — لا تستخدمه`);
+    else if(i.exp<=exp30b) items.push(`⏰ <b>${ksNm(i.name)}</b> تنتهي صلاحيته ${i.exp}`);
   });
   /* طلبات الشراء: تنبيه حسب المرحلة والدور */
   (DB.purchaseRequests||[]).forEach(r=>{
@@ -10696,23 +10716,23 @@ function getAlerts(){
   }
   const houses = {};
   DB.climateLogs.forEach(c=>{ if(!houses[c.house]||c.date>houses[c.house].date) houses[c.house]=c; });
-  Object.values(houses).forEach(c=>{ if(climBad(c)) items.push(`🌡️ آخر قياس مناخ في <b>${c.house}</b> (${c.date}) خارج المعدل`); });
+  Object.values(houses).forEach(c=>{ if(climBad(c)) items.push(`🌡️ آخر قياس مناخ في <b>${ksTxt(c.house)}</b> (${c.date}) خارج المعدل`); });
   if(new Date().getDate()>=25){
     const m = today().slice(0,7);
     DB.employees.filter(em=>!DB.salaryPays.some(s=>s.empId===em.id&&s.month===m))
-      .forEach(em=>items.push(`💵 راتب <b>${em.name}</b> لشهر ${m} لم يصرف بعد`));
+      .forEach(em=>items.push(`💵 راتب <b>${ksNm(em.name)}</b> لشهر ${m} لم يصرف بعد`));
   }
   // 📦 المخزون الموحد: انتهاء صلاحية أو نقص (مبيدات، أسمدة، أعلاف، مستلزمات)
   (DB.inventory||[]).forEach(p=>{
     const ico=(p.cat==="مبيدات"||p.cat==="أسمدة")?"🧪":"📦";
-    if(p.exp && p.exp<today()) items.push(`${ico} <b>${p.name}</b> منتهي الصلاحية منذ ${p.exp}${p.cat==="مبيدات"?" — لا تستخدمه":""}`);
-    else if(p.exp && p.exp<=exp30b) items.push(`${ico} تنتهي صلاحية <b>${p.name}</b> في ${p.exp}`);
-    if((+p.min||0)>0 && (+p.qty||0)<=(+p.min||0)) items.push(`${ico} مخزون <b>${p.name}</b> منخفض (متبقي ${fmt(p.qty)} ${p.unit||""})`);
+    if(p.exp && p.exp<today()) items.push(`${ico} <b>${ksNm(p.name)}</b> منتهي الصلاحية منذ ${p.exp}${p.cat==="مبيدات"?" — لا تستخدمه":""}`);
+    else if(p.exp && p.exp<=exp30b) items.push(`${ico} تنتهي صلاحية <b>${ksNm(p.name)}</b> في ${p.exp}`);
+    if((+p.min||0)>0 && (+p.qty||0)<=(+p.min||0)) items.push(`${ico} مخزون <b>${ksNm(p.name)}</b> منخفض (متبقي ${fmt(p.qty)} ${p.unit||""})`);
   });
   // 🌿 أمراض النباتات: متابعة مستحقة
   (DB.diseases||[]).forEach(d=>{
     if(d.followup && d.status!=="تعافى" && d.followup<=today())
-      items.push(`🌿 متابعة إصابة <b>${d.crop||d.type||"نبات"}</b> ${d.section?"("+d.section+")":""} ${d.followup<today()?"<b>متأخرة</b>":"مستحقة"} — ${d.followup}`);
+      items.push(`🌿 متابعة إصابة <b>${d.crop||d.type||"نبات"}</b> ${d.section?"("+d.section+")":""} ${d.followup<today()?"<b>متأخرة</b>":"مستحقة"} — ${ksTxt(d.followup)}`);
   });
   // 💉 مواشي: جرعات تطعيم وولادات متوقّعة
   if(DB.livestock){
@@ -10739,11 +10759,11 @@ function getAlerts(){
       MS.push([75,"بدء الفطام التدريجي (عزل يوم + ساعة رضاعة) — وانتهت مدة بيع المولود مع أمه (شهرين ونصف)"]);
       MS.push([90,"عزل المواليد في شبوك مستقلة — جاهزون للبيع (تمّت ٣ أشهر)"]);
       MS.push([120,"فرز الطليان (الذكور) عن الرخال (الإناث)"]);
-      MS.forEach(([d,txt])=>{ const diff=d-age; if(diff>=0&&diff<=3) items.push(`🍼 مواليد ${r.animal} (${r.date}): ${diff===0?"<b>اليوم</b>":"بعد <b>"+diff+" يوم</b>"} — ${txt}`); });
+      MS.forEach(([d,txt])=>{ const diff=d-age; if(diff>=0&&diff<=3) items.push(`🍼 مواليد ${ksTxt(r.animal)} (${r.date}): ${diff===0?"<b>اليوم</b>":"بعد <b>"+diff+" يوم</b>"} — ${txt}`); });
     });
     (DB.livestock.medicines||[]).forEach(m=>{
-      if(m.exp && m.exp<today()) items.push(`💊 دواء <b>${m.name}</b> منتهي الصلاحية منذ ${m.exp}`);
-      if((+m.qty||0)<=(+m.min||0) && (+m.min||0)>0) items.push(`💊 مخزون دواء <b>${m.name}</b> منخفض (${fmt(m.qty)} ${m.unit||""})`);
+      if(m.exp && m.exp<today()) items.push(`💊 دواء <b>${ksNm(m.name)}</b> منتهي الصلاحية منذ ${m.exp}`);
+      if((+m.qty||0)<=(+m.min||0) && (+m.min||0)>0) items.push(`💊 مخزون دواء <b>${ksNm(m.name)}</b> منخفض (${fmt(m.qty)} ${m.unit||""})`);
     });
     (DB.livestock.birthDeathLogs||[]).forEach(r=>{
       if(r.type==="مولود" && r.weanDate && !r.weaned && r.weanDate<=_soon)
@@ -10969,10 +10989,10 @@ function renderDash(){
       DB.tanks.forEach(tt=>{ if(tt.cycleId===c.id){ const aa=_aggCP[tt.name]; if(aa) linked+=aa.feed*_fkpCP; } });
     }
     const pr = r - c.initCost - linked;
-    return `<tr><td><b>${prodName(c.productId)}</b></td><td>${c.section}</td><td>${c.plantDate}</td><td>${c.harvestDate||"—"}</td>
+    return `<tr><td><b>${prodName(c.productId)}</b></td><td>${ksTxt(c.section)}</td><td>${ksTxt(c.plantDate)}</td><td>${c.harvestDate||"—"}</td>
       <td>${fmt(q)} كجم</td><td>${fmtSR(c.initCost)}</td><td>${fmtSR(linked)}</td><td>${fmtSR(r)}</td>
       <td class="${pr>=0?"pos":"neg"}">${fmtSR(pr)}</td>
-      <td><span class="badge ${c.status==="نشطة"?"active":"done"}">${c.status}</span></td></tr>`;
+      <td><span class="badge ${c.status==="نشطة"?"active":"done"}">${ksTxt(c.status)}</span></td></tr>`;
   }).join("");
   tblCyclePerf.innerHTML =
     `<tr><th>المحصول</th><th>القسم</th><th>تاريخ الزراعة</th><th>بداية المحصول</th><th>الكمية المباعة</th><th>تكلفة البداية</th><th>مصروفات مرتبطة</th><th>المبيعات</th><th>الربح*</th><th>الحالة</th></tr>`
@@ -10987,17 +11007,17 @@ function renderDash(){
     + (catRows || `<tr><td colspan="3" class="muted">لا توجد مصروفات</td></tr>`);
 
   const trows = DB.tasks.slice().reverse().slice(0,10).map(t=>
-    `<tr><td>${t.date}</td><td><b>${t.type}</b></td><td>${t.section}</td><td>${t.desc||""}</td><td>${t.employee}</td></tr>`).join("");
+    `<tr><td>${ksTxt(t.date)}</td><td><b>${ksTxt(t.type)}</b></td><td>${ksTxt(t.section)}</td><td>${t.desc||""}</td><td>${ksTxt(t.employee)}</td></tr>`).join("");
   tblRecentTasks.innerHTML = `<tr><th>التاريخ</th><th>العمل</th><th>القسم</th><th>التفاصيل</th><th>الموظف</th></tr>`
     + (trows || `<tr><td colspan="5" class="muted">لا توجد أعمال مسجلة</td></tr>`);
 
   const recent = [
     ...DB.harvests.map(h=>({d:h.date, t:"إنتاج", desc:`${prodName((DB.cycles.find(c=>c.id===h.cycleId)||{}).productId)} — ${fmt(h.qty)} كجم — ${custName(h.customerId)}`, amt:h.total, emp:h.employee, pos:true})),
-    ...DB.expenses.map(x=>({d:x.date, t:"مصروف", desc:`${x.cat} (${x.section})`, amt:x.amount, emp:x.employee, pos:false})),
-    ...DB.cycles.map(c=>({d:c.plantDate, t:"دورة جديدة", desc:`${prodName(c.productId)} — ${c.section}`, amt:c.initCost, emp:c.employee, pos:false}))
+    ...DB.expenses.map(x=>({d:x.date, t:"مصروف", desc:`${ksTxt(x.cat)} (${ksTxt(x.section)})`, amt:x.amount, emp:x.employee, pos:false})),
+    ...DB.cycles.map(c=>({d:c.plantDate, t:"دورة جديدة", desc:`${prodName(c.productId)} — ${ksTxt(c.section)}`, amt:c.initCost, emp:c.employee, pos:false}))
   ].sort((a,b)=>b.d.localeCompare(a.d)).slice(0,15);
   tblRecent.innerHTML = `<tr><th>التاريخ</th><th>النوع</th><th>الوصف</th><th>المبلغ</th><th>الموظف</th></tr>`
-    + (recent.map(r=>`<tr><td>${r.d}</td><td>${r.t}</td><td>${r.desc}</td>
+    + (recent.map(r=>`<tr><td>${r.d}</td><td>${r.t}</td><td>${ksTxt(r.desc)}</td>
        <td class="${r.pos?"pos":"neg"}">${fmtSR(r.amt)}</td><td>${r.emp||""}</td></tr>`).join("")
        || `<tr><td colspan="5" class="muted">لا توجد إدخالات</td></tr>`);
 
@@ -11037,11 +11057,11 @@ function renderOps(){
     <div class="card kpi amber"><div class="label">💧 قياسات المياه</div><div class="value">${fmt(o.water.length)}</div><div class="muted">${badW?`<span class="neg">${badW} خارج المعدل</span>`:"كلها سليمة"}</div></div>
     <div class="card kpi blue"><div class="label">📅 الحضور</div><div class="value">${present} ✓</div><div class="muted">${absent?`<span class="neg">غائب: ${absent}</span>`:"لا غياب مسجل"}</div></div>`;
   const taskRows = [
-    ...o.tasks.map(t=>`<tr><td><b>${t.type}</b></td><td>${t.section}</td><td>${t.desc||""}</td><td>${t.employee}</td></tr>`),
-    ...o.sprays.map(s=>`<tr><td><b>🧪 رش ${s.name}</b></td><td>${s.section}</td><td>أمان حتى ${sprayEnd(s)}</td><td>${s.employee}</td></tr>`),
-    ...o.climate.map(c=>`<tr><td><b>🌡️ قياس مناخ</b></td><td>${c.house}</td><td>${c.temp!==null?fmt(c.temp)+"°م":""} ${c.hum!==null?fmt(c.hum)+"%":""}</td><td>${c.employee}</td></tr>`),
+    ...o.tasks.map(t=>`<tr><td><b>${ksTxt(t.type)}</b></td><td>${ksTxt(t.section)}</td><td>${t.desc||""}</td><td>${ksTxt(t.employee)}</td></tr>`),
+    ...o.sprays.map(s=>`<tr><td><b>🧪 رش ${s.name}</b></td><td>${ksTxt(s.section)}</td><td>أمان حتى ${sprayEnd(s)}</td><td>${ksTxt(s.employee)}</td></tr>`),
+    ...o.climate.map(c=>`<tr><td><b>🌡️ قياس مناخ</b></td><td>${ksTxt(c.house)}</td><td>${c.temp!==null?fmt(c.temp)+"°م":""} ${c.hum!==null?fmt(c.hum)+"%":""}</td><td>${ksTxt(c.employee)}</td></tr>`),
     ...o.moves.map(m=>{ const it=DB.inventory.find(x=>x.id===m.itemId);
-      return `<tr><td><b>📦 ${m.type}</b></td><td>${escH(it?it.name:"— صنف محذوف —")}</td><td>${fmt(m.qty)} ${it?it.unit:""}</td><td>${m.employee}</td></tr>`; })
+      return `<tr><td><b>📦 ${ksTxt(m.type)}</b></td><td>${escH(it?it.name:"— صنف محذوف —")}</td><td>${fmt(m.qty)} ${it?it.unit:""}</td><td>${ksTxt(m.employee)}</td></tr>`; })
   ].join("");
   tblOpsTasks.innerHTML = `<tr><th>العمل</th><th>الموقع</th><th>التفاصيل</th><th>الموظف</th></tr>`
     + (taskRows || `<tr><td colspan="4" class="muted">لا أعمال مسجلة في ${d}</td></tr>`);
@@ -11052,7 +11072,7 @@ function renderOps(){
       const fed = logs.filter(f=>f.feed>0).length;
       const meals = t.meals||3;
       const w = o.water.find(x=>x.tank===t.name);
-      return `<tr><td><b>${t.name}</b></td>
+      return `<tr><td><b>${ksNm(t.name)}</b></td>
         <td><span class="badge ${fed>=meals?"active":fed>0?"warn":"danger"}">${fed} / ${meals}</span></td>
         <td>${fmt(logs.reduce((s,f)=>s+(f.feed||0),0))} كجم</td>
         <td class="${logs.reduce((s,f)=>s+(f.dead||0),0)>0?"neg":""}">${fmt(logs.reduce((s,f)=>s+(f.dead||0),0))}</td>
@@ -11072,8 +11092,8 @@ function renderOps(){
       if(cnt(o.exps)) det.push("مصروفات "+cnt(o.exps));
       if(cnt(o.moves)) det.push("مخزون "+cnt(o.moves));
       if(!tot && !at) return "";
-      return `<tr><td><b>${e.name}</b></td>
-        <td>${at?`<span class="badge ${at.status==="حاضر"?"active":at.status==="غائب"?"danger":"warn"}">${at.status}</span>`:"—"}</td>
+      return `<tr><td><b>${ksNm(e.name)}</b></td>
+        <td>${at?`<span class="badge ${at.status==="حاضر"?"active":at.status==="غائب"?"danger":"warn"}">${ksTxt(at.status)}</span>`:"—"}</td>
         <td class="${tot?"pos":""}">${fmt(tot)}</td><td class="muted">${det.join("، ")||"—"}</td></tr>`;
     }).join("") || `<tr><td colspan="4" class="muted">لا نشاط مسجل في ${d}</td></tr>`)
     || `<tr><td colspan="4" class="muted">لا نشاط في ${d}</td></tr>`;
@@ -11106,7 +11126,7 @@ function renderReady(){
   const nowRows = active.filter(c=>c.harvestDate<=t).map(c=>{
     const p = DB.products.find(x=>x.id===c.productId);
     const sold = DB.harvests.filter(h=>h.cycleId===c.id).reduce((s,h)=>s+h.qty,0);
-    return `<tr><td><b>${prodName(c.productId)}</b></td><td>${c.section}</td>
+    return `<tr><td><b>${prodName(c.productId)}</b></td><td>${ksTxt(c.section)}</td>
       <td>${c.harvestDate}</td><td><span class="badge active">✅ جاهز منذ ${fmt(-dayDiff(c.harvestDate))} يوم</span></td>
       <td>${c.qtyInfo||"—"}</td><td>${fmt(sold)} كجم</td><td>${p?fmtSR(p.price):"—"}</td></tr>`;
   }).join("");
@@ -11117,7 +11137,7 @@ function renderReady(){
     .sort((a,b)=>a.harvestDate.localeCompare(b.harvestDate)).map(c=>{
     const p = DB.products.find(x=>x.id===c.productId);
     const d = dayDiff(c.harvestDate);
-    return `<tr><td><b>${prodName(c.productId)}</b></td><td>${c.section}</td>
+    return `<tr><td><b>${prodName(c.productId)}</b></td><td>${ksTxt(c.section)}</td>
       <td>${c.harvestDate}</td>
       <td><span class="badge ${d<=14?"warn":"done"}">بعد ${fmt(d)} يوم${d>=60?" (~"+fmt(Math.round(d/30))+" شهر)":""}</span></td>
       <td>${c.qtyInfo||"—"}</td><td>${p?fmtSR(p.price):"—"}</td></tr>`;
@@ -11233,7 +11253,7 @@ function renderAllocEditors(){
           const sum = SECTIONS.reduce((s,sec)=>s+(+al[sec]||0),0);
           const eq = fmt(100/SECTIONS.length);
           const auto = false;
-          return `<tr class="salEmpRow" style="${disp}"><td style="padding-right:28px">👤 <b>${em.name}</b>${em.salary?` <span class="muted">(${fmtSR(em.salary)}/شهر)</span>`:""}</td>`
+          return `<tr class="salEmpRow" style="${disp}"><td style="padding-right:28px">👤 <b>${ksNm(em.name)}</b>${em.salary?` <span class="muted">(${fmtSR(em.salary)}/شهر)</span>`:""}</td>`
             + SECTIONS.map((sec,j)=>`<td><input type="number" id="ea_${em.id}_${j}" min="0" max="100" step="1" value="${al[sec]||""}" style="width:70px" placeholder="${auto?eq:"0"}"></td>`).join("")
             + `<td class="${sum>100?"neg":"muted"}">${auto?'<span class="badge active">تلقائي بالتساوي</span>':fmt(Math.max(0,100-sum))+"%"}</td></tr>`;
         }).join("") || `<tr class="salEmpRow" style="${disp}"><td colspan="${colN}" class="muted" style="padding-right:28px">لا يوجد موظفين — أضفهم من تبويب الموظفين</td></tr>`;
@@ -11390,7 +11410,7 @@ function renderCalendar(){
   const rows = events.map(ev=>{
     const diff = Math.round((new Date(ev.date)-new Date(t))/864e5);
     const when = diff<0 ? `<span class="neg">متأخر ${-diff} يوم</span>` : diff===0 ? `<b>اليوم</b>` : `بعد ${diff} يوم`;
-    return `<tr><td>${ev.date}</td><td><b>${ev.type}</b></td><td>${ev.desc}</td><td>${when}</td></tr>`;
+    return `<tr><td>${ksTxt(ev.date)}</td><td><b>${ksTxt(ev.type)}</b></td><td>${ksTxt(ev.desc)}</td><td>${when}</td></tr>`;
   }).join("");
   tblCalendar.innerHTML = `<tr><th>التاريخ</th><th>النوع</th><th>التفاصيل</th><th>متى</th></tr>`
     + (rows || `<tr><td colspan="4" class="muted">لا توجد مواعيد خلال 60 يوم</td></tr>`);
@@ -11525,8 +11545,12 @@ function autoEntries(from, to){
   });
   DB.journals.forEach(j=>{
     if(!inP(j.date)) return;
-    es.push({date:j.date, desc:"قيد يدوي: "+j.desc, auto:false,
-      lines:j.lines.map(l=>({a:l.a, d:l.debit||0, c:l.credit||0}))});
+    /* 🛡️ قيد بلا سطور (استيراد ناقص أو نسخة قديمة) كان يرمي استثناءً داخل `autoEntries`
+       فتسقط معه **كل** الشاشات المحاسبية دفعة واحدة: الميزان والمركز المالي والنظرة
+       العامة والبنوك والمطابقة ودفتر الأستاذ — شاشات بيضاء بلا أي رسالة. */
+    if(!Array.isArray(j.lines) || !j.lines.length) return;
+    es.push({date:j.date, desc:"قيد يدوي: "+(j.desc||"بلا بيان"), auto:false,
+      lines:j.lines.map(l=>({a:(l&&l.a)||"", d:+(l&&l.debit)||0, c:+(l&&l.credit)||0}))});
   });
   return es.sort((a,b)=>a.date.localeCompare(b.date));
 }
@@ -11831,7 +11855,7 @@ function renderRecon(){
   const t=document.getElementById("tblRecon"); if(!t) return;
   const rows=(DB.recons||[]).slice().reverse();
   t.innerHTML=`<tr><th>التاريخ</th><th>صندوق دفتري</th><th>صندوق فعلي</th><th>فرق</th><th>بنك دفتري</th><th>بنك كشف</th><th>فرق</th><th>بواسطة</th><th>ملاحظات</th></tr>`
-    +(rows.length?rows.map(r=>`<tr><td>${r.date}</td><td>${fmtSR(r.bookCash)}</td><td>${fmtSR(r.cash)}</td>
+    +(rows.length?rows.map(r=>`<tr><td>${ksTxt(r.date)}</td><td>${fmtSR(r.bookCash)}</td><td>${fmtSR(r.cash)}</td>
       <td class="${Math.abs(r.diffCash)<0.01?'pos':'neg'}">${fmtSR(r.diffCash)}</td>
       <td>${fmtSR(r.bookBank)}</td><td>${fmtSR(r.bank)}</td>
       <td class="${Math.abs(r.diffBank)<0.01?'pos':'neg'}">${fmtSR(r.diffBank)}</td>
@@ -11911,7 +11935,7 @@ function renderOverview(){
   tblOv.innerHTML = `<tr><th>التاريخ</th><th>البيان</th><th>القيمة</th><th>النوع</th></tr>`
     + (es.map(e=>{
       const amt = e.lines.reduce((s,l)=>s+l.d,0);
-      return `<tr><td>${e.date}</td><td><b>${e.desc}</b></td><td>${fmtSR(amt)}</td><td>${e.auto?'<span class="badge done">آلي</span>':'<span class="badge active">يدوي</span>'}</td></tr>`;
+      return `<tr><td>${ksTxt(e.date)}</td><td><b>${ksTxt(e.desc)}</b></td><td>${fmtSR(amt)}</td><td>${e.auto?'<span class="badge done">آلي</span>':'<span class="badge active">يدوي</span>'}</td></tr>`;
     }).join("") || `<tr><td colspan="4" class="muted">لا توجد قيود في الفترة</td></tr>`);
 }
 function renderClosedLine(){
@@ -12070,7 +12094,7 @@ function renderTrial(){
     if(!b.d && !b.c) return "";
     td+=b.d; tc+=b.c;
     const net = b.d-b.c;
-    return `<tr><td>${a.code}</td><td><b>${a.name}</b></td><td>${a.type}</td>
+    return `<tr><td>${a.code}</td><td><b>${ksNm(a.name)}</b></td><td>${ksTxt(a.type)}</td>
       <td>${fmt(b.d)}</td><td>${fmt(b.c)}</td>
       <td class="${net>=0?"pos":"neg"}">${fmt(Math.abs(net))} ${net>=0?"مدين":"دائن"}</td></tr>`;
   }).join("");
@@ -12098,7 +12122,7 @@ function renderLedger(){
   es.forEach(e=>e.lines.forEach(l=>{
     if(l.a!==code) return;
     run += l.d - l.c;
-    rows.push(`<tr><td>${e.date}</td><td>${e.desc}</td>
+    rows.push(`<tr><td>${ksTxt(e.date)}</td><td>${ksTxt(e.desc)}</td>
       <td>${l.d?fmt(l.d):""}</td><td>${l.c?fmt(l.c):""}</td>
       <td class="${run>=0?"pos":"neg"}">${fmt(Math.abs(run))} ${run>=0?"مدين":"دائن"}</td></tr>`);
   }));
@@ -12147,7 +12171,7 @@ function saveJournal(){
 function delJournal(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; } 
   const j = DB.journals.find(x=>x.id===id); if(!j) return;
   if(confirm("حذف القيد؟")){
-    trashIt("journals","قيد يدوي",`${j.desc} — ${j.date}`,j);
+    trashIt("journals","قيد يدوي",`${ksTxt(j.desc)} — ${j.date}`,j);
     DB.journals = DB.journals.filter(x=>x.id!==id);
     save(); renderJournals(); renderTrial(); renderLedger();
   }
@@ -12155,9 +12179,13 @@ function delJournal(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ 
 function renderJournals(){
   const tblJournals = document.getElementById("tblJournals"); if(!tblJournals) return;
   const rows = DB.journals.slice().reverse().slice(0,50).map(j=>{
-    const tot = j.lines.reduce((s,l)=>s+(l.debit||0),0);
-    const det = j.lines.map(l=>`${accName(l.a)}: ${l.debit?fmt(l.debit)+" مدين":fmt(l.credit)+" دائن"}`).join(" / ");
-    return `<tr><td>${j.date}</td><td><b>${j.desc}</b></td><td class="muted">${det}</td><td>${fmtSR(tot)}</td><td>${j.employee||""}</td>
+    /* 🛡️ قيد بلا سطور كان يُسقط جدول القيود كله — الآن يُعرض موسوماً «بلا سطور» ليُصحَّح أو يُحذف */
+    const __ls = Array.isArray(j.lines) ? j.lines : [];
+    const tot = __ls.reduce((s,l)=>s+(+(l&&l.debit)||0),0);
+    const det = __ls.length
+      ? __ls.map(l=>`${accName(l&&l.a)}: ${(l&&l.debit)?fmt(l.debit)+" مدين":fmt((l&&l.credit)||0)+" دائن"}`).join(" / ")
+      : '<span class="badge warn">⚠️ قيد بلا سطور</span>';
+    return `<tr><td>${j.date||"-"}</td><td><b>${escH(j.desc||"بلا بيان")}</b></td><td class="muted">${det}</td><td>${fmtSR(tot)}</td><td>${escH(j.employee||"")}</td>
       <td><button class="del" onclick="delJournal('${j.id}')">🗑️</button></td></tr>`;
   }).join("");
   tblJournals.innerHTML = `<tr><th>التاريخ</th><th>البيان</th><th>التفاصيل</th><th>القيمة</th><th>بواسطة</th><th></th></tr>`
@@ -12185,13 +12213,13 @@ function delAccount(code){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠�
 function renderAccounts(){
   const tblAccounts = document.getElementById("tblAccounts"); if(!tblAccounts) return;
   const rows = DB.accounts.slice().sort((a,b)=>a.code.localeCompare(b.code)).map(a=>
-    `<tr><td>${a.code}</td><td><b>${a.name}</b></td><td>${a.type}</td>
+    `<tr><td>${a.code}</td><td><b>${ksNm(a.name)}</b></td><td>${ksTxt(a.type)}</td>
      <td><button class="del" onclick="delAccount('${a.code}')">🗑️</button></td></tr>`).join("");
   tblAccounts.innerHTML = `<tr><th>الرقم</th><th>الحساب</th><th>النوع</th><th></th></tr>` + (rows || `<tr><td colspan="4" class="muted">أضف حسابات من دليل الحسابات</td></tr>`);
 }
 function renderAcctSelects(){
   const rc=document.getElementById("stmtCust");
-  if(rc){ const v=rc.value; rc.innerHTML=`<option value="">— اختر العميل —</option>`+DB.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join(""); if(v) rc.value=v; }
+  if(rc){ const v=rc.value; rc.innerHTML=`<option value="">— اختر العميل —</option>`+DB.customers.map(c=>`<option value="${c.id}">${ksNm(c.name)}</option>`).join(""); if(v) rc.value=v; }
   const acLedger=document.getElementById("acLedger"); if(!acLedger) return;
   const sel = acLedger.value;
   acLedger.innerHTML = accOpts();
@@ -12267,7 +12295,7 @@ function renderAcSales(){
     const c = DB.cycles.find(x=>x.id===h.cycleId);
     /* «؟» كانت تظهر لكل بيع بلا دورة (مواشي/أسماك/فواتير) — الاسم المخزّن على السجل هو المصدر الأول */
     const __pn = h.productName || (c?prodName(c.productId):"") || (h.productId?prodName(h.productId):"") || (h.items&&h.items[0]&&h.items[0].name) || "—";
-    return `<tr><td>${h.date}</td><td>فاتورة ${h.invNo||h.id.slice(-6).toUpperCase()}</td><td><b>${escH(__pn)}</b></td>
+    return `<tr><td>${ksTxt(h.date)}</td><td>فاتورة ${h.invNo||h.id.slice(-6).toUpperCase()}</td><td><b>${escH(__pn)}</b></td>
       <td>${custName(h.customerId)}</td><td class="pos">${fmtSR(hGross(h))}</td>
       <td>${h.paid?'<span class="badge active">مدفوع</span>':'<span class="badge danger">آجل</span>'}</td>
       <td><button class="edt" onclick="printHarvestInvoice('${h.id}')">🖨️</button><button class="edt" onclick="waSale('${h.id}')">💬</button></td></tr>`;
@@ -12284,7 +12312,7 @@ function renderAcPurch(){
   const tot = __all.reduce((s,p)=>s+(+p.amount||0),0);
   const rows = __all.slice().reverse().slice(0,100).map(p=>{
     const s = DB.suppliers.find(x=>x.id===p.supplierId);
-    return `<tr><td>${p.date}</td><td><b>${escH(s?s.name:(p.supplier||"— بلا مورد —"))}</b></td><td>${p.desc||((DB.inventory.find(i=>i.id===p.itemId)||{}).name||"")}</td>
+    return `<tr><td>${ksTxt(p.date)}</td><td><b>${escH(s?s.name:(p.supplier||"— بلا مورد —"))}</b></td><td>${p.desc||((DB.inventory.find(i=>i.id===p.itemId)||{}).name||"")}</td>
       <td class="neg">${fmtSR(p.amount)}</td><td>${p.paid?'<span class="badge active">مدفوع</span>':'<span class="badge danger">آجل</span>'}</td></tr>`;
   }).join("");
   tblAcPurch.innerHTML = `<tr><th>التاريخ</th><th>المورد</th><th>الصنف</th><th>المبلغ</th><th>السداد</th></tr>`
@@ -12330,7 +12358,7 @@ function renderFA(){
   const rows = (DB.fixedAssets||[]).map(a=>{
     const __di = faDepInfo(a, today());
     const accDep = __di.accDep, nbv = __di.nbv;
-    return `<tr><td>${a.date}</td><td><b>${a.name}</b></td><td>${fmtSR(a.cost)}</td>
+    return `<tr><td>${ksTxt(a.date)}</td><td><b>${ksNm(a.name)}</b></td><td>${fmtSR(a.cost)}</td>
       <td>${a.life} سنة</td><td class="neg">${fmtSR(accDep)}</td><td class="${nbv>0?"pos":"muted"}">${fmtSR(nbv)}</td>
       <td><button class="del" onclick="delFA('${a.id}')">🗑️</button></td></tr>`;
   }).join("");
@@ -12536,7 +12564,7 @@ function renderCV(){
   const custRows = DB.customers.map(c=>{
     const debt = DB.harvests.filter(h=>h.customerId===c.id).reduce((s,h)=>s+hRemain(h),0);
     if(!debt) return "";
-    return `<tr><td><b>${c.name}</b></td><td>${c.phone||"—"}</td><td class="neg">${fmtSR(debt)}</td></tr>`;
+    return `<tr><td><b>${ksNm(c.name)}</b></td><td>${c.phone||"—"}</td><td class="neg">${fmtSR(debt)}</td></tr>`;
   }).join("");
   tblCvCust.innerHTML = `<tr><th colspan="3" style="background:var(--green);color:#fff">ذمم العملاء (لنا)</th></tr><tr><th>العميل</th><th>الجوال</th><th>المستحق</th></tr>`
     + (custRows || `<tr><td colspan="3" class="muted">✅ لا ديون على العملاء</td></tr>`);
@@ -12544,7 +12572,7 @@ function renderCV(){
   const supRows = DB.suppliers.map(s=>{
     const due = DB.purchases.filter(p=>p.supplierId===s.id).reduce((x,p)=>x+pRemain(p),0);
     if(!due) return "";
-    return `<tr><td><b>${s.name}</b></td><td>${s.phone||"—"}</td><td class="neg">${fmtSR(due)}</td></tr>`;
+    return `<tr><td><b>${ksNm(s.name)}</b></td><td>${s.phone||"—"}</td><td class="neg">${fmtSR(due)}</td></tr>`;
   }).join("");
   tblCvSup.innerHTML = `<tr><th colspan="3" style="background:var(--green);color:#fff">ذمم الموردين (علينا)</th></tr><tr><th>المورد</th><th>الجوال</th><th>المستحق</th></tr>`
     + (supRows || `<tr><td colspan="3" class="muted">✅ لا مستحقات للموردين</td></tr>`);
@@ -12650,9 +12678,9 @@ function printFinancialReport(){
     const r=hs.reduce((s,h)=>s+hNet(h),0), q=hs.reduce((s,h)=>s+h.qty,0);
     const linked=DB.expenses.filter(x=>x.cycleId===c.id).reduce((s,x)=>s+x.amount,0);
     const pr=r-c.initCost-linked;
-    return `<tr><td>${prodName(c.productId)}</td><td>${c.section}</td><td>${c.plantDate}</td>
+    return `<tr><td>${prodName(c.productId)}</td><td>${ksTxt(c.section)}</td><td>${ksTxt(c.plantDate)}</td>
       <td>${fmt(q)} كجم</td><td>${fmtSR(c.initCost+linked)}</td><td>${fmtSR(r)}</td>
-      <td style="color:${pr>=0?"#166534":"#991b1b"};font-weight:700">${fmtSR(pr)}</td><td>${c.status}</td></tr>`;
+      <td style="color:${pr>=0?"#166534":"#991b1b"};font-weight:700">${fmtSR(pr)}</td><td>${ksTxt(c.status)}</td></tr>`;
   }).join("") || `<tr><td colspan="8">لا توجد بيانات</td></tr>`;
   const byCat={};
   DB.expenses.forEach(x=>(byCat[x.cat]=(byCat[x.cat]||0)+x.amount));
@@ -12743,7 +12771,7 @@ function renderKanban(){
           <div style="font-weight:700;margin-bottom:4px">${a.task}</div>
           <div style="font-size:.8rem;color:var(--muted)">👤 ${a.to}</div>
           <div style="font-size:.8rem;color:${color}">📅 ${a.due}</div>
-          ${a.notes?`<div style="font-size:.78rem;color:var(--muted);margin-top:4px">${a.notes}</div>`:""}
+          ${a.notes?`<div style="font-size:.78rem;color:var(--muted);margin-top:4px">${ksTxt(a.notes)}</div>`:""}
           ${actions?`<div style="margin-top:6px">${actions}</div>`:""}
         </div>`;
       }).join("")}
@@ -12888,7 +12916,7 @@ function renderEmpMoves(){
   const sm=document.getElementById("mvSummary");
   if(sm) sm.textContent="🔢 "+fmt(rows.length)+" حركة"+(rows.length>400?" (معروض أول 400)":"");
   tbl.innerHTML=`<tr><th>التاريخ</th><th>الموظف</th><th>النوع</th><th>التفاصيل</th><th>المبلغ</th></tr>`
-    +(shown.map(r=>`<tr><td>${r.date}</td><td><b>${r.name}</b></td><td>${r.type}</td><td style="font-size:.8rem">${r.desc}</td><td>${r.amt!=null?fmtSR(r.amt):"—"}</td></tr>`).join("")
+    +(shown.map(r=>`<tr><td>${ksTxt(r.date)}</td><td><b>${ksNm(r.name)}</b></td><td>${ksTxt(r.type)}</td><td style="font-size:.8rem">${ksTxt(r.desc)}</td><td>${r.amt!=null?fmtSR(r.amt):"—"}</td></tr>`).join("")
     ||`<tr><td colspan="5" class="muted">🕵️ لا حركات في هذا النطاق — وسّع الفترة أو غيّر الموظف</td></tr>`);
 }
 function csvEmpMoves(){
@@ -13171,7 +13199,7 @@ function printBarcode(id){
   const items = id ? [DB.inventory.find(x=>x.id===id)].filter(Boolean) : DB.inventory;
   if(!items.length){ toast("⚠️ لا توجد عناصر"); return; }
   const rows = items.map(i=>`<div style="display:inline-block;border:1px solid #ccc;padding:12px;margin:8px;text-align:center;width:180px">
-    <div style="font-weight:700;margin-bottom:4px">${i.name}</div>
+    <div style="font-weight:700;margin-bottom:4px">${ksNm(i.name)}</div>
     <svg id="bc_${i.id}"></svg>
     <div style="font-size:10pt;color:#555">${i.sku||i.id}</div>
   </div>`).join("");
@@ -13317,8 +13345,8 @@ function printStatement(custId){
   const totalPaid  = totalSales - balance;
   const __hNm=h=>{ const c=DB.cycles.find(x=>x.id===h.cycleId); return (c&&prodName(c.productId))||h.productName||h.item||"مبيعات"; };
   const rows = [
-    ...sales.map(h=>`<tr><td>${h.date}</td><td>مبيعات — ${__hNm(h)}</td><td style="color:#991b1b">${fmtSR(hGross(h))}</td><td>${hPaidAmt(h)?fmtSR(hPaidAmt(h)):"—"}</td></tr>`),
-    ...pmts.map(p=>`<tr><td>${p.date}</td><td>دفعة</td><td>—</td><td style="color:#166534">${fmtSR(p.amount)}</td></tr>`)
+    ...sales.map(h=>`<tr><td>${ksTxt(h.date)}</td><td>مبيعات — ${__hNm(h)}</td><td style="color:#991b1b">${fmtSR(hGross(h))}</td><td>${hPaidAmt(h)?fmtSR(hPaidAmt(h)):"—"}</td></tr>`),
+    ...pmts.map(p=>`<tr><td>${ksTxt(p.date)}</td><td>دفعة</td><td>—</td><td style="color:#166534">${fmtSR(p.amount)}</td></tr>`)
   ].join("");
   const html=`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>كشف حساب — ${c.name}</title>
     <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Tahoma,sans-serif;padding:30px;font-size:11pt}
@@ -13342,8 +13370,8 @@ function printSupStatement(supId){
   const balance   = purs.reduce((a,p)=>a+pRemain(p),0);
   const totalPaid = totalPur - balance;
   const rows=[
-    ...purs.map(p=>`<tr><td>${p.date}</td><td>مشتريات</td><td style="color:#991b1b">${fmtSR(p.total)}</td><td>—</td></tr>`),
-    ...pmts.map(p=>`<tr><td>${p.date}</td><td>دفعة</td><td>—</td><td style="color:#166534">${fmtSR(p.amount)}</td></tr>`)
+    ...purs.map(p=>`<tr><td>${ksTxt(p.date)}</td><td>مشتريات</td><td style="color:#991b1b">${fmtSR(p.total)}</td><td>—</td></tr>`),
+    ...pmts.map(p=>`<tr><td>${ksTxt(p.date)}</td><td>دفعة</td><td>—</td><td style="color:#166534">${fmtSR(p.amount)}</td></tr>`)
   ].join("");
   const html=`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>كشف حساب مورد — ${s.name}</title>
     <style>*{box-sizing:border-box}body{font-family:Tahoma,sans-serif;padding:30px;font-size:11pt}
@@ -13903,7 +13931,7 @@ function impPreviewRows(text){
     <div class="table-wrap" style="max-height:300px;overflow:auto"><table>
       <tr><th>#</th><th>الصنف / الاسم</th><th>الحالة</th></tr>
       ${out.slice(0,100).map((x,i)=>`<tr><td>${i+1}</td><td>${x.rec.name||x.rec.type||"—"}${x.rec.sec?` <span class="muted" style="font-size:.68rem">(${x.rec.sec})</span>`:""}</td>
-        <td>${x.ok?`<span class="badge active">${x.status}</span>`:(x.status.startsWith("مكرر")||x.status.startsWith("بلا تغيير")||x.status.startsWith("صف فارغ")||x.status.startsWith("صف اطلاع"))?`<span class="badge done">${x.status}</span>`:`<span class="badge" style="background:#FDF0F0;color:#791F1F">${x.status}</span>`}</td></tr>`).join("")}
+        <td>${x.ok?`<span class="badge active">${ksTxt(x.status)}</span>`:(x.status.startsWith("مكرر")||x.status.startsWith("بلا تغيير")||x.status.startsWith("صف فارغ")||x.status.startsWith("صف اطلاع"))?`<span class="badge done">${ksTxt(x.status)}</span>`:`<span class="badge" style="background:#FDF0F0;color:#791F1F">${ksTxt(x.status)}</span>`}</td></tr>`).join("")}
     </table></div>`;
   document.getElementById("impGo").style.display=okN?"":"none";
   if(!okN) toast("⚠️ لا صفوف جديدة صالحة للاستيراد");
@@ -14166,26 +14194,26 @@ function renderHrAll(){
   if(tp){
     const run=(DB.payrollRuns||[]).find(r=>r.month===(pm?pm.value:""));
     tp.innerHTML=`<tr><th>الموظف</th><th>الراتب</th><th>السلف</th><th>الخصومات</th><th>الصافي</th><th>الحالة</th></tr>`
-      +(run&&run.rows.length?run.rows.map(r=>`<tr><td><b>${r.name}</b></td><td>${fmtSR(+r.salary)}</td><td>${fmtSR(+r.advances)}</td><td>${fmtSR(+r.deductions)}</td><td><b>${fmtSR(+r.net)}</b></td><td>${r.status==="مدفوع"?'<span class="badge active">مدفوع</span>':'<span class="badge warn">غير مدفوع</span>'}</td></tr>`).join("")
+      +(run&&run.rows.length?run.rows.map(r=>`<tr><td><b>${ksNm(r.name)}</b></td><td>${fmtSR(+r.salary)}</td><td>${fmtSR(+r.advances)}</td><td>${fmtSR(+r.deductions)}</td><td><b>${fmtSR(+r.net)}</b></td><td>${r.status==="مدفوع"?'<span class="badge active">مدفوع</span>':'<span class="badge warn">غير مدفوع</span>'}</td></tr>`).join("")
       :`<tr><td colspan="6" class="muted">💵 لا كشف لهذا الشهر — أنشئه واعتمده من (الإدارة ← الموارد البشرية ← كشف الرواتب)</td></tr>`);
   }
   const ta=document.getElementById("tblAdv");
   if(ta) ta.innerHTML=`<tr><th>التاريخ</th><th>الموظف</th><th>المبلغ</th><th>الحالة</th><th>ملاحظات</th><th></th></tr>`
-    +([...(DB.advances||[])].reverse().map(a=>`<tr><td>${a.date}</td><td><b>${N(a.empId)}</b></td><td>${fmtSR(a.amount)}</td><td>${a.paid?'<span class="badge active">سُوّيت</span>':'<span class="badge warn">قائمة</span>'}</td><td>${a.notes||""}</td><td><button class="del" onclick="delHrRow('advances','${a.id}')">🗑️</button></td></tr>`).join("")
+    +([...(DB.advances||[])].reverse().map(a=>`<tr><td>${ksTxt(a.date)}</td><td><b>${N(a.empId)}</b></td><td>${fmtSR(a.amount)}</td><td>${a.paid?'<span class="badge active">سُوّيت</span>':'<span class="badge warn">قائمة</span>'}</td><td>${a.notes||""}</td><td><button class="del" onclick="delHrRow('advances','${a.id}')">🗑️</button></td></tr>`).join("")
     ||`<tr><td colspan="6" class="muted">🤲 لا سلف مسجلة — تُخصم تلقائياً من كشف الرواتب وتُسوّى عند الدفع</td></tr>`);
   const th=document.getElementById("tblHol");
   if(th) th.innerHTML=`<tr><th>التاريخ</th><th>العطلة</th><th></th></tr>`
-    +([...(DB.holidays||[])].reverse().map(h=>`<tr><td>${h.date}</td><td><b>${h.name}</b></td><td><button class="del" onclick="delHrRow('holidays','${h.id}')">🗑️</button></td></tr>`).join("")
+    +([...(DB.holidays||[])].reverse().map(h=>`<tr><td>${ksTxt(h.date)}</td><td><b>${ksNm(h.name)}</b></td><td><button class="del" onclick="delHrRow('holidays','${h.id}')">🗑️</button></td></tr>`).join("")
     ||`<tr><td colspan="3" class="muted">🌍 لا عطلات مسجلة</td></tr>`);
   const tl=document.getElementById("tblLeave");
   if(tl) tl.innerHTML=`<tr><th>الموظف</th><th>من</th><th>إلى</th><th>الأيام</th><th>النوع</th><th>ملاحظات</th><th></th></tr>`
     +([...(DB.leaves||[])].reverse().map(l=>{
       const days=l.from&&l.to?Math.round((new Date(l.to)-new Date(l.from))/864e5)+1:"—";
-      return `<tr><td><b>${N(l.empId)}</b></td><td>${l.from}</td><td>${l.to}</td><td>${days}</td><td>${l.type||""}</td><td>${l.notes||""}</td><td><button class="del" onclick="delHrRow('leaves','${l.id}')">🗑️</button></td></tr>`;
+      return `<tr><td><b>${N(l.empId)}</b></td><td>${ksTxt(l.from)}</td><td>${ksTxt(l.to)}</td><td>${days}</td><td>${l.type||""}</td><td>${l.notes||""}</td><td><button class="del" onclick="delHrRow('leaves','${l.id}')">🗑️</button></td></tr>`;
     }).join("")||`<tr><td colspan="7" class="muted">🏖️ لا إجازات مسجلة — إجازات "بدون راتب" تُخصم تلقائياً من كشف الرواتب</td></tr>`);
   const tc=document.getElementById("tblCust2");
   if(tc) tc.innerHTML=`<tr><th>التاريخ</th><th>الموظف</th><th>العهدة</th><th>القيمة</th><th>الحالة</th><th></th></tr>`
-    +([...(DB.custody||[])].reverse().map(c=>`<tr><td>${c.date}</td><td><b>${N(c.empId)}</b></td><td>${c.item}</td><td>${c.value?fmtSR(c.value):"—"}</td><td>${c.returned?'<span class="badge active">مُرجعة '+(c.returnDate||"")+'</span>':`<span class="badge warn">بالعهدة</span> <button class="btn small secondary" onclick="returnCustody('${c.id}')">↩️ إرجاع</button>`}</td><td><button class="del" onclick="delHrRow('custody','${c.id}')">🗑️</button></td></tr>`).join("")
+    +([...(DB.custody||[])].reverse().map(c=>`<tr><td>${ksTxt(c.date)}</td><td><b>${N(c.empId)}</b></td><td>${ksTxt(c.item)}</td><td>${c.value?fmtSR(c.value):"—"}</td><td>${c.returned?'<span class="badge active">مُرجعة '+(c.returnDate||"")+'</span>':`<span class="badge warn">بالعهدة</span> <button class="btn small secondary" onclick="returnCustody('${c.id}')">↩️ إرجاع</button>`}</td><td><button class="del" onclick="delHrRow('custody','${c.id}')">🗑️</button></td></tr>`).join("")
     ||`<tr><td colspan="6" class="muted">💼 لا عُهد مسلّمة</td></tr>`);
   const tsum=document.getElementById("tblAttSum");
   if(tsum){
@@ -14201,7 +14229,7 @@ function renderHrAll(){
   }
   const tat=document.getElementById("tblAtt");
   if(tat) tat.innerHTML=`<tr><th>التاريخ</th><th>الموظف</th><th>الحالة</th><th>دخول</th><th>انصراف</th><th></th></tr>`
-    +([...(DB.attendance||[])].reverse().slice(0,30).map(a=>`<tr><td>${a.date}</td><td><b>${N(a.empId)}</b></td><td>${a.status==="حاضر"?'<span class="badge active">حاضر</span>':a.status==="غائب"?'<span class="badge danger">غائب</span>':a.status}</td><td>${a.inT||"—"}</td><td>${a.outT||"—"}</td><td><button class="del" onclick="delHrRow('attendance','${a.id}')">🗑️</button></td></tr>`).join("")
+    +([...(DB.attendance||[])].reverse().slice(0,30).map(a=>`<tr><td>${ksTxt(a.date)}</td><td><b>${N(a.empId)}</b></td><td>${a.status==="حاضر"?'<span class="badge active">حاضر</span>':a.status==="غائب"?'<span class="badge danger">غائب</span>':a.status}</td><td>${a.inT||"—"}</td><td>${a.outT||"—"}</td><td><button class="del" onclick="delHrRow('attendance','${a.id}')">🗑️</button></td></tr>`).join("")
     ||`<tr><td colspan="6" class="muted">📅 لا سجلات حضور — تُخصم الغيابات تلقائياً من كشف الرواتب</td></tr>`);
   try{ const um=document.getElementById("upMonth"); if(um&&!um.value) um.value=today().slice(0,7); renderUserProd(); }catch(e){}
   const tcon=document.getElementById("tblCon");
@@ -14418,7 +14446,7 @@ function calcEos(){
   const yrs=Math.floor(years), mos=Math.floor((years-yrs)*12);
   const tbl=document.getElementById("tblEos");
   if(tbl) tbl.innerHTML=`<tr><th>البيان</th><th>القيمة</th></tr>
-    <tr><td>الموظف</td><td>${em.name}</td></tr>
+    <tr><td>الموظف</td><td>${ksNm(em.name)}</td></tr>
     <tr><td>تاريخ التعيين</td><td>${start}</td></tr>
     <tr><td>تاريخ الانتهاء</td><td>${end}</td></tr>
     <tr><td>مدة الخدمة</td><td>${yrs} سنة و${mos} شهر</td></tr>
@@ -14481,7 +14509,7 @@ function postDep(month){
 /* ====== مراقبة الجودة ====== */
 function renderQuality(){
   const sel=document.getElementById("qCycle");
-  if(sel) sel.innerHTML=`<option value="">— اختر دورة —</option>`+DB.cycles.map(c=>`<option value="${c.id}">${prodName(c.productId)} — ${c.section} (${c.plantDate})</option>`).join("");
+  if(sel) sel.innerHTML=`<option value="">— اختر دورة —</option>`+DB.cycles.map(c=>`<option value="${c.id}">${prodName(c.productId)} — ${ksTxt(c.section)} (${c.plantDate})</option>`).join("");
   const empInp=document.getElementById("qEmp"); if(empInp&&CURRENT_USER) empInp.value=CURRENT_USER.name;
   const tbl=document.getElementById("tblQuality"); if(!tbl) return;
   const records=DB.quality.slice().reverse();
@@ -14496,8 +14524,8 @@ function renderQuality(){
   tbl.innerHTML=`<tr><th>التاريخ</th><th>الدورة</th><th>الدرجة</th><th>نسبة الأول %</th><th>الوزن (كجم)</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
     +(records.length?records.map(r=>{
       const c=DB.cycles.find(x=>x.id===r.cycleId);
-      return `<tr><td>${r.date}</td><td>${c?prodName(c.productId)+" — "+c.section:"—"}</td>
-        <td><span style="font-weight:700;color:${gradeColors[r.grade]||"#555"}">${r.grade}</span></td>
+      return `<tr><td>${ksTxt(r.date)}</td><td>${c?prodName(c.productId)+" — "+c.section:"—"}</td>
+        <td><span style="font-weight:700;color:${gradeColors[r.grade]||"#555"}">${ksTxt(r.grade)}</span></td>
         <td>${r.pct}%</td><td>${r.weight||"—"}</td><td>${r.emp||""}</td><td>${r.notes||""}</td>
         <td><button class="del" onclick="delQuality('${r.id}')">🗑️</button></td></tr>`;
     }).join(""):`<tr><td colspan="8" class="muted">لا توجد سجلات جودة</td></tr>`);
@@ -14520,7 +14548,7 @@ function delQuality(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ 
 /* ====== صيانة المعدات ====== */
 function renderMaintenance(){
   const sel=document.getElementById("mntEquip");
-  if(sel) sel.innerHTML=`<option value="">— اختر معدة —</option>`+(DB.equipment||[]).map(e=>`<option value="${e.id}">${e.name}</option>`).join("");
+  if(sel) sel.innerHTML=`<option value="">— اختر معدة —</option>`+(DB.equipment||[]).map(e=>`<option value="${e.id}">${ksNm(e.name)}</option>`).join("");
   const tbl=document.getElementById("tblMaintenance"); if(!tbl) return;
   const alerts=document.getElementById("mntAlerts");
   const records=(DB.maintenance||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
@@ -14538,7 +14566,7 @@ function renderMaintenance(){
       const eq=(DB.equipment||[]).find(e=>e.id===r.equipId);
       const overdue=r.next&&r.next<today_str;
       return `<tr${overdue?" style='background:#fef2f2'":""}>
-        <td>${r.date}</td><td>${eq?.name||"—"}</td><td>${r.type}</td>
+        <td>${ksTxt(r.date)}</td><td>${eq?.name||"—"}</td><td>${ksTxt(r.type)}</td>
         <td style="color:${overdue?"#dc2626":"inherit"}">${r.next||"—"}${overdue?" ⚠️":""}</td>
         <td>${fmtSR(r.cost||0)}</td><td>${r.tech||""}</td><td>${r.notes||""}</td>
         <td><button class="del" onclick="delMaintenance('${r.id}')">🗑️</button></td></tr>`;
@@ -14660,15 +14688,15 @@ function getLivestock(){ if(Array.isArray(DB.livestock)) DB.livestock=null; retu
 
 function renderLvSaleForm(){
   const lv=DB.livestock||{};
-  const bnOpts=`<option value="">— غير محدّد —</option>`+(lv.barns||[]).map(b=>`<option>${b.name}</option>`).join("");
+  const bnOpts=`<option value="">— غير محدّد —</option>`+(lv.barns||[]).map(b=>`<option>${ksNm(b.name)}</option>`).join("");
   const slBarn=document.getElementById("lvSlBarn"); if(slBarn){ const c=slBarn.value; slBarn.innerHTML=bnOpts+'<option value="__new">➕ حظيرة جديدة…</option>'; if(c&&c!=="__new") slBarn.value=c; qaHook(slBarn,e2=>qaSelNew(e2,"barn")); }
   try{ fillAnimalTypeSelects(); }catch(e){}
-  const slCust=document.getElementById("lvSlCust"); if(slCust){ const c=slCust.value; slCust.innerHTML=`<option value="">— بدون عميل (بيع مباشر) —</option>`+DB.customers.map(x=>`<option value="${x.id}">${x.name}</option>`).join("")+'<option value="__new">➕ عميل جديد…</option>'; if(c&&c!=="__new") slCust.value=c; qaHook(slCust,e2=>custSelNew(e2)); }
+  const slCust=document.getElementById("lvSlCust"); if(slCust){ const c=slCust.value; slCust.innerHTML=`<option value="">— بدون عميل (بيع مباشر) —</option>`+DB.customers.map(x=>`<option value="${x.id}">${ksNm(x.name)}</option>`).join("")+'<option value="__new">➕ عميل جديد…</option>'; if(c&&c!=="__new") slCust.value=c; qaHook(slCust,e2=>custSelNew(e2)); }
   const d=document.getElementById("lvSlDate"); if(d&&!d.value) d.value=today();
   const tblSl=document.getElementById("tblLvSales"); if(tblSl){
     const sales=(DB.harvests||[]).filter(h=>h.livestockSale).slice().reverse();
     tblSl.innerHTML=`<tr><th>التاريخ</th><th>النوع</th><th>البند</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th><th>العميل</th><th>السداد</th></tr>`
-      +(sales.length?sales.map(h=>`<tr><td>${h.date}</td><td>${h.saleType||""}</td><td>${(h.productName||"").replace("🐄 ","")}</td><td>${fmt(h.qty)} ${h.unit||""}</td><td>${fmtSR(h.price)}</td><td class="pos">${fmtSR(h.total)}</td><td>${h.customerId?custName(h.customerId):"نقدي"}</td><td>${h.paid?"مدفوع":"آجل"}</td></tr>`).join(""):`<tr><td colspan="8" class="muted">💰 لا مبيعات مواشي بعد — سجّل البيع من (التجارة ← الإنتاج والمبيعات)</td></tr>`);
+      +(sales.length?sales.map(h=>`<tr><td>${ksTxt(h.date)}</td><td>${h.saleType||""}</td><td>${(h.productName||"").replace("🐄 ","")}</td><td>${fmt(h.qty)} ${h.unit||""}</td><td>${fmtSR(h.price)}</td><td class="pos">${fmtSR(h.total)}</td><td>${h.customerId?custName(h.customerId):"نقدي"}</td><td>${h.paid?"مدفوع":"آجل"}</td></tr>`).join(""):`<tr><td colspan="8" class="muted">💰 لا مبيعات مواشي بعد — سجّل البيع من (التجارة ← الإنتاج والمبيعات)</td></tr>`);
   }
 }
 function renderLivestock(){
@@ -14687,7 +14715,7 @@ function renderLivestock(){
         if(r.vent) done.push("تهوية");if(r.pest) done.push("رش");if(r.secure) done.push("تأمين");
         const stColor=r.status==="سليمة"?"#166534":r.status==="يوجد مريض"?"#dc2626":"#92400e";
         return `<tr>
-          <td>${r.date}</td><td>${r.emp||""}</td>
+          <td>${ksTxt(r.date)}</td><td>${r.emp||""}</td>
           <td><span style="color:${stColor};font-weight:600">${r.status||""}</span></td>
           <td style="font-size:.8rem">${done.join("، ")||"—"}</td>
           <td style="font-size:.8rem">${r.notes||""}</td>
@@ -14708,7 +14736,7 @@ function renderLivestock(){
     const _net=_base+_births-_deaths-_sold;
     tblA.innerHTML=`<tr><th>نوع الحيوان</th><th>العدد</th><th>الجنس</th><th>الحظيرة</th><th>ملاحظات</th><th>تاريخ الإضافة</th><th></th></tr>`
       +(animals.length?animals.map(a=>`<tr>
-          <td><b>${a.type}</b></td><td>${a.count}</td><td>${a.gender||"—"}</td><td>${a.barn||"—"}</td>
+          <td><b>${ksTxt(a.type)}</b></td><td>${ksTxt(a.count)}</td><td>${a.gender||"—"}</td><td>${a.barn||"—"}</td>
           <td>${a.notes||""}</td><td>${a.date||""}</td>
           <td><button class="del" onclick="delLvAnimal('${a.id}')">🗑️</button></td>
         </tr>`).join("")
@@ -14729,7 +14757,7 @@ function renderLivestock(){
     }
     tblM.innerHTML=`<tr><th>التاريخ</th><th>صباحي (ل)</th><th>مسائي (ل)</th><th>الإجمالي</th><th>الجودة</th><th>ملاحظات</th><th></th></tr>`
       +(logs.length?logs.map(l=>`<tr>
-          <td>${l.date}</td><td>${l.morning||0}</td><td>${l.evening||0}</td>
+          <td>${ksTxt(l.date)}</td><td>${l.morning||0}</td><td>${l.evening||0}</td>
           <td><b>${((+l.morning||0)+(+l.evening||0)).toFixed(1)}</b></td>
           <td>${l.quality||""}</td><td>${l.notes||""}</td>
           <td><button class="del" onclick="delLvMilk('${l.id}')">🗑️</button></td>
@@ -14742,8 +14770,8 @@ function renderLivestock(){
     const logs=[...(lv.birthDeathLogs||[])].reverse();
     tblBD.innerHTML=`<tr><th>التاريخ</th><th>النوع</th><th>الحيوان</th><th>العدد</th><th>الفطام</th><th>ملاحظات</th><th></th></tr>`
       +(logs.length?logs.map(l=>`<tr>
-          <td>${l.date}</td>
-          <td><span style="color:${l.type==="مولود"?"#166534":"#dc2626"};font-weight:700">${l.type==="مولود"?"🐾":"💀"} ${l.type}</span></td>
+          <td>${ksTxt(l.date)}</td>
+          <td><span style="color:${l.type==="مولود"?"#166534":"#dc2626"};font-weight:700">${l.type==="مولود"?"🐾":"💀"} ${ksTxt(l.type)}</span></td>
           <td>${l.animal||""}</td><td>${l.count||1}</td>
           <td>${l.type!=="مولود"?"—":l.weaned?'<span class="badge active">تم ✓</span>':l.weanDate?((l.weanDate<today()?`<span class="badge danger">متأخر ${l.weanDate}</span>`:`<span class="badge warn">${l.weanDate}</span>`)+` <button class="btn small secondary" onclick="markLvWeaned('${l.id}')">✓ فُطم</button>`):"—"}</td>
           <td>${l.notes||""}</td>
@@ -14758,7 +14786,7 @@ function renderLivestock(){
     const logs=[...(lv.healthLogs||[])].reverse();
     tblH.innerHTML=`<tr><th>التاريخ</th><th>الحيوان</th><th>العدد</th><th>المشكلة</th><th>العلاج</th><th>الطبيب</th><th>متابعة</th><th>ملاحظات</th><th></th></tr>`
       +(logs.length?logs.map(l=>`<tr>
-          <td>${l.date}</td><td>${l.animal||""}</td><td>${l.count||1}</td>
+          <td>${ksTxt(l.date)}</td><td>${l.animal||""}</td><td>${l.count||1}</td>
           <td style="color:#dc2626;font-weight:600">${l.issue||""}</td>
           <td>${l.treatment||""}</td><td>${l.vet||"—"}</td>
           <td>${l.followUp||"—"}</td><td>${l.notes||""}</td>
@@ -14769,7 +14797,7 @@ function renderLivestock(){
 
   // سجل الحظائر: تعبئة القوائم + الإشغال
   const _barns=lv.barns||[];
-  const _bnOpts=`<option value="">— غير محدّد —</option>`+_barns.map(b=>`<option>${b.name}</option>`).join("");
+  const _bnOpts=`<option value="">— غير محدّد —</option>`+_barns.map(b=>`<option>${ksNm(b.name)}</option>`).join("");
   ["lskAnBarn","lvIdBarn","lskMkBarn","lskBdBarn","lskHlBarn","lvVacBarn","lvBrBarn","lvFdBarn","lvSlBarn","lvWtBarn"].forEach(id=>{ const el=document.getElementById(id); if(el){ const cur=el.value; el.innerHTML=_bnOpts+'<option value="__new">➕ حظيرة جديدة…</option>'; if(cur&&cur!=="__new") el.value=cur; qaHook(el,e2=>qaSelNew(e2,"barn")); } });
   const tblBn=document.getElementById("tblLvBarns"); if(tblBn){
     const occ=name=>(lv.animals||[]).filter(a=>a.barn===name).reduce((s,a)=>s+(+a.count||0),0);
@@ -14777,26 +14805,26 @@ function renderLivestock(){
       +(_barns.length?_barns.map(b=>{
         const o=occ(b.name), cap=+b.cap||0;
         const badge=cap>0?(o>cap?`<span class="badge danger">${fmt(o)}/${fmt(cap)} ممتلئة</span>`:`<span class="badge ok">${fmt(o)}/${fmt(cap)}</span>`):`${fmt(o)} رأس`;
-        return `<tr><td><b>${b.name}</b></td><td>${b.type||"—"}</td><td>${cap?fmt(cap):"—"}</td><td>${badge}</td><td>${b.notes||""}</td><td><button class="del" onclick="delLvBarn('${b.id}')">🗑️</button></td></tr>`;
+        return `<tr><td><b>${ksNm(b.name)}</b></td><td>${b.type||"—"}</td><td>${cap?fmt(cap):"—"}</td><td>${badge}</td><td>${b.notes||""}</td><td><button class="del" onclick="delLvBarn('${b.id}')">🗑️</button></td></tr>`;
       }).join(""):`<tr><td colspan="6" class="muted">🏚️ لا حظائر مسجلة — أضفها من النموذج أعلاه لربط القطيع والسجلات بأماكنها</td></tr>`);
   }
   // النقل بين الحظائر: تعبئة القوائم + السجل
   const trfTag=document.getElementById("lvTrfTag");
-  if(trfTag){ const cur=trfTag.value; const inds=(lv.individuals||[]).filter(x=>x.status==="نشط"); trfTag.innerHTML=inds.length?inds.map(x=>`<option>${x.tag}</option>`).join(""):`<option value="">لا يوجد حيوانات فردية</option>`; if(cur) trfTag.value=cur; }
-  ["lvTrfFrom","lvTrfTo"].forEach(id=>{ const el=document.getElementById(id); if(el){ const cur=el.value; el.innerHTML=`<option value="">— اختر —</option>`+_barns.map(b=>`<option>${b.name}</option>`).join(""); if(cur) el.value=cur; } });
+  if(trfTag){ const cur=trfTag.value; const inds=(lv.individuals||[]).filter(x=>x.status==="نشط"); trfTag.innerHTML=inds.length?inds.map(x=>`<option>${ksTxt(x.tag)}</option>`).join(""):`<option value="">لا يوجد حيوانات فردية</option>`; if(cur) trfTag.value=cur; }
+  ["lvTrfFrom","lvTrfTo"].forEach(id=>{ const el=document.getElementById(id); if(el){ const cur=el.value; el.innerHTML=`<option value="">— اختر —</option>`+_barns.map(b=>`<option>${ksNm(b.name)}</option>`).join(""); if(cur) el.value=cur; } });
   const tblTrf=document.getElementById("tblLvBarnTrf"); if(tblTrf){
     const logs=[...(lv.barnTransfers||[])].reverse();
     tblTrf.innerHTML=`<tr><th>التاريخ</th><th>الطريقة</th><th>الحيوان/النوع</th><th>العدد</th><th>من</th><th>إلى</th><th>ملاحظات</th></tr>`
-      +(logs.length?logs.map(l=>`<tr><td>${l.date}</td><td>${l.mode||""}</td><td>${l.ref||""}</td><td>${fmt(l.count)}</td><td>${l.from||"—"}</td><td>${l.to||""}</td><td>${l.notes||""}</td></tr>`).join(""):`<tr><td colspan="7" class="muted">لا توجد عمليات نقل</td></tr>`);
+      +(logs.length?logs.map(l=>`<tr><td>${ksTxt(l.date)}</td><td>${l.mode||""}</td><td>${l.ref||""}</td><td>${fmt(l.count)}</td><td>${l.from||"—"}</td><td>${l.to||""}</td><td>${l.notes||""}</td></tr>`).join(""):`<tr><td colspan="7" class="muted">لا توجد عمليات نقل</td></tr>`);
   }
 
   // صنف العلف + جدول التغذية
   const fdSel=document.getElementById("lvFdItem");
-  if(fdSel){ const cur=fdSel.value; const feeds=DB.inventory.filter(i=>i.cat==="أعلاف"); fdSel.innerHTML=feeds.length?feeds.map(i=>`<option value="${i.id}">${i.name} (متوفر ${fmt(i.qty)} ${i.unit})</option>`).join(""):`<option value="">لا يوجد علف بالمخزون</option>`; if(cur) fdSel.value=cur; }
+  if(fdSel){ const cur=fdSel.value; const feeds=DB.inventory.filter(i=>i.cat==="أعلاف"); fdSel.innerHTML=feeds.length?feeds.map(i=>`<option value="${i.id}">${ksNm(i.name)} (متوفر ${fmt(i.qty)} ${ksTxt(i.unit)})</option>`).join(""):`<option value="">لا يوجد علف بالمخزون</option>`; if(cur) fdSel.value=cur; }
   const tblFd=document.getElementById("tblLvFeed"); if(tblFd){
     const logs=[...(lv.feedLogs||[])].reverse();
     tblFd.innerHTML=`<tr><th>التاريخ</th><th>صنف العلف</th><th>الكمية (كجم)</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
-      +(logs.length?logs.map(l=>`<tr><td>${l.date}</td><td>${l.itemName||"—"}</td><td>${fmt(l.qty)}</td><td>${l.employee||""}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvFeed('${l.id}')">🗑️</button></td></tr>`).join(""):`<tr><td colspan="6" class="muted">🌾 لا سجلات تغذية — سجّل العلف اليومي أعلاه ويُخصم من المخزون وتُقيَّد تكلفته تلقائياً</td></tr>`);
+      +(logs.length?logs.map(l=>`<tr><td>${ksTxt(l.date)}</td><td>${l.itemName||"—"}</td><td>${fmt(l.qty)}</td><td>${l.employee||""}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvFeed('${l.id}')">🗑️</button></td></tr>`).join(""):`<tr><td colspan="6" class="muted">🌾 لا سجلات تغذية — سجّل العلف اليومي أعلاه ويُخصم من المخزون وتُقيَّد تكلفته تلقائياً</td></tr>`);
   }
   // الصيدلية البيطرية
   const mdSel=document.getElementById("lvMdUseSel");
@@ -14810,13 +14838,13 @@ function renderLivestock(){
       +(meds.length?meds.map(m=>{
         const expired=m.exp&&m.exp<t0, low=(+m.qty||0)<=(+m.min||0);
         const st=expired?'<span class="badge danger">منتهي الصلاحية</span>':(m.exp&&m.exp<=exp30)?`<span class="badge warn">قرب الانتهاء ${m.exp}</span>`:low?'<span class="badge warn">مخزون منخفض</span>':'<span class="badge ok">جيد</span>';
-        return `<tr${expired?' style="background:#fef2f2"':''}><td><b>${m.name}</b></td><td>${fmt(m.qty)} ${m.unit||""}</td><td>${m.exp||"—"}</td><td>${st}</td><td>${m.notes||""}</td><td><button class="del" onclick="delLvMed('${m.id}')">🗑️</button></td></tr>`;
+        return `<tr${expired?' style="background:#fef2f2"':''}><td><b>${ksNm(m.name)}</b></td><td>${fmt(m.qty)} ${m.unit||""}</td><td>${m.exp||"—"}</td><td>${st}</td><td>${m.notes||""}</td><td><button class="del" onclick="delLvMed('${m.id}')">🗑️</button></td></tr>`;
       }).join(""):`<tr><td colspan="6" class="muted">💊 لا أدوية بالصيدلية — أضفها أعلاه لتتبّع الصلاحية والرصيد وربطها بالعلاجات</td></tr>`);
   }
   const tblMu=document.getElementById("tblLvMedUse"); if(tblMu){
     const uses=[...(lv.medUses||[])].reverse().slice(0,30);
     tblMu.innerHTML=`<tr><th>التاريخ</th><th>الدواء</th><th>الكمية</th><th>الحيوان</th><th>الموظف</th></tr>`
-      +(uses.length?uses.map(u=>`<tr><td>${u.date}</td><td>${u.name}</td><td>${fmt(u.qty)} ${u.unit||""}</td><td>${u.tag||"—"}</td><td>${u.employee||""}</td></tr>`).join(""):`<tr><td colspan="5" class="muted">لا استخدامات مسجلة</td></tr>`);
+      +(uses.length?uses.map(u=>`<tr><td>${ksTxt(u.date)}</td><td>${ksNm(u.name)}</td><td>${fmt(u.qty)} ${u.unit||""}</td><td>${u.tag||"—"}</td><td>${u.employee||""}</td></tr>`).join(""):`<tr><td colspan="5" class="muted">لا استخدامات مسجلة</td></tr>`);
   }
   try{ calcLvRation(); }catch(e){}
 
@@ -14826,7 +14854,7 @@ function renderLivestock(){
     tblI.innerHTML=`<tr><th>الوسم</th><th>النوع</th><th>المسمى</th><th>السلالة</th><th>الجنس</th><th>الميلاد</th><th>الأم</th><th>الوزن</th><th>الحالة</th><th></th></tr>`
       +(items.length?items.map(a=>{
         const _an=lvAgeName(a.type,a.birth), _sx=lvSexName(a.type,a.gender);
-        return `<tr><td><b>${a.tag}</b></td><td>${a.type||"—"}</td><td>${_an?`<b style="color:var(--green-dark)">${_an}</b>`:"—"}</td><td>${a.breed||"—"}</td><td>${_sx?`${_sx} (${a.gender})`:(a.gender||"—")}</td><td>${a.birth||"—"}</td><td>${a.mother||"—"}</td><td>${a.weight?fmt(a.weight)+" كجم":"—"}</td><td>${a.status||""}</td><td><button class="btn small secondary" onclick="showLvProfile('${a.tag}')">📋 ملف</button>${a.status==="نشط"?` <button class="btn small secondary" title="تسجيل نفوق" onclick="markLvIndivDead('${a.id}')">💀</button> <button class="btn small secondary" title="تحديد كمباع" onclick="markLvIndivSold('${a.id}')">🛒</button>`:""} <button class="del" onclick="delLvIndiv('${a.id}')">🗑️</button></td></tr>`;
+        return `<tr><td><b>${ksTxt(a.tag)}</b></td><td>${a.type||"—"}</td><td>${_an?`<b style="color:var(--green-dark)">${_an}</b>`:"—"}</td><td>${a.breed||"—"}</td><td>${_sx?`${_sx} (${a.gender})`:(a.gender||"—")}</td><td>${a.birth||"—"}</td><td>${a.mother||"—"}</td><td>${a.weight?fmt(a.weight)+" كجم":"—"}</td><td>${a.status||""}</td><td><button class="btn small secondary" onclick="showLvProfile('${a.tag}')">📋 ملف</button>${a.status==="نشط"?` <button class="btn small secondary" title="تسجيل نفوق" onclick="markLvIndivDead('${a.id}')">💀</button> <button class="btn small secondary" title="تحديد كمباع" onclick="markLvIndivSold('${a.id}')">🛒</button>`:""} <button class="del" onclick="delLvIndiv('${a.id}')">🗑️</button></td></tr>`;
       }).join(""):`<tr><td colspan="10" class="muted">🐐 لا بطاقات فردية — سجّل حيواناتك المميزة برقم وسم لمتابعة ملف كل حيوان</td></tr>`);
   }
   renderLvSaleForm();
@@ -14839,7 +14867,7 @@ function renderLivestock(){
         const prev=wl.filter(x=>x.tag===l.tag&&x.date<l.date).sort((a,b)=>b.date.localeCompare(a.date))[0];
         const d=prev?(l.weight-prev.weight):null;
         const dTxt=d===null?"—":`<span style="color:${d>=0?'var(--green)':'var(--red)'}">${d>=0?"▲ +":"▼ "}${fmt(Math.abs(d))} كجم</span>`;
-        return `<tr><td>${l.date}</td><td><b>${l.tag}</b></td><td>${fmt(l.weight)}</td><td>${dTxt}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvWeight('${l.id}')">🗑️</button></td></tr>`;
+        return `<tr><td>${ksTxt(l.date)}</td><td><b>${ksTxt(l.tag)}</b></td><td>${fmt(l.weight)}</td><td>${dTxt}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvWeight('${l.id}')">🗑️</button></td></tr>`;
       }).join(""):`<tr><td colspan="6" class="muted">⚖️ لا أوزان — سجّل الأوزان دورياً أعلاه ليحسب النظام معدل النمو</td></tr>`);
   }
 
@@ -14849,7 +14877,7 @@ function renderLivestock(){
     tblV.innerHTML=`<tr><th>التاريخ</th><th>الحيوان</th><th>التطعيم</th><th>العدد</th><th>المنفّذ</th><th>الجرعة القادمة</th><th>ملاحظات</th><th></th></tr>`
       +(logs.length?logs.map(l=>{
         const due=l.next?(l.next<t0?`<span class="badge danger">فات ${l.next}</span>`:(l.next<=soon?`<span class="badge warn">${l.next}</span>`:l.next)):"—";
-        return `<tr><td>${l.date}</td><td>${l.animal||"—"}</td><td><b>${l.name}</b></td><td>${l.count||1}</td><td>${l.vet||"—"}</td><td>${due}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvVaccine('${l.id}')">🗑️</button></td></tr>`;
+        return `<tr><td>${ksTxt(l.date)}</td><td>${l.animal||"—"}</td><td><b>${ksNm(l.name)}</b></td><td>${l.count||1}</td><td>${l.vet||"—"}</td><td>${due}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvVaccine('${l.id}')">🗑️</button></td></tr>`;
       }).join(""):`<tr><td colspan="8" class="muted">💉 لا تطعيمات — سجّلها أعلاه مع موعد الجرعة القادمة وينبّهك النظام تلقائياً</td></tr>`);
   }
   // جدول التلقيح والتكاثر
@@ -14860,7 +14888,7 @@ function renderLivestock(){
         const active=l.status!=="ولدت"&&l.status!=="فشل";
         const due=l.due?(active&&l.due<=soon?`<span class="badge warn">${l.due}</span>`:l.due):"—";
         const stg=lvPregStage(l);
-        return `<tr><td>${l.date}</td><td>${l.animal||"—"}</td><td>${l.type||""}</td><td>${stg?`<span class="badge ${stg.cls}">${stg.t}</span>`:"—"}</td><td>${due}</td><td>${l.status||""}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvBreeding('${l.id}')">🗑️</button></td></tr>`;
+        return `<tr><td>${ksTxt(l.date)}</td><td>${l.animal||"—"}</td><td>${l.type||""}</td><td>${stg?`<span class="badge ${stg.cls}">${stg.t}</span>`:"—"}</td><td>${due}</td><td>${l.status||""}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvBreeding('${l.id}')">🗑️</button></td></tr>`;
       }).join(""):`<tr><td colspan="8" class="muted">🐄 لا سجلات تلقيح — سجّلها أعلاه ليتابع النظام الحمل ويذكّرك بالولادات المتوقّعة</td></tr>`);
   }
 }
@@ -14988,7 +15016,7 @@ function lvBreedSel(sel){
   if(sel.value!=="__new") return;
   qa2Open({title:"➕ سلالة أخرى",fields:[{id:"name",label:"اسم السلالة",req:1,ph:"مثال: هرري"}],
     onCancel:()=>{ sel.value=""; },
-    onSave:v=>{ if(![...sel.options].some(o=>o.value===v.name)) sel.insertAdjacentHTML("beforeend",`<option>${v.name}</option>`); sel.value=v.name; }});
+    onSave:v=>{ if(![...sel.options].some(o=>o.value===v.name)) sel.insertAdjacentHTML("beforeend",`<option>${ksNm(v.name)}</option>`); sel.value=v.name; }});
 }
 /* برنامج المواليد الزمني للضان والماعز */
 function lvLambStages(r){
@@ -15599,10 +15627,10 @@ function renderDiseases(){
   const sev={خفيفة:"🟢",متوسطة:"🟡",شديدة:"🔴"};
   const stMap={"قيد المعالجة":"🔄","تحت المراقبة":"👁️","تعافى":"✅"};
   tbody.innerHTML=list.map(d=>`<tr>
-    <td>${d.date}</td><td>${d.section}</td><td>${d.type}</td><td>${d.crop||"-"}</td>
-    <td>${d.symptoms}</td><td>${sev[d.severity]||""} ${d.severity}</td>
+    <td>${d.date||"-"}</td><td>${escH(d.section||"-")}</td><td>${escH(d.type||"-")}</td><td>${escH(d.crop||"-")}</td>
+    <td>${escH(d.symptoms||"-")}</td><td>${sev[d.severity]||""} ${escH(d.severity||"-")}</td>
     <td>${escH(d.treatment||"-")}${d.qty?` <span class="muted">(${escH(String(d.qty))})</span>`:""}</td><td>${escH(d.followup||"-")}</td>
-    <td>${stMap[d.status]||""} ${d.status}${d.notes?` <span class="muted" title="${escH(d.notes)}">📝</span>`:""}</td>
+    <td>${stMap[d.status]||""} ${ksTxt(d.status)}${d.notes?` <span class="muted" title="${escH(d.notes)}">📝</span>`:""}</td>
     <td><button class="btn small red" onclick="delDisease('${d.id}')">🗑️</button></td>
   </tr>`).join("");
 }
@@ -15635,8 +15663,8 @@ function renderShifts(){
   tbody.innerHTML=list.map(s=>{
     const emp=DB.employees.find(e=>e.id===s.empId);
     return `<tr>
-      <td>${emp?.name||"-"}</td><td>${s.from}</td><td>${s.to}</td>
-      <td>${s.type}</td><td>${s.section||"-"}</td><td>${s.notes||"-"}</td>
+      <td>${emp?.name||"-"}</td><td>${ksTxt(s.from)}</td><td>${ksTxt(s.to)}</td>
+      <td>${ksTxt(s.type)}</td><td>${s.section||"-"}</td><td>${s.notes||"-"}</td>
       <td><button class="btn small red" onclick="delShift('${s.id}')">🗑️</button></td>
     </tr>`;
   }).join("");
@@ -15655,11 +15683,11 @@ function renderShiftWeek(){
   const emps=DB.employees;
   if(!emps.length){html+=`<tr><td colspan="8" class="muted">لا يوجد موظفون</td></tr>`;}
   emps.forEach(emp=>{
-    html+=`<tr><td style="font-weight:600">${emp.name}</td>`;
+    html+=`<tr><td style="font-weight:600">${ksNm(emp.name)}</td>`;
     days.forEach(day=>{
       const ds=day.toISOString().slice(0,10);
       const sh=(DB.shifts||[]).filter(s=>s.empId===emp.id&&s.from<=ds&&s.to>=ds);
-      html+=`<td style="text-align:center;font-size:.8rem">${sh.map(s=>`<div style="background:var(--green-light);border-radius:4px;padding:2px 4px;margin:1px;color:var(--green-dark)">${s.type}</div>`).join("")||"—"}</td>`;
+      html+=`<td style="text-align:center;font-size:.8rem">${sh.map(s=>`<div style="background:var(--green-light);border-radius:4px;padding:2px 4px;margin:1px;color:var(--green-dark)">${ksTxt(s.type)}</div>`).join("")||"—"}</td>`;
     });
     html+=`</tr>`;
   });
@@ -15695,7 +15723,7 @@ function renderPerformance(){
     const emp=DB.employees.find(e=>e.id===p.empId);
     const total=p.att+p.quality+p.prod+p.team+p.init;
     return `<tr>
-      <td>${emp?.name||"-"}</td><td>${p.month}</td><td>${p.att}</td><td>${p.quality}</td>
+      <td>${emp?.name||"-"}</td><td>${ksTxt(p.month)}</td><td>${p.att}</td><td>${ksTxt(p.quality)}</td>
       <td>${p.prod}</td><td>${p.team}</td><td>${p.init}</td>
       <td style="font-weight:700">${total.toFixed(1)}</td><td>${grade(total)}</td>
       <td>${p.notes||"-"}</td>
@@ -15786,11 +15814,11 @@ function renderPayroll(){
     <div class="card" style="border:1px solid var(--border);padding:12px"><div class="muted">صافي المدفوع</div><div style="font-size:1.2rem;font-weight:700;color:var(--green)">${fmtSR(totalNet)}</div></div>
     <div class="card" style="border:1px solid var(--border);padding:12px"><div class="muted">عدد الموظفين</div><div style="font-size:1.2rem;font-weight:700">${rows.length}</div></div>`;
   tbody.innerHTML=rows.map(r=>`<tr>
-    <td style="font-weight:600">${r.name}</td><td>${fmtSR(+r.salary)}</td><td>${fmtSR(+r.allowances)}</td>
+    <td style="font-weight:600">${ksNm(r.name)}</td><td>${fmtSR(+r.salary)}</td><td>${fmtSR(+r.allowances)}</td>
     <td>${__anyAtt?(r.presentDays+"/"+r.workingDays):'<span class="muted" title="لا سجلات حضور لهذا الشهر — الخصم يعتمد على أيام «غائب» المسجَّلة فقط">—</span>'}</td><td>${r.unpaidLeaves} يوم</td>
     <td>${fmtSR(+r.advances)}</td><td>${fmtSR(+r.deductions)}</td>
     <td style="font-weight:700;color:var(--green)">${fmtSR(+r.net)}</td>
-    <td><span style="background:${r.status==="مدفوع"?"var(--green)":"var(--amber)"};color:#fff;padding:2px 8px;border-radius:999px;font-size:.75rem">${r.status}</span></td>
+    <td><span style="background:${r.status==="مدفوع"?"var(--green)":"var(--amber)"};color:#fff;padding:2px 8px;border-radius:999px;font-size:.75rem">${ksTxt(r.status)}</span></td>
     <td>${r.status==="غير مدفوع"
       ? `<button class="btn small" onclick="markPayrollPaid('${run.id}','${r.empId}')">✅ دفع</button>`
       : `<span class="muted" style="font-size:.72rem">💵 ${escH(r.paidDate||"")}</span> <button class="btn small secondary" title="تراجع عن الدفع وعكس كل آثاره" onclick="unmarkPayrollPaid('${run.id}','${r.empId}')">↩️ تراجع</button>`}</td>
@@ -15883,15 +15911,15 @@ function exportPayrollPDF(){
   const w=window.open("","_blank");
   const rows=run.rows||[];
   const totalNet=rows.reduce((s,r)=>s+(+r.net||0),0);
-  w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>كشف رواتب ${run.month}</title>
+  w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>كشف رواتب ${ksTxt(run.month)}</title>
   <style>body{font-family:Arial,sans-serif;padding:20px;font-size:13px}
   table{width:100%;border-collapse:collapse}th,td{border:1px solid #999;padding:5px 8px;text-align:right}
   th{background:#047857;color:#fff}h2{color:#047857;text-align:center}
   .total{font-weight:700;background:#f9fafb}</style></head><body>
-  <h2>كشف رواتب شهر ${run.month}</h2>
+  <h2>كشف رواتب شهر ${ksTxt(run.month)}</h2>
   <p>تاريخ الإصدار: ${today()} | عدد الموظفين: ${rows.length}</p>
   <table><thead><tr><th>#</th><th>الموظف</th><th>الراتب</th><th>البدلات</th><th>خصومات</th><th>سلف</th><th>الصافي</th><th>الحالة</th></tr></thead>
-  <tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${r.name}</td><td>${fmtSR(+r.salary)}</td><td>${fmtSR(+r.allowances)}</td><td>${fmtSR(+r.deductions)}</td><td>${fmtSR(+r.advances)}</td><td><strong>${fmtSR(+r.net)}</strong></td><td>${r.status}</td></tr>`).join("")}
+  <tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${ksNm(r.name)}</td><td>${fmtSR(+r.salary)}</td><td>${fmtSR(+r.allowances)}</td><td>${fmtSR(+r.deductions)}</td><td>${fmtSR(+r.advances)}</td><td><strong>${fmtSR(+r.net)}</strong></td><td>${ksTxt(r.status)}</td></tr>`).join("")}
   <tr class="total"><td colspan="6">الإجمالي</td><td>${fmtSR(totalNet)}</td><td></td></tr></tbody></table>
   <br><br><div style="display:flex;justify-content:space-between;margin-top:40px">
   <div>توقيع المالك: _______________</div><div>ختم المزرعة: _______________</div></div>
@@ -15903,7 +15931,7 @@ function exportPayrollExcel(){
   const run=month?(DB.payrollRuns||[]).find(r=>r.month===month):null;
   if(!run){toast("⚠️ أنشئ الكشف أولاً");return;}
   let csv="\uFEFF"+"الموظف,الراتب الأساسي,البدلات,خصومات,سلف,الصافي,الحالة\n";
-  (run.rows||[]).forEach(r=>{csv+=`${r.name},${r.salary},${r.allowances},${r.deductions},${r.advances},${r.net},${r.status}
+  (run.rows||[]).forEach(r=>{csv+=`${r.name},${r.salary},${r.allowances},${r.deductions},${r.advances},${r.net},${ksTxt(r.status)}
 `;});
   const a=document.createElement("a"); a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);
   a.download=`كشف_رواتب_${month}.csv`; a.click();
@@ -15977,12 +16005,12 @@ function renderPurchaseReqs(){
             : `<td><button class="btn small" onclick="prToPurchase('${r.id}')" style="background:#1d4ed8;color:#fff">🛒 تم الشراء</button></td>`)
         : `<td>${r.status==="مكتمل"&&r.completedAt?`<span class="muted" style="font-size:.7rem">🧾 ${r.completedAt}</span>`:r.status}</td>`;
     return `<tr>
-      <td>${r.date}</td><td>${emp?.name||"-"}</td><td>${r.item}</td>
-      <td>${r.qty} ${r.unit||""}</td><td>${r.estCost?fmtSR(+r.estCost):"-"}</td>
-      <td><span style="background:${priBg[r.priority]||"#999"};color:#fff;padding:2px 8px;border-radius:999px;font-size:.75rem">${r.priority}</span></td>
+      <td>${r.date||"-"}</td><td>${emp?.name||"-"}</td><td>${escH(r.item||"-")}</td>
+      <td>${r.qty!=null?fmt(+r.qty||0):"-"} ${escH(r.unit||"")}</td><td>${r.estCost?fmtSR(+r.estCost):"-"}</td>
+      <td><span style="background:${priBg[r.priority]||"#999"};color:#fff;padding:2px 8px;border-radius:999px;font-size:.75rem">${escH(r.priority||"—")}</span></td>
       <td>${r.section||"-"}</td>
       <td title="${escH(r.reason||"")}">${r.reason?escH(String(r.reason).slice(0,40)):'<span class="muted">-</span>'}</td>
-      <td><span style="background:${stBg[r.status]||"#999"};color:#fff;padding:2px 8px;border-radius:999px;font-size:.75rem">${r.status}</span></td>
+      <td><span style="background:${stBg[r.status]||"#999"};color:#fff;padding:2px 8px;border-radius:999px;font-size:.75rem">${escH(r.status||"—")}</span></td>
       ${ownerBtns}
       <td><button class="btn small red" onclick="delPR('${r.id}')">🗑️</button></td>
     </tr>`;
@@ -16056,11 +16084,11 @@ function renderStockCheckTable(){
     const diff=it.actualQty-it.systemQty;
     const low=it.actualQty<=it.minQty&&it.minQty>0;
     return `<tr style="${low?"background:#fef2f2":""}">
-      <td>${it.name}</td><td>${it.systemQty} ${it.unit}</td>
+      <td>${ksNm(it.name)}</td><td>${it.systemQty} ${ksTxt(it.unit)}</td>
       <td><input type="number" value="${it.actualQty}" min="0" step="0.01" style="width:80px;border:1px solid #d1d5db;border-radius:6px;padding:4px"
         onchange="updateActualQty(${i},this.value)"></td>
-      <td style="color:${diff>0?"var(--green)":diff<0?"var(--red)":"inherit"};font-weight:${diff!==0?"700":"400"}">${diff>=0?"+":""}${diff.toFixed(2)} ${it.unit}</td>
-      <td>${it.minQty} ${it.unit}</td>
+      <td style="color:${diff>0?"var(--green)":diff<0?"var(--red)":"inherit"};font-weight:${diff!==0?"700":"400"}">${diff>=0?"+":""}${diff.toFixed(2)} ${ksTxt(it.unit)}</td>
+      <td>${it.minQty} ${ksTxt(it.unit)}</td>
       <td>${low?'<span style="color:var(--red);font-weight:700">⚠️ نقص</span>':'<span style="color:var(--green)">✅ كافي</span>'}</td>
       <td></td>
     </tr>`;
@@ -16070,7 +16098,7 @@ function renderStockCheckTable(){
   const aw=document.getElementById("stockAlertWrap");
   if(aw&&alerts.length) aw.innerHTML=`<div style="background:#fef2f2;border:1px solid var(--red);border-radius:10px;padding:12px;margin-bottom:10px">
     <strong>⚠️ تنبيه نقص المواد (${alerts.length} صنف)</strong><br>
-    ${alerts.map(a=>`• ${a.name}: ${a.actualQty} ${a.unit} (الحد الأدنى: ${a.minQty})`).join("<br>")}</div>`;
+    ${alerts.map(a=>`• ${a.name}: ${a.actualQty} ${ksTxt(a.unit)} (الحد الأدنى: ${a.minQty})`).join("<br>")}</div>`;
   else if(aw) aw.innerHTML="";
   renderStockHistory();
 }
@@ -16103,7 +16131,7 @@ function renderStockHistory(){
   const list=(DB.stockTakes||[]).slice().reverse();
   if(!list.length){tbody.innerHTML=`<tr><td colspan="5" class="muted">لا يوجد تاريخ جرد</td></tr>`;return;}
   tbody.innerHTML=list.map(s=>`<tr>
-    <td>${s.date}</td><td>${s.itemCount??(s.items?s.items.length:"—")}</td><td>${s.shortCount??"—"}</td><td>${s.diffValue!==undefined?fmtSR(s.diffValue):(s.totalDiff??"—")}</td>
+    <td>${ksTxt(s.date)}</td><td>${s.itemCount??(s.items?s.items.length:"—")}</td><td>${s.shortCount??"—"}</td><td>${s.diffValue!==undefined?fmtSR(s.diffValue):(s.totalDiff??"—")}</td>
     <td><button class="btn small red" onclick="delStockTake('${s.id}')">🗑️</button></td>
   </tr>`).join("");
 }
@@ -16113,7 +16141,7 @@ function exportStockCheckExcel(){
   let csv="\uFEFF"+"الصنف,الوحدة,كمية النظام,الكمية الفعلية,الفرق,الحد الأدنى,الحالة\n";
   currentStockCheck.items.forEach(it=>{
     const diff=it.actualQty-it.systemQty;
-    csv+=`${it.name},${it.unit},${it.systemQty},${it.actualQty},${diff>=0?"+":""}${diff.toFixed(2)},${it.minQty},${it.actualQty<=it.minQty&&it.minQty>0?"نقص":"كافي"}
+    csv+=`${it.name},${ksTxt(it.unit)},${it.systemQty},${it.actualQty},${diff>=0?"+":""}${diff.toFixed(2)},${it.minQty},${it.actualQty<=it.minQty&&it.minQty>0?"نقص":"كافي"}
 `;
   });
   const a=document.createElement("a"); a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);
@@ -16136,7 +16164,7 @@ function renderInvoices(){
     const prev = custSel.value;
     custSel.innerHTML = '<option value="">🚶 عميل نقدي (بدون بيانات)</option>';
     DB.customers.forEach(c=>{
-      custSel.innerHTML += `<option value="${c.id}" ${prev===c.id?'selected':''}>${c.name}</option>`;
+      custSel.innerHTML += `<option value="${c.id}" ${prev===c.id?'selected':''}>${ksNm(c.name)}</option>`;
     });
   }
   try{ invCustSel(); }catch(e){}
@@ -16189,19 +16217,19 @@ function invFillItems(items){
     if(it.name){
       if(![...nsel.options].some(o=>o.value===it.name)){
         const last=nsel.querySelector('option[value="__other"]');
-        if(last) last.insertAdjacentHTML("beforebegin",`<option>${it.name}</option>`);
+        if(last) last.insertAdjacentHTML("beforebegin",`<option>${ksNm(it.name)}</option>`);
       }
       nsel.value=it.name;
       const _p=(DB.products||[]).find(x=>x.name===it.name);
       invCycleOptions(tr,_p,it.cycleId||null);
       invFishFields(tr,_p);
       const _tk2=tr.querySelector('.inv-tank');
-      if(_tk2&&it.tank){ if(![..._tk2.options].some(o=>o.value===it.tank)) _tk2.insertAdjacentHTML("beforeend",`<option>${it.tank}</option>`); _tk2.value=it.tank; }
+      if(_tk2&&it.tank){ if(![..._tk2.options].some(o=>o.value===it.tank)) _tk2.insertAdjacentHTML("beforeend",`<option>${ksTxt(it.tank)}</option>`); _tk2.value=it.tank; }
       const _fn2=tr.querySelector('.inv-fishn'); if(_fn2&&it.fishCount){ _fn2.value=it.fishCount; _fn2.dataset.auto="0"; }
     }
     tr.querySelector('.inv-qty').value=(it.qty??1);
     const us=tr.querySelector('.inv-unit');
-    if(us&&it.unit){ if(![...us.options].some(o=>o.value===it.unit)) us.insertAdjacentHTML('afterbegin',`<option>${it.unit}</option>`); us.value=it.unit; }
+    if(us&&it.unit){ if(![...us.options].some(o=>o.value===it.unit)) us.insertAdjacentHTML('afterbegin',`<option>${ksTxt(it.unit)}</option>`); us.value=it.unit; }
     tr.querySelector('.inv-price').value=(it.price??0);
     const _d=tr.querySelector('.inv-desc'); if(_d) _d.value=it.desc||'';
     const _ds=tr.querySelector('.inv-disc'); if(_ds) _ds.value=(it.disc??0);
@@ -16730,7 +16758,7 @@ function saveInvoice(e,asDraft){
 }
 function invProdOpts(){
   return '<option value="">-- اختر منتجاً --</option>'
-    +(DB.products||[]).map(p=>`<option>${p.name}</option>`).join("")
+    +(DB.products||[]).map(p=>`<option>${ksNm(p.name)}</option>`).join("")
     +'<option value="__other">➕ منتج جديد…</option>';
 }
 function invRefreshProdSelects(){
@@ -16764,7 +16792,7 @@ function invFishFields(tr,prod){
     tk.innerHTML=""; fn.value=""; return;
   }
   const tanks=(DB.tanks||[]).filter(t=>t.type!=="أمهات سمك");
-  tk.innerHTML='<option value="">— اختر الحوض للخصم * —</option>'+tanks.map(t=>`<option>${t.name}</option>`).join("");
+  tk.innerHTML='<option value="">— اختر الحوض للخصم * —</option>'+tanks.map(t=>`<option>${ksNm(t.name)}</option>`).join("");
   const _cySel=tr.querySelector(".inv-cycle"); if(_cySel){ _cySel.style.display="none"; }
   if(wrap){ wrap.style.display="flex"; const bal=tr.querySelector(".ilFishBal"); if(bal) bal.textContent=""; }
   else { tk.style.display="block"; fn.style.display="block"; }
@@ -16799,7 +16827,7 @@ function invCycleOptions(tr,prod,keepVal){
   const cy=tr?tr.querySelector(".inv-cycle"):null; if(!cy) return;
   const cycles=prod?(DB.cycles||[]).filter(c=>c.status==="نشطة"&&c.productId===prod.id):[];
   if(!cycles.length){ cy.innerHTML=""; cy.style.display="none"; return; }
-  cy.innerHTML=cycles.map(c=>`<option value="${c.id}">🌱 ${c.section} — زراعة ${c.plantDate}</option>`).join("");
+  cy.innerHTML=cycles.map(c=>`<option value="${c.id}">🌱 ${ksTxt(c.section)} — زراعة ${c.plantDate}</option>`).join("");
   cy.style.display=cycles.length>1?"":"none";
   cy.value=(keepVal&&[...cy.options].some(o=>o.value===keepVal))?keepVal:cycles[0].id;
 }
@@ -16822,7 +16850,7 @@ function invProdSel(sel){
       if(de && !de.value && p.desc) de.value=p.desc;
       const un=tr.querySelector(".inv-unit");
       if(un && p.unit){
-        if(![...un.options].some(o=>o.value===p.unit)) un.insertAdjacentHTML("afterbegin",`<option>${p.unit}</option>`);
+        if(![...un.options].some(o=>o.value===p.unit)) un.insertAdjacentHTML("afterbegin",`<option>${ksTxt(p.unit)}</option>`);
         un.value=p.unit;
       }
       invCycleOptions(tr,p,null);
@@ -17006,7 +17034,7 @@ function printInvoice(id){
   const ttlAr=inv.type==='credit'?'إشعار دائن':inv.type==='debit'?'إشعار مدين':inv.type==='simplified'?'فاتورة ضريبية مبسطة':'فاتورة ضريبية';
   const ttlEn=inv.type==='credit'?'CREDIT NOTE':inv.type==='debit'?'DEBIT NOTE':inv.type==='simplified'?'SIMPLIFIED TAX INVOICE':'TAX INVOICE';
   const ln=(lbl,en,val)=>val?`<p style="margin:3px 0;font-size:12.5px"><span style="color:#6b7280">${lbl} <span style="font-size:9.5px;color:#9aa39a">${en}</span>:</span> ${val}</p>`:'';
-  const rows=inv.items.map((i,ix)=>`<tr${ix%2?'':' style="background:#f8faf8"'}><td>${i.name}</td><td style="font-size:10.5px;color:#555">${i.desc||'—'}</td><td style="text-align:center">${i.qty}</td><td style="text-align:center">${i.unit||'—'}</td><td style="text-align:center">${i.price.toFixed(2)}</td><td style="text-align:center">${(+i.disc||0)?(+i.disc).toFixed(2):'—'}</td><td style="text-align:center">${invLineNet(i).toFixed(2)}</td><td style="text-align:center">${i.tax}%</td><td style="text-align:center">${invLineTax(i).toFixed(2)}</td><td style="text-align:center"><b>${invLineTotal(i).toFixed(2)}</b></td></tr>`).join('');
+  const rows=inv.items.map((i,ix)=>`<tr${ix%2?'':' style="background:#f8faf8"'}><td>${ksNm(i.name)}</td><td style="font-size:10.5px;color:#555">${i.desc||'—'}</td><td style="text-align:center">${ksTxt(i.qty)}</td><td style="text-align:center">${i.unit||'—'}</td><td style="text-align:center">${i.price.toFixed(2)}</td><td style="text-align:center">${(+i.disc||0)?(+i.disc).toFixed(2):'—'}</td><td style="text-align:center">${invLineNet(i).toFixed(2)}</td><td style="text-align:center">${i.tax}%</td><td style="text-align:center">${invLineTax(i).toFixed(2)}</td><td style="text-align:center"><b>${invLineTotal(i).toFixed(2)}</b></td></tr>`).join('');
   const win=window.open('','_blank');
   win.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>${ttlAr} ${inv.no||''}</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script>
@@ -17057,7 +17085,7 @@ function printInvoice(id){
     <tbody>${rows}</tbody>
   </table>
   <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px;gap:16px">
-    <div><div id="qrcode"></div>${inv.notes?`<p style="font-size:11.5px;color:#6b7280;margin:8px 0 0">ملاحظات: ${inv.notes}</p>`:''}</div>
+    <div><div id="qrcode"></div>${inv.notes?`<p style="font-size:11.5px;color:#6b7280;margin:8px 0 0">ملاحظات: ${ksTxt(inv.notes)}</p>`:''}</div>
     <table style="border-collapse:collapse;font-size:13px;min-width:270px">
       <tr><td style="padding:4px 10px;color:#555">المجموع قبل الضريبة <span style="font-size:9px;color:#9aa39a">Subtotal</span></td><td style="text-align:left"><b>${sub.toFixed(2)}</b></td></tr>
       <tr><td style="padding:4px 10px;color:#555">ضريبة القيمة المضافة${(()=>{const rs=[...new Set(inv.items.map(i=>+i.tax||0))];return rs.length===1?" "+rs[0]+"%":"";})()} <span style="font-size:9px;color:#9aa39a">${(()=>{const rs=[...new Set(inv.items.map(i=>+i.tax||0))];return rs.length===1?"VAT "+rs[0]+"%":"VAT";})()}</span></td><td style="text-align:left"><b>${taxT.toFixed(2)}</b></td></tr>
@@ -17083,14 +17111,14 @@ function exportInvoiceXml(id){
   const xml=`<?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
   <ID>${escH(inv.no)}</ID>
-  <IssueDate>${inv.date}</IssueDate>
+  <IssueDate>${ksTxt(inv.date)}</IssueDate>
   <InvoiceTypeCode>${inv.type==='credit'?'381':inv.type==='debit'?'383':'388'}</InvoiceTypeCode>
   <TaxTotal><TaxAmount currencyID="SAR">${taxT.toFixed(2)}</TaxAmount></TaxTotal>
   <LegalMonetaryTotal>
     <TaxExclusiveAmount currencyID="SAR">${(total-taxT).toFixed(2)}</TaxExclusiveAmount>
     <TaxInclusiveAmount currencyID="SAR">${total.toFixed(2)}</TaxInclusiveAmount>
   </LegalMonetaryTotal>
-  ${inv.items.map((i,n)=>`<InvoiceLine><ID>${n+1}</ID><InvoicedQuantity>${i.qty}</InvoicedQuantity><LineExtensionAmount currencyID="SAR">${invLineNet(i).toFixed(2)}</LineExtensionAmount><Item><Name>${escH(i.name)}</Name></Item><Price><PriceAmount currencyID="SAR">${i.price.toFixed(2)}</PriceAmount></Price></InvoiceLine>`).join('\n  ')}
+  ${inv.items.map((i,n)=>`<InvoiceLine><ID>${n+1}</ID><InvoicedQuantity>${ksTxt(i.qty)}</InvoicedQuantity><LineExtensionAmount currencyID="SAR">${invLineNet(i).toFixed(2)}</LineExtensionAmount><Item><Name>${escH(i.name)}</Name></Item><Price><PriceAmount currencyID="SAR">${i.price.toFixed(2)}</PriceAmount></Price></InvoiceLine>`).join('\n  ')}
 </Invoice>`;
   const a=document.createElement('a');
   a.href='data:text/xml;charset=utf-8,'+encodeURIComponent(xml);
@@ -17151,7 +17179,7 @@ function renderDeferred(){
   const statusLabel={pending:'معلق',overdue:'متأخر',paid:'مسدد'};
   tbody.innerHTML=rows.length?rows.map(r=>`<tr>
     <td>${typeLabel[r.type]||r.type}</td>
-    <td>${r.party}</td>
+    <td>${ksTxt(r.party)}</td>
     <td style="font-weight:700">${Number(r.amount).toFixed(2)} ⃁</td>
     <td>${r.dueDate||'— بلا تاريخ —'}</td>
     <td style="color:${(r.daysLeft!==null&&r.daysLeft<0)?'var(--red)':(r.daysLeft!==null&&r.daysLeft<=7)?'var(--orange,#e67e22)':'inherit'};font-weight:700">${r.daysLeft===null?'—':r.daysLeft<0?Math.abs(r.daysLeft)+' يوم تأخير':r.daysLeft===0?'اليوم':r.daysLeft+' يوم'}</td>
@@ -17291,7 +17319,7 @@ function renderProfitability(){
     const profit=i.revenue-i.cost;
     const margin=i.revenue>0?((profit/i.revenue)*100).toFixed(1):0;
     return `<tr>
-      <td>${i.name}</td>
+      <td>${ksNm(i.name)}</td>
       <td>${i.qty.toFixed(2)}</td>
       <td>${i.revenue.toFixed(2)} ⃁</td>
       <td>${i.cost.toFixed(2)} ⃁</td>
@@ -17346,7 +17374,7 @@ function renderDormantCust(){
     const phone=(c.phone||'').replace(/[^0-9]/g,'');
     const waLink=phone?`https://wa.me/966${phone.replace(/^0/,'')}`:'';
     return `<tr>
-      <td>${c.name}</td>
+      <td>${ksNm(c.name)}</td>
       <td>${c.lastBuy||'لم يشترِ قط'}</td>
       <td style="font-weight:700;color:var(--red)">${c.dormDays||'—'} يوم</td>
       <td>${c.totalBought.toFixed(2)} ⃁</td>
@@ -17409,7 +17437,7 @@ function renderSoilTests(){
   const tbody=document.getElementById('stTbody');
   if(!tbody) return;
   tbody.innerHTML=rows.length?rows.map(r=>`<tr>
-    <td>${r.sec}</td><td>${r.date}</td>
+    <td>${r.sec}</td><td>${ksTxt(r.date)}</td>
     <td style="color:${r.ph<6?'var(--red)':r.ph>7.5?'var(--orange,#e67e22)':'var(--green)'};font-weight:700">${r.ph||'—'}</td>
     <td>${r.n||'—'}</td><td>${r.p||'—'}</td><td>${r.k||'—'}</td>
     <td style="color:${r.ec>2?'var(--red)':'inherit'}">${r.ec||'—'}</td>

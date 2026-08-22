@@ -1344,6 +1344,8 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <div><label>العلف المستهلك (كجم)</label><input type="number" id="fsFeed" min="0" step="0.01"></div>
         <div><label>نوع العلف</label><select id="fsFeedType" onchange="updateFeedInvVisibility()"><option value="">—</option><option>بودرة</option><option>1ملي</option><option>2ملي</option><option>3ملي</option><option>4ملي</option></select></div>
         <div><label>عدد النافق</label><input type="number" id="fsDead" min="0" step="1"></div>
+        <div><label>🐟 عدد المباع / المحصود</label><input type="number" id="fsSold" min="0" step="1" placeholder="0" title="يُنشئ بيعاً بانتظار التسعير — يسعّره المسؤول لاحقاً">
+          <span class="muted" style="font-size:.68rem">يُسجَّل بيعاً «بانتظار التسعير» يسعّره المسؤول</span></div>
         <div><label>متوسط وزن السمكة (جم)</label><input type="number" id="fsAvgW" min="0" step="1"></div>
       </div>
       <div class="row">
@@ -2947,6 +2949,34 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     <div class="card table-wrap"><table id="tblQuotes"></table></div>
   </div>
 
+    <div id="acct_audit" style="display:none">
+      <h2>🔍 سجل التدقيق الكامل</h2>
+      <p class="muted" style="margin-bottom:10px">من سجّل، ومن اعتمد، ومن أرجع أو رفض، ومن ألغى وبأي سبب — ومتى. هذه البيانات كانت تُحفظ على كل سجل ولا يعرضها أي جدول؛ وهي أول ما يُطلب عند أي تحقيق.</p>
+      <div class="row" style="flex-wrap:wrap;gap:10px">
+        <div style="min-width:150px"><label>📅 من</label><input type="date" id="auFrom" onchange="renderAuditTrail()"></div>
+        <div style="min-width:150px"><label>📅 إلى</label><input type="date" id="auTo" onchange="renderAuditTrail()"></div>
+        <div style="min-width:170px"><label>الإجراء</label>
+          <select id="auAct" onchange="renderAuditTrail()">
+            <option value="">كل الإجراءات</option>
+            <option value="apv">✅ اعتماد</option>
+            <option value="rc">↩️ إرجاع للتصحيح</option>
+            <option value="void">❌ إلغاء بقيد عكسي</option>
+            <option value="rej">🚫 رفض وسحب</option>
+            <option value="pay">💵 سداد</option>
+          </select></div>
+        <div style="min-width:170px"><label>الشخص</label><select id="auWho" onchange="renderAuditTrail()"><option value="">الجميع</option></select></div>
+        <div style="flex:1;min-width:180px"><label>بحث في الوصف</label><input id="auQ" placeholder="اسم عميل، مبلغ، بند…" oninput="renderAuditTrail()"></div>
+        <div style="display:flex;align-items:end;gap:8px">
+          <button class="btn secondary small" type="button" onclick="renderAuditTrail()">🔄 تحديث</button>
+          <button class="btn secondary small" type="button" onclick="csvAudit()">📤 تصدير CSV</button>
+          <button class="btn secondary small" type="button" onclick="printEl('سجل التدقيق', document.getElementById('tblAudit'))">🖨️ طباعة</button>
+        </div>
+      </div>
+      <div id="auKpi" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:12px 0"></div>
+      <div class="card table-wrap"><table id="tblAudit"></table></div>
+      <p class="muted" style="margin-top:8px">💡 «السبب» إلزامي عند الإلغاء والرفض والإرجاع — فأي سطر هنا بلا سبب يعني سجلاً قديماً سابقاً لتفعيل الوضع الرقابي.</p>
+    </div>
+
     <div id="acct_recon" style="display:none">
       <h2>🧮 مطابقة الصندوق والبنك</h2>
       <p class="muted" style="margin-bottom:10px">قارن رصيد الدفاتر بالنقد الفعلي في الصندوق وبكشف حساب البنك. أي فرق غير مفسَّر هو أول إشارة على خطأ أو اختلاس — والمطابقة الدورية أقوى أداة كشف عملية.</p>
@@ -4126,6 +4156,9 @@ Object.assign(I18N.ur,{
 "مقبول ⚠️ يمكن تحسينه":"مناسب ⚠️ بہتری ممکن","منخفض 🔴 يحتاج مراجعة":"کم 🔴 جائزہ درکار","خسارة ❌":"نقصان ❌",
 "نسبة الربح من المبيعات":"فروخت سے منافع کا تناسب",
 "* الربح = مبيعات الدورة − تكلفة البداية − المصروفات المرتبطة بها (المصروفات العامة غير المرتبطة محسوبة في صافي الربح أعلاه)":"* منافع = سائیکل فروخت − ابتدائی لاگت − منسلک اخراجات (غیر منسلک عمومی اخراجات اوپر خالص منافع میں شامل ہیں)"});
+/* i18n v12.14 — البنود الخمسة */
+Object.assign(I18N.en,{"🔍 سجل التدقيق الكامل":"🔍 Full audit trail","الإجراء":"Action","كل الإجراءات":"All actions","✅ اعتماد":"✅ Approved","↩️ إرجاع للتصحيح":"↩️ Returned for correction","❌ إلغاء بقيد عكسي":"❌ Voided (reversing entry)","🚫 رفض وسحب":"🚫 Rejected & withdrawn","💵 سداد":"💵 Settled","الشخص":"Person","الجميع":"Everyone","بحث في الوصف":"Search description","مَن نفّذه":"Performed by","مُسجِّل السجل":"Recorded by","السبب / الملاحظة":"Reason / note","إجمالي الإجراءات":"Total actions","📤 تصدير CSV":"📤 Export CSV","↩️ تراجع":"↩️ Undo","🐟 عدد المباع / المحصود":"🐟 Sold / harvested count","يُسجَّل بيعاً «بانتظار التسعير» يسعّره المسؤول":"Recorded as a sale awaiting pricing by the supervisor","🛒 إعادة المحاولة":"🛒 Retry","⏳ بانتظار حفظ الفاتورة":"⏳ Awaiting invoice save","بانتظار التسعير":"Awaiting pricing","🧮 مطابقة صندوق/بنك":"🧮 Cash/bank reconciliation"});
+Object.assign(I18N.ur,{"🔍 سجل التدقيق الكامل":"🔍 مکمل آڈٹ ریکارڈ","الإجراء":"کارروائی","كل الإجراءات":"تمام کارروائیاں","✅ اعتماد":"✅ منظور","↩️ إرجاع للتصحيح":"↩️ درستی کے لیے واپس","❌ إلغاء بقيد عكسي":"❌ الٹی انٹری سے منسوخ","🚫 رفض وسحب":"🚫 مسترد و واپس","💵 سداد":"💵 ادائیگی","الشخص":"شخص","الجميع":"سب","بحث في الوصف":"تفصیل میں تلاش","مَن نفّذه":"کس نے کیا","مُسجِّل السجل":"درج کرنے والا","السبب / الملاحظة":"وجہ / نوٹ","إجمالي الإجراءات":"کل کارروائیاں","📤 تصدير CSV":"📤 CSV برآمد","↩️ تراجع":"↩️ واپس","🐟 عدد المباع / المحصود":"🐟 فروخت/حاصل تعداد","يُسجَّل بيعاً «بانتظار التسعير» يسعّره المسؤول":"قیمت کے انتظار میں فروخت درج ہوگی","🛒 إعادة المحاولة":"🛒 دوبارہ کوشش","⏳ بانتظار حفظ الفاتورة":"⏳ انوائس محفوظ ہونے کا انتظار","بانتظار التسعير":"قیمت کے انتظار میں","🧮 مطابقة صندوق/بنك":"🧮 کیش/بینک مطابقت"});
 /* i18n v12.13 */
 Object.assign(I18N.en,{"— عميل محذوف —":"— deleted customer —","— موظف محذوف —":"— deleted employee —","المبيعات الإجمالية":"Gross sales"});
 Object.assign(I18N.ur,{"— عميل محذوف —":"— حذف شدہ گاہک —","— موظف محذوف —":"— حذف شدہ ملازم —","المبيعات الإجمالية":"مجموعی فروخت"});
@@ -4246,7 +4279,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.13-A";
+const KS_VER="v12.14-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -7303,6 +7336,11 @@ function addTank(e){
       DB.fishLogs.forEach(f=>{ if(f.tank===old) f.tank=rec.name; });
       DB.waterLogs.forEach(w=>{ if(w.tank===old) w.tank=rec.name; });
       DB.transfers.forEach(tr=>{ if(tr.from===old) tr.from=rec.name; if(tr.to===old) tr.to=rec.name; });
+      /* 🐟 المبيعات كانت مفقودة من الترحيل ⇒ tankAgg يفقد المباع فيقفز عدد السمك بمقداره */
+      let __mv=0;
+      (DB.harvests||[]).forEach(h=>{ if(h.tank===old){ h.tank=rec.name; __mv++; } });
+      (DB.invoices||[]).forEach(iv=>(iv.items||[]).forEach(it=>{ if(it.tank===old) it.tank=rec.name; }));
+      if(__mv) toast("♻️ رُحّلت "+fmt(__mv)+" عملية بيع للاسم الجديد");
     }
     EDIT.tank=null; tnBtn.textContent="حفظ الحوض"; markEditing("cardTank",false);
   }
@@ -7396,6 +7434,7 @@ function addFish(e){
   if(!fsTank.value){ toast("⚠️ أضف حوض أولاً"); return; }
   const rec = {date:fsDate.value, tank:fsTank.value.trim(), meal:fsMeal.value?+fsMeal.value:null,
     feed:fsFeed.value===""?0:+fsFeed.value, feedType:fsFeedType.value, dead:fsDead.value===""?0:+fsDead.value,
+    soldNew:(function(){ const el=document.getElementById("fsSold"); return el&&el.value!==""?+el.value:0; })(),
     avgW:fsAvgW.value===""?null:+fsAvgW.value, employee:(fsEmp.value.trim()||(CURRENT_USER?CURRENT_USER.name:'')), notes:fsNotes.value};
   /* 🛡️ نفوق أكبر من رصيد الحوض كان يُبتلع صامتاً (Math.max(0,…)) فتختل كل الأعداد لاحقاً */
   if((+rec.dead||0)>0){
@@ -7417,6 +7456,10 @@ function addFish(e){
         if(it){ if(__delta>0 && __delta>it.qty){ toast("❌ العلف بالمخزون غير كافٍ لفرق التعديل (متوفر "+fmt(it.qty)+" "+it.unit+")"); return; }
           it.qty-=__delta; rec.itemId=it.id;
           DB.invMoves.push({id:uid(), date:rec.date, itemId:it.id, type:__delta>0?"صرف":"إضافة (شراء/توريد)", qty:Math.abs(__delta), employee:rec.employee, notes:"تسوية تعديل سجل تغذية "+rec.tank}); } } }
+    { const __sn=+rec.soldNew||0; delete rec.soldNew;
+      const __h=(DB.harvests||[]).find(x=>x.fishLogId===__old.id && x.unpriced);
+      if(__h && __sn>0){ __h.qty=__sn; __h.fishCount=__sn; __h.date=rec.date||__h.date; __h.tank=rec.tank||__h.tank; }
+      else if(__h && __sn<=0){ DB.harvests=(DB.harvests||[]).filter(x=>x.id!==__h.id); } }
     Object.assign(__old, rec); EDIT.fish=null; fsBtn.textContent="حفظ السجل"; markEditing("cardFish",false); }
   else {
     let _feedItemId = fsInv.value;
@@ -7435,15 +7478,36 @@ function addFish(e){
         DB.invMoves.push({id:uid(), date:rec.date, itemId:it.id, type:"صرف", qty:rec.feed, employee:rec.employee, notes:"تغذية "+rec.tank+(rec.feedType?" ("+rec.feedType+")":"")});
       }
     }
-    DB.fishLogs.push({id:uid(), ...rec});
+    const __lid=uid();
+    /* 🐟 «بانتظار التسعير» كان فرعاً ميتاً: الكود يقرأ h.unpriced ولا يكتبه أحد، فالوسم وزر 💲
+       لم يظهرا قط. الآن العامل يسجّل العدد المباع ميدانياً ويسعّره المسؤول لاحقاً. */
+    const __sold=+rec.soldNew||0;
+    delete rec.soldNew;
+    if(__sold>0){
+      const __t=(DB.tanks||[]).find(x=>x.name===rec.tank);
+      const __cur=__t?tankCurrent(__t,(tankAgg()||{})[rec.tank]):0;
+      if(__sold>__cur){ toast("❌ المباع ("+fmt(__sold)+") أكبر من الموجود في «"+rec.tank+"» ("+fmt(__cur)+")"); return; }
+      const __cy=__t&&__t.cycleId?__t.cycleId:"";
+      DB.harvests.push({id:uid(), date:rec.date||today(), cycleId:__cy, section:(typeof FISH_SECTION!=="undefined"?FISH_SECTION:""),
+        productName:"🐟 "+(rec.tank||""), qty:__sold, unit:"سمكة", price:0, total:0,
+        fishSale:true, tank:rec.tank, fishCount:__sold, unpriced:true, paid:false,
+        fishLogId:__lid, employee:rec.employee||((CURRENT_USER||{}).name||""),
+        notes:"بيع من اليومية — بانتظار التسعير"});
+      toast("🐟 سُجّل بيع "+fmt(__sold)+" سمكة «بانتظار التسعير» — سعّره من سجل المبيعات (💲)");
+    }
+    DB.fishLogs.push({id:__lid, ...rec});
   }
-  save(); e.target.reset(); fsDate.value=today(); fillSelects(); renderFish(); renderInv(); toast("✅ تم الحفظ");
+  save(); e.target.reset(); fsDate.value=today(); fillSelects(); renderFish(); renderInv();
+  try{ renderHarvests(); }catch(e){}
+  toast("✅ تم الحفظ");
 }
 function editFish(id){
   const f = DB.fishLogs.find(x=>x.id===id); if(!f) return;
   fsDate.value=f.date; fsTank.value=f.tank; updateMealOpts(); fsMeal.value=f.meal||""; fsFeed.value=f.feed||""; fsDead.value=f.dead||""; fsAvgW.value=f.avgW??""; fsFeedType.value=f.feedType||"";
   fsEmp.value=f.employee; fsNotes.value=f.notes||"";
   { const _fi=document.getElementById("fsInv"); if(_fi&&f.itemId&&[..._fi.options].some(o=>o.value===f.itemId)) _fi.value=f.itemId; }
+  { const _fs=document.getElementById("fsSold");
+    if(_fs){ const __h=(DB.harvests||[]).find(x=>x.fishLogId===f.id&&x.unpriced); _fs.value=__h?(__h.fishCount||""):(f.sold||""); } }
   EDIT.fish=id; fsBtn.textContent="💾 حفظ التعديل"; markEditing("cardFish",true);
 }
 function delFish(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
@@ -7461,8 +7525,14 @@ function delFish(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ م�
         DB.invMoves.push({id:uid(), date:today(), itemId:it.id, type:"إضافة (شراء/توريد)", qty:+f.feed||0,
           employee:(CURRENT_USER||{}).name||"", notes:"عكس حذف سجل تغذية أسماك — "+f.tank}); } }
     }catch(e){}
+    /* ↩️ البيع غير المسعّر المولَّد من هذا السجل يُحذف معه (المسعَّر يبقى — صار عملية بيع حقيقية) */
+    const __gen=(DB.harvests||[]).filter(h=>h.fishLogId===f.id);
+    const __priced=__gen.filter(h=>!h.unpriced);
+    if(__priced.length){ toast("⚠️ لا يمكن حذف السجل — بيعه سُعِّر بالفعل. عدّله أو سجّل مردوداً"); return; }
+    if(__gen.length){ DB.harvests=(DB.harvests||[]).filter(h=>h.fishLogId!==f.id);
+      toast("↩️ حُذف معه البيع غير المسعّر ("+fmt(__gen[0].fishCount||0)+" سمكة)"); }
     trashIt("fishLogs","سجل أسماك",`${f.tank} — ${f.date}`,f);
-    DB.fishLogs=DB.fishLogs.filter(x=>x.id!==id); save(); renderFish(); try{ renderInv(); }catch(e){} } }
+    DB.fishLogs=DB.fishLogs.filter(x=>x.id!==id); save(); renderFish(); try{ renderInv(); renderHarvests(); }catch(e){} } }
 function renderFish(){
   const rows = DB.fishLogs.slice().reverse().slice(0,200).map(f=>
     `<tr><td>${f.date}</td><td><b>${f.tank}</b></td><td>${f.meal?`<span class="badge active">وجبة ${f.meal}</span>`:"—"}</td><td>${fmt(f.feed)} كجم</td>
@@ -8708,6 +8778,7 @@ const SCREENS = [
   ["acct","⚖️","ميزان المراجعة","ارصدة الحسابات مدين دائن","tb"],
   ["acct","🏛️","المركز المالي (الميزانية)","الأصول الالتزامات حقوق الملكية","bs"],
   ["acct","🧮","مطابقة الصندوق والبنك","النقد الفعلي مقابل الدفاتر","recon"],
+  ["acct","🔍","سجل التدقيق الكامل","من اعتمد ومن ألغى وبأي سبب ومتى","audit"],
   ["acct","🧺","المبيعات حسب الفترة","سجل مبيعات الفترة","sales"],
   ["acct","📒","القيود اليومية وسندات القبض والصرف","قيد يدوي يومية سند","jr"],
   ["acct","📖","دفتر الأستاذ العام","حركة حساب كشف حساب","gl"],
@@ -10036,13 +10107,20 @@ function addPurchase(e){
     }
     DB.purchases.push({id:uid(), expId, ...rec});
   }
-  /* إقفال طلب الشراء المرتبط (إن جئنا من زر 🛒 خلال آخر 15 دقيقة) */
-  if(window.__prLink && (Date.now()-window.__prLink.ts)<9e5){
-    const req=(DB.purchaseRequests||[]).find(x=>x.id===window.__prLink.id);
-    if(req && req.status==="معتمد"){ req.status="مكتمل"; req.completedAt=today(); try{renderPurchaseReqs();}catch(e2){} toast("✅ حُفظت الفاتورة وأُقفل طلب الشراء (مكتمل)"); }
-    else toast("✅ تم حفظ الفاتورة");
+  /* 🔗 إقفال طلب الشراء المرتبط — الربط مخزَّن على الطلب فلا يسقط بمرور الوقت */
+  {
+    const __lid=(window.__prLink&&window.__prLink.id)
+      || ((DB.purchaseRequests||[]).find(x=>x.linkedAt&&x.status==="معتمد")||{}).id;
+    const req=__lid?(DB.purchaseRequests||[]).find(x=>x.id===__lid):null;
+    if(req && req.status==="معتمد"){
+      req.status="مكتمل"; req.completedAt=today(); req.purchaseId=(DB.purchases[DB.purchases.length-1]||{}).id||"";
+      delete req.linkedAt;
+      logEdit("🛒 إقفال طلب شراء",(req.item||"")+" — فاتورة "+supName(rec.supplierId));
+      try{renderPurchaseReqs();}catch(e2){}
+      toast("✅ حُفظت الفاتورة وأُقفل طلب الشراء (مكتمل)");
+    } else toast("✅ تم حفظ الفاتورة");
     window.__prLink=null;
-  } else { window.__prLink=null; toast("✅ تم حفظ الفاتورة"); }
+  }
   save(); e.target.reset(); puDate.value=today(); fillSelects(); renderPurchases(); renderExpenses(); renderInv();
 }
 function editPurchase(id){
@@ -11269,9 +11347,9 @@ function autoEntries(from, to){
   });
   return es.sort((a,b)=>a.date.localeCompare(b.date));
 }
-const ACCT_TITLES={ov:"🏠 النظرة العامة والتدفق",coa:"🌳 دليل الحسابات",bank:"🏦 البنوك والنقد",jr:"✍️ القيود اليومية",gl:"📖 دفتر الأستاذ",stmt:"👤 كشف حساب عميل",inc:"📅 قائمة الدخل",yr:"🗓️ التقرير السنوي",tb:"⚖️ ميزان المراجعة",bs:"🏛️ المركز المالي",purch:"🚚 المشتريات وفواتيرها",fa:"🏢 الأصول الثابتة",invm:"📦 إدارة المخزون",hr:"💵 مسير الرواتب",tax:"🧾 إقرار الضريبة",perf:"📊 الموازنة والأداء",alloc:"⚙️ توزيع المصاريف المشتركة على الأقسام",adv:"📈 التقارير المتقدمة",prof:"📊 ربحية المنتج",cv:"🤝 العملاء والموردون والذمم",rpt:"📑 التقارير",recon:"🧮 مطابقة الصندوق والبنك",sales:"🧺 المبيعات"};
+const ACCT_TITLES={ov:"🏠 النظرة العامة والتدفق",coa:"🌳 دليل الحسابات",bank:"🏦 البنوك والنقد",jr:"✍️ القيود اليومية",gl:"📖 دفتر الأستاذ",stmt:"👤 كشف حساب عميل",inc:"📅 قائمة الدخل",yr:"🗓️ التقرير السنوي",tb:"⚖️ ميزان المراجعة",bs:"🏛️ المركز المالي",purch:"🚚 المشتريات وفواتيرها",fa:"🏢 الأصول الثابتة",invm:"📦 إدارة المخزون",hr:"💵 مسير الرواتب",tax:"🧾 إقرار الضريبة",perf:"📊 الموازنة والأداء",alloc:"⚙️ توزيع المصاريف المشتركة على الأقسام",adv:"📈 التقارير المتقدمة",prof:"📊 ربحية المنتج",cv:"🤝 العملاء والموردون والذمم",rpt:"📑 التقارير",recon:"🧮 مطابقة الصندوق والبنك",sales:"🧺 المبيعات",audit:"🔍 سجل التدقيق الكامل"};
 function acctSec(s){
-  const all = ["ov","coa","bank","jr","gl","stmt","inc","yr","tb","bs","purch","sales","recon","fa","invm","hr","tax","perf","cv","rpt","adv","prof","alloc","apv"];
+  const all = ["ov","coa","bank","jr","gl","stmt","inc","yr","tb","bs","purch","sales","recon","audit","fa","invm","hr","tax","perf","cv","rpt","adv","prof","alloc","apv"];
   all.forEach(k=>{
     const el = document.getElementById("acct_"+k);
     const btn = document.getElementById("sb_"+k);
@@ -11287,6 +11365,7 @@ function acctSec(s){
   if(s==="purch"){ try{ renderAcPurch(); }catch(e){} }
   if(s==="sales"){ try{ renderAcSales(); }catch(e){} }
   if(s==="recon"){ try{ const d=document.getElementById("rcDate"); if(d&&!d.value) d.value=todayStr(); renderRecon(); }catch(e){} }
+  if(s==="audit"){ try{ renderAuditTrail(); }catch(e){} }
   if(s==="inc"){ try{ renderIncomeAcct(); }catch(e){} }
   if(s==="alloc"){ try{ renderAllocEditors(); }catch(e){} }
   if(s==="invm"){ try{ imFillUnit(); }catch(e){} }
@@ -11343,7 +11422,7 @@ function acctSecBack(){
 }
 function acctGoHub(){
   window.__acctPrev=null; window.__acctCur=null;
-  ["ov","coa","bank","jr","gl","stmt","inc","yr","tb","bs","purch","sales","recon","fa","invm","hr","tax","perf","cv","rpt","adv","prof","apv"].forEach(k=>{
+  ["ov","coa","bank","jr","gl","stmt","inc","yr","tb","bs","purch","sales","recon","audit","fa","invm","hr","tax","perf","cv","rpt","adv","prof","apv"].forEach(k=>{
     const el=document.getElementById("acct_"+k); if(el) el.style.display="none";
   });
   const bb=document.getElementById("acctBackBar"); if(bb) bb.style.display="none";
@@ -11482,6 +11561,78 @@ function reconBook(){
   const bal=acctBalances("", (document.getElementById("rcDate")||{}).value||"");
   const n=c=>{ const b=bal[c]||{d:0,c:0}; return +(b.d-b.c).toFixed(2); };
   return {cash:n("1101"), bank:n("1102")};
+}
+function auditRows(){
+  /* 🔍 يجمع بصمات التدقيق المخزَّنة على كل السجلات — كانت تُكتب في 7 حقول ولا يقرؤها شيء */
+  const out=[];
+  const push=(o)=>{ if(o.date) out.push(o); };
+  const kinds=[
+    ["harvests","🧺 بيع", h=>hProdName(h)+" — "+custName(h.customerId)+" ("+fmtSR(hGross(h))+")"],
+    ["expenses","💸 مصروف", x=>x.cat+(x.notes?" — "+x.notes:"")+" ("+fmtSR(x.amount)+")"],
+    ["purchases","🚚 فاتورة شراء", p=>supName(p.supplierId)+(p.desc?" — "+p.desc:"")+" ("+fmtSR(pGross(p))+")"],
+    ["invMoves","📦 حركة مخزون", m=>(m.type||"")+" "+fmt(m.qty)+" — "+((DB.inventory||[]).find(i=>i.id===m.itemId)||{}).name]
+  ];
+  kinds.forEach(([coll,label,desc])=>{
+    (DB[coll]||[]).forEach(r=>{
+      let d=""; try{ d=desc(r)||""; }catch(e){ d=""; }
+      if(r.apvBy||r.apvDate) push({date:r.apvDate||r.date, act:"apv", icon:"✅", actTxt:"اعتماد",
+        kind:label, desc:d, who:r.apvBy||"—", reason:"", rec:r.id, by:r.employee||""});
+      if(r.rcBy||r.rcNote) push({date:r.rcDate||r.date, act:"rc", icon:"↩️", actTxt:"إرجاع للتصحيح",
+        kind:label, desc:d, who:r.rcBy||"—", reason:r.rcNote||"", rec:r.id, by:r.employee||""});
+      if(r.voided) push({date:r.voidDate||r.date, act:"void", icon:"❌", actTxt:"إلغاء بقيد عكسي",
+        kind:label, desc:d, who:r.voidBy||"—", reason:r.voidReason||"", rec:r.id, by:r.employee||""});
+      if(r.paid && (r.paidDate||r.paidAt)) push({date:r.paidDate||r.paidAt, act:"pay", icon:"💵", actTxt:"سداد كامل",
+        kind:label, desc:d, who:r.settledBy||r.employee||"—", reason:"", rec:r.id, by:r.employee||""});
+    });
+  });
+  (DB.rejects||[]).forEach(j=>push({date:j.date, act:"rej", icon:"🚫", actTxt:"رفض وسحب",
+    kind:"🚫 مرفوض", desc:j.desc||"", who:j.by||"—", reason:j.reason||"", rec:(j.rec||{}).id||"", by:j.emp||""}));
+  (DB.deferredPayments||[]).forEach(r=>{ if(r.status==="paid"&&r.paidAt)
+    push({date:r.paidAt, act:"pay", icon:"💵", actTxt:"تحصيل/سداد سند آجل",
+      kind:"⏳ سند آجل", desc:(r.party||"")+" ("+fmtSR(r.amount)+")", who:r.paidBy||"—", reason:"", rec:r.id, by:""}); });
+  (DB.recons||[]).forEach(r=>push({date:r.date, act:"pay", icon:"🧮", actTxt:"مطابقة صندوق/بنك",
+    kind:"🧮 مطابقة", desc:"فرق "+fmtSR(r.diff||0), who:r.by||"—", reason:r.notes||"", rec:r.id, by:""}));
+  return out.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+}
+function renderAuditTrail(){
+  const tbl=document.getElementById("tblAudit"); if(!tbl) return;
+  /* ⚡ مسح كل السجلات مكلف — لا يُنفَّذ إلا والشاشة معروضة فعلاً (تُستدعى من acctRenderAll مع 25 شاشة) */
+  const __scr=document.getElementById("acct_audit");
+  if(__scr && __scr.style.display==="none" && !window.__auForce) return;
+  const g=id=>(document.getElementById(id)||{}).value||"";
+  const from=g("auFrom"), to=g("auTo"), act=g("auAct"), who=g("auWho"), q=g("auQ").trim();
+  let rows=auditRows();
+  const whoSel=document.getElementById("auWho");
+  if(whoSel){ const cur=whoSel.value;
+    const names=[...new Set(rows.map(r=>r.who).filter(x=>x&&x!=="—"))].sort();
+    whoSel.innerHTML='<option value="">الجميع</option>'+names.map(n=>`<option>${escH(n)}</option>`).join("");
+    if(cur&&names.includes(cur)) whoSel.value=cur; }
+  rows=rows.filter(r=>(!from||r.date>=from)&&(!to||r.date<=to)
+    &&(!act||r.act===act)&&(!who||r.who===who)
+    &&(!q||((r.desc||"")+(r.reason||"")+(r.who||"")).toLowerCase().includes(q.toLowerCase())));
+  const kpi=document.getElementById("auKpi");
+  if(kpi){ const c=k=>rows.filter(r=>r.act===k).length;
+    const box=(l,v,col)=>`<div class="card kpi" style="padding:10px"><div class="label" style="font-size:.74rem">${l}</div><div class="value" style="font-size:1.1rem;color:${col||"inherit"}">${fmt(v)}</div></div>`;
+    kpi.innerHTML=box("إجمالي الإجراءات",rows.length)+box("✅ اعتماد",c("apv"),"var(--green)")
+      +box("↩️ إرجاع",c("rc"),"var(--amber)")+box("❌ إلغاء",c("void"),"var(--red)")
+      +box("🚫 رفض",c("rej"),"var(--red)")+box("💵 سداد",c("pay")); }
+  const CAP=400;
+  tbl.innerHTML=`<tr><th>التاريخ</th><th>الإجراء</th><th>النوع</th><th>السجل</th><th>مَن نفّذه</th><th>مُسجِّل السجل</th><th>السبب / الملاحظة</th></tr>`
+    +(rows.length?rows.slice(0,CAP).map(r=>{
+      const col=r.act==="void"||r.act==="rej"?"var(--red)":r.act==="rc"?"var(--amber)":r.act==="apv"?"var(--green)":"inherit";
+      return `<tr><td>${escH(r.date)}</td>
+        <td style="font-weight:700;color:${col}">${r.icon} ${escH(r.actTxt)}</td>
+        <td>${escH(r.kind)}</td><td>${escH(String(r.desc||"").slice(0,70))}</td>
+        <td><b>${escH(r.who)}</b></td><td class="muted">${escH(r.by||"—")}</td>
+        <td>${r.reason?escH(r.reason):'<span class="muted">—</span>'}</td></tr>`;
+    }).join("")
+    :`<tr><td colspan="7" class="muted">لا إجراءات تدقيق في هذا النطاق — فعّل الوضع الرقابي ليُختم كل اعتماد وإلغاء باسم صاحبه</td></tr>`)
+    +(rows.length>CAP?`<tr><td colspan="7" class="muted">📄 معروض أحدث ${fmt(CAP)} من ${fmt(rows.length)} — ضيّق النطاق أو صدّر CSV للكل</td></tr>`:"");
+}
+function csvAudit(){
+  const rows=auditRows();
+  exportCSV(["التاريخ","الإجراء","النوع","السجل","مَن نفّذه","مُسجِّل السجل","السبب"],
+    rows.map(r=>[r.date,r.actTxt,r.kind,r.desc,r.who,r.by||"",r.reason||""]),"سجل_التدقيق");
 }
 function renderRecon(){
   const live=document.getElementById("rcLive");
@@ -12219,7 +12370,7 @@ function acctRenderAll(){
   [renderAcctSelects,renderAccounts,renderJournals,renderTrial,renderLedger,
    renderOverview,renderBS,renderBank,renderRecon,renderAcSales,renderAcPurch,
    renderFA,renderTax,renderHR,renderHrAll,renderInvM,renderPerf,renderCV,renderCustStatement,renderIncomeAcct,renderAnnualAcct,fillPerfGoals,renderBudget,renderReports,renderProfitability,
-   renderAging,renderCashFc
+   renderAging,renderCashFc,renderAuditTrail
   ].forEach(fn=>{ try{ fn(); }catch(e){ console.warn("acct render:", fn.name, e.message); } });
 }
 
@@ -13025,7 +13176,7 @@ function payHarvest(id){
   DB.payments = DB.payments||[];
   DB.payments.push({id:uid(), date:today(), custId:h.customerId||"", harvestId:id, amount:Math.min(amt,remain)});
   logEdit("💵 تحصيل دفعة", custName(h.customerId)+" — "+fmt(Math.min(amt,remain))+" ⃁");
-  if(hRemain(h)<=0.005){ h.paid=true; h.paidDate=today(); }
+  if(hRemain(h)<=0.005){ h.paid=true; h.paidDate=today(); h.settledBy=(CURRENT_USER||{}).name||""; }
   save(); renderHarvests(); renderCustomers(); try{renderDebts();}catch(e){} toast("✅ تم تسجيل الدفعة — المتبقي "+fmtSR(hRemain(h)));
 }
 function payPurchase(id){
@@ -13038,7 +13189,7 @@ function payPurchase(id){
   DB.supPayments = DB.supPayments||[];
   DB.supPayments.push({id:uid(), date:today(), supId:p.supplierId||"", purchaseId:id, amount:Math.min(amt,remain)});
   logEdit("💵 دفعة لمورد", supName(p.supplierId)+" — "+fmt(Math.min(amt,remain))+" ⃁");
-  if(pRemain(p)<=0.005){ p.paid=true; p.paidDate=today(); }   /* اكتمل السداد ⇒ لم تعد آجلة */
+  if(pRemain(p)<=0.005){ p.paid=true; p.paidDate=today(); p.settledBy=(CURRENT_USER||{}).name||""; }   /* اكتمل السداد ⇒ لم تعد آجلة */
   save(); renderPurchases(); renderSuppliers(); toast("✅ تم تسجيل الدفعة للمورد");
 }
 
@@ -15409,7 +15560,9 @@ function renderPayroll(){
     <td>${fmtSR(+r.advances)}</td><td>${fmtSR(+r.deductions)}</td>
     <td style="font-weight:700;color:var(--green)">${fmtSR(+r.net)}</td>
     <td><span style="background:${r.status==="مدفوع"?"var(--green)":"var(--amber)"};color:#fff;padding:2px 8px;border-radius:999px;font-size:.75rem">${r.status}</span></td>
-    <td>${r.status==="غير مدفوع"?`<button class="btn small" onclick="markPayrollPaid('${run.id}','${r.empId}')">✅ دفع</button>`:""}</td>
+    <td>${r.status==="غير مدفوع"
+      ? `<button class="btn small" onclick="markPayrollPaid('${run.id}','${r.empId}')">✅ دفع</button>`
+      : `<span class="muted" style="font-size:.72rem">💵 ${escH(r.paidDate||"")}</span> <button class="btn small secondary" title="تراجع عن الدفع وعكس كل آثاره" onclick="unmarkPayrollPaid('${run.id}','${r.empId}')">↩️ تراجع</button>`}</td>
   </tr>`).join("") || `<tr><td colspan="10" class="muted">لا يوجد موظفون</td></tr>`;
 }
 function markPayrollPaid(runId,empId){
@@ -15450,6 +15603,42 @@ function markPayrollPaid(runId,empId){
     a.remain=+(rem-take).toFixed(2); __dd-=take;
     if(a.remain<=0.005){ a.remain=0; a.paid=true; a.paidDate=today(); } });
   save(); renderPayroll(); try{renderExpenses();}catch(e){} toast("✅ سُجّل الدفع وقُيّد كمصروف");
+}
+function unmarkPayrollPaid(runId,empId){
+  /* ↩️ الدفع يغيّر خمسة أشياء ولم يكن له أي عكس: حالة الصف، مصروف الراتب، قيد سداد السلفة،
+     سجل الصرف، ورصيد السلفة. الخطأ كان يتطلب تصحيحاً يدوياً في خمسة مواضع متفرقة. */
+  const run=(DB.payrollRuns||[]).find(r=>r.id===runId); if(!run) return;
+  const row=(run.rows||[]).find(r=>r.empId===empId); if(!row) return;
+  if(row.status!=="مدفوع"){ toast("ℹ️ هذا الصف غير مدفوع أصلاً"); return; }
+  if(!canSettle() && !isOwner()){ toast("⚠️ التراجع عن الدفع بصلاحية السداد"); return; }
+  /* ⚠️ ksGuardClosed ترجع true عند السماح (لا عند المنع) — نفس نمط بقية النماذج */
+  if(!ksGuardClosed(row.paidDate||today(),"التراجع عن دفع راتب")) return;
+  const advBack=+row.advances||0;
+  if(!confirm(`التراجع عن دفع راتب «${row.name}» لشهر ${run.month||""}؟\n\nسيُعكس:\n`
+    +`• مصروف الراتب من الدفاتر\n• قيد سداد السلفة${advBack>0?" ("+fmt(advBack)+" ⃁ ترجع لرصيد السلفة)":""}\n`
+    +`• سجل الصرف\n• ويعود الصف «غير مدفوع»`)) return;
+  /* 1) المصروف */
+  if(row.expId){ DB.expenses=(DB.expenses||[]).filter(x=>x.id!==row.expId); }
+  /* 2) قيد سداد السلفة */
+  const __aid=(row.advIds&&row.advIds[0])||"";
+  DB.journals=(DB.journals||[]).filter(j=>!(j.advRef && j.advRef===__aid && String(j.desc||"").includes(run.month||"")));
+  /* 3) سجل الصرف */
+  DB.salaryPays=(DB.salaryPays||[]).filter(sp=>!(sp.empId===empId && sp.month===run.month));
+  /* 4) رصيد السلفة يعود بقدر ما خُصم فعلاً */
+  let back=advBack;
+  (row.advIds||[]).forEach(aid=>{ if(back<=0) return;
+    const a=(DB.advances||[]).find(x=>x.id===aid); if(!a) return;
+    const amt=+a.amount||0, rem=+(a.remain!==undefined?a.remain:amt)||0;
+    const room=Math.max(0, amt-rem);           /* ما سُدد منها */
+    const give=Math.min(room, back);
+    a.remain=+(rem+give).toFixed(2); back-=give;
+    if(a.remain>0.005){ a.paid=false; delete a.paidDate; } });
+  /* 5) حالة الصف */
+  row.status="غير مدفوع"; delete row.paidDate; delete row.expId;
+  logEdit("↩️ تراجع عن دفع راتب", row.name+" — "+(run.month||"")+" صافي "+fmt(row.net)+" ⃁"+(advBack>0?" (رُدت سلفة "+fmt(advBack)+")":""));
+  save(); renderPayroll();
+  try{ renderExpenses(); renderJournals(); renderHrAll(); acctRenderAll(); }catch(e){}
+  toast("↩️ تُرجع الدفع وعُكست كل آثاره");
 }
 function exportPayrollPDF(){
   const month=document.getElementById("payrollMonth")?.value;
@@ -15546,7 +15735,10 @@ function renderPurchaseReqs(){
         ? `<td><button class="btn small" title="الاعتماد النهائي" onclick="approvePR('${r.id}',2,true)" style="background:var(--green);color:#fff">✅ نهائي</button> <button class="btn small" onclick="approvePR('${r.id}',2,false)" style="background:var(--red);color:#fff">❌</button></td>`
         : `<td><span class="muted" style="font-size:.7rem">بانتظار المالك</span></td>`)
       : r.status==="معتمد"
-        ? `<td><button class="btn small" onclick="prToPurchase('${r.id}')" style="background:#1d4ed8;color:#fff">🛒 تم الشراء</button></td>`
+        ? (r.linkedAt
+            ? `<td><button class="btn small secondary" onclick="prToPurchase('${r.id}')" title="أُرسل لشاشة الفواتير — أعد المحاولة إن لم تُحفظ">🛒 إعادة المحاولة</button>
+                 <div class="muted" style="font-size:.68rem">⏳ بانتظار حفظ الفاتورة</div></td>`
+            : `<td><button class="btn small" onclick="prToPurchase('${r.id}')" style="background:#1d4ed8;color:#fff">🛒 تم الشراء</button></td>`)
         : `<td>${r.status==="مكتمل"&&r.completedAt?`<span class="muted" style="font-size:.7rem">🧾 ${r.completedAt}</span>`:r.status}</td>`;
     return `<tr>
       <td>${r.date}</td><td>${emp?.name||"-"}</td><td>${r.item}</td>
@@ -15572,6 +15764,12 @@ function addPurchaseReq(e){
 }
 function prToPurchase(id){
   const r=(DB.purchaseRequests||[]).find(x=>x.id===id); if(!r) return;
+  if(r.status==="مكتمل"){ toast("✅ هذا الطلب مكتمل — له فاتورة بالفعل"); return; }
+  if(r.status!=="معتمد"){ toast("⚠️ الطلب غير معتمد بعد"); return; }
+  /* 🔗 الربط كان يعيش 15 دقيقة في الذاكرة فقط: تأخّرت في تعبئة الفاتورة ⇒ الطلب يبقى قابلاً
+     للتحويل مرة ثانية ⇒ فاتورتان لطلب واحد. الآن الربط مخزَّن على الطلب نفسه بلا مهلة. */
+  r.linkedAt=new Date().toISOString(); r.linkedBy=(CURRENT_USER||{}).name||"";
+  save(); try{ renderPurchaseReqs(); }catch(e){}
   window.__prLink={id:r.id, ts:Date.now()};
   showTab('sup');
   setTimeout(()=>{
@@ -16691,7 +16889,7 @@ function markDeferredPaid(id){
   if(!r.harvestId) DB.journals.push({id:uid(), date:todayStr(),
     desc:typeTxt+" — "+(receipt?"تحصيل آجل من ":"سداد آجل لـ ")+(r.party||"")+(r.ref?" ("+r.ref+")":""),
     lines, employee:CURRENT_USER?CURRENT_USER.name:"", defId:r.id});
-  r.status='paid'; r.paidAt=todayStr(); r.cashAcc=cash;
+  r.status='paid'; r.paidAt=todayStr(); r.cashAcc=cash; r.paidBy=(CURRENT_USER||{}).name||"";
   /* 🔗 مرتبط بفاتورة بيع؟ نسدّدها فعلياً حتى لا يزدوج التحصيل مع سجل الديون */
   if(r.harvestId){ const h=DB.harvests.find(x=>x.id===r.harvestId);
     if(h&&!h.paid){ const ap=Math.min(amt,hRemain(h));

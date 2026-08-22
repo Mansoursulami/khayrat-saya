@@ -4282,7 +4282,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.15-A";
+const KS_VER="v12.15-B";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -16069,16 +16069,23 @@ function invPostSales(inv){
 }
 function invPostCredit(inv){ /* الإشعار الدائن: عكس مالي فعلي — إيراد وضريبة سالبان في سجل المبيعات */
   if(inv.creditPosted || inv.type!=='credit') return;
+  const __noMatch=[];
   (inv.items||[]).forEach(i=>{
     const gross=+invLineTotal(i).toFixed(2), tax=+invLineTax(i).toFixed(2);
     /* 🐟🐑 الإشعار الدائن كان يعكس المال فقط: السمك المباع لا يعود للحوض والرؤوس لا تعود للقطيع
        ⇒ حوض 1000 يبقى 800 بعد إلغاء البيع كاملاً. الآن يُعكس الأثر العيني أيضاً. */
-    /* ⚠️ `h.invId===inv.refInvId` كان يطابق حين يكون الطرفان undefined ⇒ الإشعار الدائن يلتقط
-       **أي** بيع بلا فاتورة (بيع سمك من اليومية مثلاً) فيعيد للحوض سمكاً لم يُرجَع إطلاقاً.
-       الآن: لا مطابقة إلا بمرجع موجود فعلاً، والاحتياط مقيَّد بمبيعات الفواتير. */
-    const __src=(inv.refInvId ? (DB.harvests||[]).find(h=>h.invId&&h.invId===inv.refInvId) : null)
-      || (inv.refInv ? (DB.harvests||[]).find(h=>h.invNo&&h.invNo===inv.refInv&&h.productName===i.name) : null)
-      || (DB.harvests||[]).find(h=>h.fromInvoice&&!h.creditNote&&h.productName===i.name&&(+h.qty||0)>0);
+    /* 🔗 الربط بالهوية لا بالتخمين.
+       النموذج **يُلزم** باختيار الفاتورة الأصلية ويحفظها في `refId`/`refNo` — لكن هذا الكود كان
+       يقرأ `refInvId`/`refInv` (اسمان لا وجود لهما) فيسقط دائماً إلى مطابقة **باسم المنتج**،
+       ومقارنة `undefined===undefined` كانت تلتقط أي بيع بلا فاتورة ⇒ إشعار على «طماطم»
+       يعيد سمكاً للحوض. الآن: البحث محصور في **سطور الفاتورة المرجعية نفسها**، وبلا مرجع
+       صالح لا يُعكس أي أثر عيني إطلاقاً (المال يُعكس دائماً). */
+    const __refId=inv.refId||"", __refNo=inv.refNo||"";
+    const __ofInv=(DB.harvests||[]).filter(h=>!h.creditNote &&
+      ((__refId && h.invId===__refId) || (__refNo && h.invNo===__refNo)));
+    const __src=__ofInv.find(h=>h.productName===i.name)
+      || (__ofInv.length===1 ? __ofInv[0] : null);
+    if(!__src && (__refId||__refNo)) __noMatch.push(i.name);
     const __ratio=(__src&&(+__src.qty||0)>0)?Math.min(1,(+i.qty||0)/(+__src.qty||0)):1;
     DB.harvests.push({id:uid(), date:inv.date||today(), cycleId:i.cycleId||"",
       productName:"↩️ إشعار دائن — "+i.name, section:(__src&&__src.section)||"", qty:-(+i.qty||0), unit:i.unit||"",
@@ -16094,7 +16101,9 @@ function invPostCredit(inv){ /* الإشعار الدائن: عكس مالي ف�
       notes:"↩️ إشعار دائن "+(inv.no||""), fromInvoice:true, creditNote:true, invId:inv.id, invNo:inv.no});
   });
   inv.creditPosted=true;
-  try{ renderHarvests(); renderDebts(); renderCustomers(); }catch(e){}
+  if(__noMatch.length) try{ toast("ℹ️ عُكس المال فقط لبنود لم تُطابَق في الفاتورة المرجعية: "+__noMatch.join("، ")
+    +" — راجع الكميات العينية (المخزون/الأحواض/القطيع) يدوياً"); }catch(e){}
+  try{ renderHarvests(); renderDebts(); renderCustomers(); renderLivestock(); renderFish(); }catch(e){}
 }
 function markInvoicePaid(id){
   if(!canSettle()){ toast("⚠️ ما عندك صلاحية تسجيل السداد"); return; }

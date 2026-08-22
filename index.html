@@ -4214,6 +4214,7 @@ I18N_PAT.unshift(
 {re:/^♻️ تمت تسوية رصيد حوض (.+) \(\+([\d٠-٩.,٬]+)\)$/,en:"♻️ Pond $1 balance reconciled (+$2)",ur:"♻️ تالاب $1 بیلنس درست (+$2)"},
 {re:/^🔗 بيعات بلا دورة:\s*$/,en:"🔗 Sales without a cycle:",ur:"🔗 بغیر سائیکل فروخت:"},   /* كانت المسافة الأخيرة في النمط تمنع المطابقة للأبد لأن النص يُقصّ قبلها */
 {re:/^⚖️ ≈ ([\d٠-٩.,٬]+) كجم$/,en:"⚖️ ≈ $1 kg",ur:"⚖️ ≈ $1 کلو"},
+{re:/^([\d٠-٩.,٬]+) سجلات?$/,en:"$1 records",ur:"$1 ریکارڈ"},   /* بطاقة «⚠️ متأخر» في السندات الآجلة */
 {re:/^— لا تدخل في ربحية الأقسام، اربطها من سجل المبيعات$/,en:"— excluded from section profitability; link them from the sales log",ur:"— سیکشن منافع میں شامل نہیں؛ سیلز لاگ سے جوڑیں"},
 {re:/^🔗 ربط البيعة «(.+)» بدورة:$/,en:"🔗 Link sale \"$1\" to a cycle:",ur:"🔗 فروخت «$1» کو سائیکل سے جوڑیں:"},
 {re:/^✅ رُبطت البيعة بدورة «(.+)» وتصححت التقارير رجعياً$/,en:"✅ Sale linked to cycle \"$1\" — reports corrected retroactively",ur:"✅ فروخت سائیکل «$1» سے جڑ گئی — رپورٹس درست ہو گئیں"},
@@ -4272,7 +4273,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.17-A";
+const KS_VER="v12.18-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -5240,7 +5241,7 @@ function exportExpensesCSV(){
 function exportCyclesCSV(){
   const rows = DB.cycles.map(c=>{
     const hs=DB.harvests.filter(h=>h.cycleId===c.id);
-    const rev=hs.reduce((s,h)=>s+h.total,0), qty=hs.reduce((s,h)=>s+h.qty,0);
+    const rev=hs.reduce((s,h)=>s+hNet(h),0), qty=hs.reduce((s,h)=>s+h.qty,0);
     return [c.plantDate, prodName(c.productId), c.section, c.status, c.initCost, qty, rev, rev-c.initCost, c.employee||""];
   });
   exportCSV(["تاريخ الزراعة","المحصول","القسم","الحالة","تكلفة البداية","الكمية المحصودة","المبيعات","الربح","الموظف"], rows, "الدورات");
@@ -5782,7 +5783,7 @@ function renderCompare(){
   } else { for(let i=0;i<12;i++){ cur.push(mk(y,i)); prev.push(mk(y-1,i)); } }
   const inSet=(d,set)=>set.includes((d||"").slice(0,7));
   const calc=set=>{
-    const r=DB.harvests.filter(h=>inSet(h.date,set)&&cycSec(DB.cycles.find(x=>x.id===h.cycleId)||{})).reduce((s,h)=>s+h.total,0);
+    const r=DB.harvests.filter(h=>inSet(h.date,set)&&cycSec(DB.cycles.find(x=>x.id===h.cycleId)||{})).reduce((s,h)=>s+hNet(h),0);
     const c=DB.expenses.filter(x=>inSet(x.date,set)&&(secF==="all"||x.section===secF||(x.section||"").startsWith("عام"))).reduce((s,x)=>s+x.amount,0)
       + DB.cycles.filter(cc=>cycSec(cc)&&inSet(cc.plantDate,set)).reduce((s,cc)=>s+(cc.initCost||0),0);
     return {r,c,p:r-c};
@@ -5890,7 +5891,7 @@ function renderDashExtras(){
     DB.expenses.filter(x=>inPeriod(x.date)&&x.section&&!x.section.startsWith("عام")).forEach(x=>{ per[x.section]=(per[x.section]||0)-x.amount; });
     const secs=Object.entries(per).sort((a,b)=>b[1]-a[1]);
     const mini=(ico,title,rows)=>`<div class="miniCard"><div class="mcT">${ico} ${title}</div>${rows}</div>`;
-    const _ds=DB.harvests.filter(h=>h.date===t).reduce((s,h)=>s+h.total,0);
+    const _ds=DB.harvests.filter(h=>h.date===t).reduce((s,h)=>s+hNet(h),0);
     const _de=DB.expenses.filter(x=>x.date===t).reduce((s,x)=>s+x.amount,0);
     mr.innerHTML=
       mini("📅","حركة اليوم",`<div class="mcR"><span>مبيعات اليوم</span><b class="pos">${fmtSR(_ds)}</b></div><div class="mcR"><span>مصاريف اليوم</span><b class="${_de?"neg":""}">${fmtSR(_de)}</b></div><div class="mcR"><span>صافي اليوم</span><b class="${_ds-_de>=0?"pos":"neg"}">${fmtSR(_ds-_de)}</b></div>`)+
@@ -7920,7 +7921,7 @@ function renderSecView(){
   secTitle1.textContent = "🌱 دورات "+(SECT_SHORT[sec]||sec);
   tblSecCycles.innerHTML = `<tr><th>المنتج</th><th>تاريخ الزراعة</th><th>بداية المحصول</th><th>الجاهزية</th><th>المساحة/العدد</th><th>مبيعات الدورة</th><th>الحالة</th></tr>`
     + (cycles.slice().reverse().slice(0,20).map(c=>{
-      const rev = DB.harvests.filter(h=>h.cycleId===c.id).reduce((s,h)=>s+h.total,0);
+      const rev = DB.harvests.filter(h=>h.cycleId===c.id).reduce((s,h)=>s+hNet(h),0);
       const ready = c.status==="نشطة" && c.harvestDate ? (c.harvestDate<=t
         ? '<span class="badge active">✅ جاهز</span>'
         : `<span class="badge warn">بعد ${Math.round((new Date(c.harvestDate)-new Date(t))/864e5)} يوم</span>`) : "—";
@@ -8238,7 +8239,7 @@ function renderCycles(){
       && (fCyStatus.value==="all"||c.status===fCyStatus.value)
       && (!fCyProd.value||prodName(c.productId).includes(fCyProd.value.trim())))
     .slice().reverse().map(c=>{
-    const rev = DB.harvests.filter(h=>h.cycleId===c.id).reduce((s,h)=>s+h.total,0);
+    const rev = DB.harvests.filter(h=>h.cycleId===c.id).reduce((s,h)=>s+hNet(h),0);
     return `<tr>
       <td><b>${prodName(c.productId)}</b></td><td>${c.section}</td>
       <td>${c.plantDate}</td><td>${c.harvestDate||"—"}</td>
@@ -8269,7 +8270,24 @@ function hGross(h){ const t=+h.total||0;
   if(h.taxIncl) return t;                      /* المبلغ شامل الضريبة أصلاً */
   return (h.taxAmt&&!h.fromInvoice)?t+(+h.taxAmt||0):t;
 } /* فواتير الطلب المسبق تخزن الصافي والضريبة منفصلة — الإجمالي المستحق يشملها */
-function hNet(h){ /* الإيراد المحاسبي = المستحق ناقص الضريبة — المصدر الوحيد لكل مؤشرات الإيراد */
+/* 💲 سعر الوحدة المعروض: كل مسارات البيع تكتب `price`، لكن السجلات القديمة/المستوردة
+   وسطور الإشعارات الدائنة لا تحمله — فكانت الشاشة تعرض **«0 ⃁»** (رقم بلا معنى بجانب
+   إجمالي 5,750) وملف CSV يعرض **خانة فارغة**: رقمان مختلفان لنفس الخانة.
+   الآن: يُشتق من الإجمالي ÷ الكمية، وإن تعذّر يُعرض «—» صراحةً. */
+function hUnitPrice(h){
+  if(!h) return null;
+  const p=+h.price;
+  if(h.price!==undefined && h.price!==null && h.price!=="" && !isNaN(p) && p!==0) return p;
+  const q=Math.abs(+h.qty||0);
+  if(q>0){ const v=+(((+h.total||0)/q)).toFixed(2); if(v!==0) return v; }
+  return (p===0 && (+h.total||0)===0) ? 0 : null;
+}
+function hUnitPriceTxt(h){ const v=hUnitPrice(h); return (v===null)?"—":fmtSR(v); }
+
+function hNet(h){ /* الإيراد المحاسبي = المستحق ناقص الضريبة — المصدر الوحيد لكل مؤشرات الإيراد.
+  🔁 كانت 11 شاشة تجمع `h.total` مباشرة (شاملاً الضريبة) فتظهر «المبيعات» أعلى 15% من قائمة
+  الدخل والدفاتر: تقارير الفترة، ربحية الأقسام، مبيعات الدورة، بطاقة اليوم، ملخص الواتساب،
+  بطاقة الموظف، أداء الدورات، تاريخ المنتج، التقرير المطبوع، وتصدير الدورات. وُحّدت كلها. */
   return +(hGross(h)-(+h.taxAmt||0)).toFixed(2);
 }
 function hPaidAmt(h){
@@ -8471,7 +8489,7 @@ function renderHarvests(){
     const c = DB.cycles.find(x=>x.id===h.cycleId);
     const _orph=!h.cycleId;
     return `<tr><td>${h.date}</td><td><b>${escH(hProdName(h))}</b>${_orph?' <span class="badge warn" title="لا تدخل في ربحية الأقسام">⚠️ بلا دورة</span> <button class="edt" title="ربط بدورة" onclick="linkHarvestCycle(\''+h.id+'\')">🔗</button>':''}</td><td>${escH(hSecOf(h)||"—")}</td>
-      <td>${fmt(h.qty)} ${h.unit||"كجم"}</td><td>${h.unpriced?"—":fmtSR(h.price)}</td><td class="pos">${h.unpriced?'<span class="badge warn">بانتظار التسعير</span>':fmtSR(h.total)}</td>
+      <td>${fmt(h.qty)} ${h.unit||"كجم"}</td><td>${h.unpriced?"—":hUnitPriceTxt(h)}</td><td class="pos">${h.unpriced?'<span class="badge warn">بانتظار التسعير</span>':fmtSR(h.total)}</td>
       <td>${h.customerId?custName(h.customerId):"نقدي"}</td>
       <td>${apvBadge('sale',h)}${h.paid?'<span class="badge active">مدفوع'+(h.paidDate?" "+h.paidDate:"")+'</span>'
         : hPaidAmt(h)>0?'<span class="badge warn">جزئي — باقي '+fmt(hRemain(h))+'</span> <button class="btn small secondary" onclick="payHarvest(\''+h.id+'\')">دفعة</button>'
@@ -9144,7 +9162,7 @@ function copyToday(){
   const feed = DB.fishLogs.filter(f=>f.date===t).reduce((s,f)=>s+(f.feed||0),0);
   const alerts = getAlerts().length;
   const txt = `🌴 مزرعة خيرات سايه — ملخص يوم ${t}\n━━━━━━━━━━━━━━\n`
-    + `💰 المبيعات: ${fmt(sales.reduce((s,h)=>s+h.total,0))} ⃁ (${sales.length} عملية)\n`
+    + `💰 المبيعات: ${fmt(sales.reduce((s,h)=>s+hNet(h),0))} ⃁ (${sales.length} عملية)\n`
     + `💸 المصروفات: ${fmt(exps.reduce((s,x)=>s+x.amount,0))} ⃁ (${exps.length} قيد)\n`
     + `📝 الأعمال المنفذة: ${tasks.length}\n`
     + (feed>0||dead>0 ? `🐟 علف اليوم: ${fmt(feed)} كجم — النافق: ${fmt(dead)}\n` : "")
@@ -9769,7 +9787,7 @@ function empProfile(id){
       ${row("سلف قائمة (متبقي)", advRem>0?fmtSR(advRem):"لا يوجد")}
       ${cust.length?row("عهد بذمته", cust.map(c=>c.item).join("، ")):""}
       ${row("حضور شهر "+m, pres+" حاضر / "+abs+" غائب")}
-      ${row("نشاطه هذا الشهر", tk+" عمل يومي، "+sales.length+" عملية بيع ("+fmt(sales.reduce((s,h)=>s+h.total,0))+" ⃁)")}
+      ${row("نشاطه هذا الشهر", tk+" عمل يومي، "+sales.length+" عملية بيع ("+fmt(sales.reduce((s,h)=>s+hNet(h),0))+" ⃁)")}
     </table>
     <h3 style="margin-top:14px">💰 آخر الرواتب</h3>
     <div class="table-wrap"><table>
@@ -10938,7 +10956,7 @@ function renderDash(){
   const _aggCP=(typeof tankAgg==="function")?tankAgg():{};
   const perf = DB.cycles.filter(cycSec).map(c=>{
     const hs = DB.harvests.filter(h=>h.cycleId===c.id);
-    const r = hs.reduce((s,h)=>s+h.total,0);
+    const r = hs.reduce((s,h)=>s+hNet(h),0);
     const q = hs.reduce((s,h)=>s+h.qty,0);
     let linked = DB.expenses.filter(x=>x.cycleId===c.id).reduce((s,x)=>s+x.amount,0);
     if(c.section===FISH_SECTION&&_fkpCP){
@@ -11119,7 +11137,7 @@ function calcPlan(){
   const pid = plProduct.value;
   const hist = DB.cycles.filter(c=>c.productId===pid);
   if(hist.length){
-    const revs = hist.map(c=>DB.harvests.filter(h=>h.cycleId===c.id).reduce((s,h)=>s+h.total,0));
+    const revs = hist.map(c=>DB.harvests.filter(h=>h.cycleId===c.id).reduce((s,h)=>s+hNet(h),0));
     const qtys = hist.map(c=>DB.harvests.filter(h=>h.cycleId===c.id).reduce((s,h)=>s+h.qty,0));
     const costs = hist.map(cycleCostOf);
     const avg = a => a.reduce((s,v)=>s+v,0)/a.length;
@@ -11396,7 +11414,7 @@ function renderAnalytics(){
   const genExp = DB.expenses.filter(x=>String(x.section||"").startsWith("عام")).reduce((s,x)=>s+x.amount,0);
   let totR=0, totC=0;
   const rows = SECTIONS.map(sec=>{
-    const r = DB.harvests.filter(h=>{ const c=DB.cycles.find(x=>x.id===h.cycleId); return c&&c.section===sec; }).reduce((s,h)=>s+h.total,0);
+    const r = DB.harvests.filter(h=>{ const c=DB.cycles.find(x=>x.id===h.cycleId); return c&&c.section===sec; }).reduce((s,h)=>s+hNet(h),0);
     const ex = DB.expenses.filter(x=>x.section===sec).reduce((s,x)=>s+x.amount,0);
     const cy = DB.cycles.filter(c=>c.section===sec).reduce((s,c)=>s+c.initCost,0);
     const pr = r-ex-cy; totR+=r; totC+=ex+cy;
@@ -12623,7 +12641,7 @@ function printFinancialReport(){
   const farmName = DB.settings?.companyName||DB.settings?.farmName||"مزرعة خيرات سايه";
   const cycRows = DB.cycles.map(c=>{
     const hs=DB.harvests.filter(h=>h.cycleId===c.id);
-    const r=hs.reduce((s,h)=>s+h.total,0), q=hs.reduce((s,h)=>s+h.qty,0);
+    const r=hs.reduce((s,h)=>s+hNet(h),0), q=hs.reduce((s,h)=>s+h.qty,0);
     const linked=DB.expenses.filter(x=>x.cycleId===c.id).reduce((s,x)=>s+x.amount,0);
     const pr=r-c.initCost-linked;
     return `<tr><td>${prodName(c.productId)}</td><td>${c.section}</td><td>${c.plantDate}</td>
@@ -13033,6 +13051,16 @@ function __ksRenameSection(oldN,newN){
     });
   };
   Object.keys(DB).forEach(k=>{ if(k!=="accounts") walk(DB[k],0); });
+  /* 🔑 خرائط مُفَتّحة **باسم القسم نفسه**: نسب توزيع راتب كل موظف، ونسب توزيع بنود
+     المصروفات العامة، وحدود الأقسام على الخريطة. المسح أعلاه يبدّل **القيم** لا المفاتيح،
+     فكانت إعادة التسمية تُيتّم هذه النسب بصمت ⇒ القسم يفقد نصيبه من المصروفات المشتركة
+     وتتغيّر ربحيته بلا أي إدخال من المالك. */
+  const mv=o=>{ if(o && typeof o==="object" && Object.prototype.hasOwnProperty.call(o,oldN)){
+    o[newN]=o[oldN]; delete o[oldN]; n++; } };
+  try{ (DB.employees||[]).forEach(e=>mv(e.alloc)); }catch(e){}
+  try{ const ca=DB.settings&&DB.settings.catAlloc; if(ca) Object.keys(ca).forEach(k=>mv(ca[k])); }catch(e){}
+  try{ mv(DB.settings&&DB.settings.sectionBoundaries); }catch(e){}
+  try{ mv(DB.settings&&DB.settings.secIrrig); }catch(e){}
   return n;
 }
 function saveSections(){
@@ -13098,7 +13126,7 @@ function csvHarvests(){
     ...DB.harvests.map(h=>{
       const c=DB.cycles.find(x=>x.id===h.cycleId);
       return [h.date, c?prodName(c.productId):(h.productName||"—"), c?c.section:(h.section||""),
-        h.qty, h.unit||"كجم", h.price??"", h.total,
+        h.qty, h.unit||"كجم", (hUnitPrice(h)===null?"":hUnitPrice(h)), h.total,
         h.customerId?custName(h.customerId):(h.customer||"نقدي"), h.paid?"مدفوع":"آجل", h.employee||""];
     })],
     "سجل_الإنتاج_والمبيعات");
@@ -15026,7 +15054,13 @@ function lvNetOf(animal){ /* صافي القطيع لنوع معيّن: جرد +
   const lv=getLivestock(); let n=0;
   (lv.animals||[]).forEach(a=>{ if(a.type===animal) n+=(+a.count||0); });
   (lv.birthDeathLogs||[]).forEach(b=>{ if(b.animal===animal) n+=(b.type==="مولود")?(+b.count||0):-(+b.count||0); });
-  (DB.harvests||[]).forEach(h=>{ if(h.livestockSale&&h.saleType==="حيوان"&&h.animal===animal) n-=(h.heads!=null?+h.heads:(+h.qty||0)); });
+  /* 🛡️ كان يشترط `saleType==="حيوان"` وحده: سجل بيع قديم/مستورد يحمل النوع وعدد الرؤوس
+     بلا هذا الحقل **لا يُخصم من القطيع إطلاقاً** ⇒ جرد أعلى من الواقع بلا أي إشارة.
+     بيع الحليب لا يتأثر: `animal` فيه فارغ و`heads` صفر. */
+  (DB.harvests||[]).forEach(h=>{
+    if(!h.livestockSale || h.animal!==animal) return;
+    if(h.saleType!=="حيوان" && !((+h.heads||0)>0)) return;
+    n-=(h.heads!=null?+h.heads:(+h.qty||0)); });
   /* مزرعة تسجل قطيعها بالبطاقات الفردية فقط (جرد مجمّع = صفر): نعتمد عدّ البطاقات الحية.
      ⚠️ Math.max المطلقة كانت تسمح بالبيع بلا حد — تُستعمل فقط عندما لا يوجد جرد مجمّع أصلاً. */
   const __ind=(lv.individuals||[]).filter(x=>x&&x.type===animal&&!/مباع|نافق/.test(String(x.status||""))).length;
@@ -15410,10 +15444,17 @@ function sumInRange(arr,dateKey,amtKey,r){
 function renderReports(){
   const type=document.getElementById("repType")?.value||"month";
   const {cur,prev,curLabel,prevLabel}=getDateRange(type);
-  const revC=DB.harvests.filter(h=>h.date>=cur[0]&&h.date<=cur[1]).reduce((s,h)=>s+hGross(h),0);
-  const revP=DB.harvests.filter(h=>h.date>=prev[0]&&h.date<=prev[1]).reduce((s,h)=>s+hGross(h),0);
-  const expC=DB.expenses.filter(e=>e.date>=cur[0]&&e.date<=cur[1]).reduce((s,e)=>s+e.amount,0);
-  const expP=DB.expenses.filter(e=>e.date>=prev[0]&&e.date<=prev[1]).reduce((s,e)=>s+e.amount,0);
+  /* 🧾 كانت التقارير الوحيدة في السستم التي تحسب الإيراد **شاملاً ضريبة القيمة المضافة**
+     (`hGross`) بينما كل بقية الشاشات والدفاتر تستعمل `hNet` — فتظهر الإيرادات أعلى 15%
+     من قائمة الدخل والملخص والميزان، وتنتفخ معها هوامش الأقسام و«صافي الربح».
+     الضريبة أمانة للدولة لا إيراداً للمزرعة. */
+  const revC=DB.harvests.filter(h=>h.date>=cur[0]&&h.date<=cur[1]).reduce((s,h)=>s+hNet(h),0);
+  const revP=DB.harvests.filter(h=>h.date>=prev[0]&&h.date<=prev[1]).reduce((s,h)=>s+hNet(h),0);
+  /* 💰 تكاليف الدورات كانت تدخل قائمة الدخل ولا تدخل هذا التقرير ⇒ «صافي الربح» رقمان */
+  const cycC=(DB.cycles||[]).filter(c=>c.plantDate>=cur[0]&&c.plantDate<=cur[1]).reduce((s,c)=>s+(+c.initCost||0),0);
+  const expC=DB.expenses.filter(e=>e.date>=cur[0]&&e.date<=cur[1]).reduce((s,e)=>s+e.amount,0)+cycC;
+  const cycP=(DB.cycles||[]).filter(c=>c.plantDate>=prev[0]&&c.plantDate<=prev[1]).reduce((s,c)=>s+(+c.initCost||0),0);
+  const expP=DB.expenses.filter(e=>e.date>=prev[0]&&e.date<=prev[1]).reduce((s,e)=>s+e.amount,0)+cycP;
   const profC=revC-expC, profP=revP-expP;
   const pct=(c,p)=>(!p)?(c?"جديد":"—"):(((c-p)/Math.abs(p))*100).toFixed(1)+"%";
   const arrow=(c,p)=>c===p?"→":(c>p?"↑":"↓");
@@ -15439,8 +15480,9 @@ function renderReports(){
   const tbody=document.getElementById("repSectionsTbody"); if(!tbody)return;
   tbody.innerHTML=secs.map(sec=>{
     /* h.section وحده يُسقط كل بيع مرتبط بدورة (المصدر الموحد hSecOf) وh.total يُسقط ضريبة الطلب المسبق */
-    const secRev=DB.harvests.filter(h=>hSecOf(h)===sec&&h.date>=cur[0]&&h.date<=cur[1]).reduce((s,h)=>s+hGross(h),0);
-    const secExp=DB.expenses.filter(e=>e.section===sec&&e.date>=cur[0]&&e.date<=cur[1]).reduce((s,e)=>s+(+e.amount||0),0);
+    const secRev=DB.harvests.filter(h=>hSecOf(h)===sec&&h.date>=cur[0]&&h.date<=cur[1]).reduce((s,h)=>s+hNet(h),0);
+    const secExp=DB.expenses.filter(e=>e.section===sec&&e.date>=cur[0]&&e.date<=cur[1]).reduce((s,e)=>s+(+e.amount||0),0)
+      +(DB.cycles||[]).filter(c=>c.section===sec&&c.plantDate>=cur[0]&&c.plantDate<=cur[1]).reduce((s,c)=>s+(+c.initCost||0),0);
     const secProfit=secRev-secExp;
     const margin=secRev>0?((secProfit/secRev)*100).toFixed(1)+"%" : "-";
     return `<tr><td>${sec}</td><td>${fmtSR(secRev)}</td><td>${fmtSR(secExp)}</td>
@@ -15456,7 +15498,7 @@ function renderReports(){
   }
   const growthData=months12.map(({y,m})=>{
     const ms=`${y}-${String(m).padStart(2,'0')}`;
-    return DB.harvests.filter(h=>h.date.startsWith(ms)).reduce((s,h)=>s+hGross(h),0);
+    return DB.harvests.filter(h=>h.date&&h.date.startsWith(ms)).reduce((s,h)=>s+hNet(h),0);
   });
   const expData=months12.map(({y,m})=>{
     const ms=`${y}-${String(m).padStart(2,'0')}`;

@@ -4273,7 +4273,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.19-A";
+const KS_VER="v12.20-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -9420,6 +9420,12 @@ function quoteStatus(id, st){ const q=DB.quotes.find(x=>x.id===id); if(q){ q.sta
 function delQuote(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  const q=DB.quotes.find(x=>x.id===id); if(q&&confirm("حذف العرض؟")){ trashIt("quotes","عرض سعر",q.qNo,q); DB.quotes=DB.quotes.filter(x=>x.id!==id); save(); renderQuotes(); } }
 function printQuote(id){
   const q = DB.quotes.find(x=>x.id===id); if(!q) return;
+  /* 🛡️ عرض سعر قديم/مستورد بلا `lines` كان يرمي استثناءً غير ملتقط ⇒ زر الطباعة
+     لا يفعل شيئاً بصمت تام. الآن رسالة صريحة بدل الصمت. */
+  if(!Array.isArray(q.lines) || !q.lines.length){
+    try{ toast("⚠️ عرض السعر «"+(q.qNo||"")+"» بلا بنود — افتحه وأضف سطراً قبل الطباعة"); }catch(e){}
+    return;
+  }
   const cust=DB.customers?.find(c=>c.id===q.customerId);
   const st=DB.settings||{};
   const coName=st.companyName||st.sellerName||'مزرعة خيرات سايه';
@@ -16359,6 +16365,11 @@ function approveInvoice(id){
   /* 🔒 في وضع القراءة فقط (انتهاء الاشتراك) كان الاعتماد يتم في الذاكرة ويطبع QR برقم زاتكا
      ثم يضيع عند إعادة التحميل — فيُعاد إصدار نفس الرقم لفاتورة أخرى. يُمنع من الأصل. */
   if(window.__ksReadOnly){ toast("🔒 الاشتراك منتهٍ — وضع قراءة فقط: لا يمكن اعتماد فاتورة أو إصدار رقم"); return; }
+  /* 🔐 كان **أي مستخدم** يستطيع اعتماد فاتورة: موظف ممنوح قسماً واحداً فقط — بلا صلاحية
+     التجارة ولا السداد ولا الاعتماد — يضغط الزر فيستهلك **رقم فاتورة ضريبياً** ويُسجّل
+     بيعاً في الدفاتر باسم المزرعة. الاعتماد الآن للمالك أو لمن مُنح تبويب التجارة صراحةً. */
+  if(!isOwner() && !(typeof canTab==="function" && canTab("invoices"))){
+    toast("⚠️ اعتماد الفواتير يحتاج صلاحية التجارة — راجع صاحب المزرعة"); return; }
   if(!confirm('اعتماد الفاتورة وإصدارها نهائياً؟ بعدها لا تُعدَّل ولا تُحذف — تصحيحها بإشعار\nسيُسجَّل البيع تلقائياً في سجل المبيعات')) return;
   if(!r.no) r.no=invNextNo();
   r.status=r.payState||'sent'; r.approvedAt=new Date().toISOString();

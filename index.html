@@ -4282,7 +4282,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.15-B";
+const KS_VER="v12.15-C";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -16067,9 +16067,50 @@ function invPostSales(inv){
   inv.salePosted=true;
   try{ renderHarvests(); renderDebts(); renderCycles(); fillSelects(); renderFish(); }catch(e){}
 }
+/* 🔗 كم بقي من سطر بيع لم يُرتجع بعد (مجموع إشعاراته الدائنة مطروحاً من المباع).
+   بدونه: إشعاران بـ20 على بيع 20 كانا يعيدان **400 سمكة** لحوض بيع منه 200. */
+function ksCnRemaining(h){
+  const sold=Math.abs(+h.qty||0);
+  const back=(DB.harvests||[]).filter(x=>x.creditNote && x.returnOf===h.id)
+    .reduce((s,x)=>s+Math.abs(+x.qty||0),0);
+  return +(sold-back).toFixed(4);
+}
+/* 🔗 اختيار سطر البيع الأصلي لبند إشعار دائن — معايير **تضييقية** لا بدائل:
+   ① الفاتورة المرجعية (إلزامية في النموذج) ② الاسم داخلها ③ الوحدة ④ سعر الوحدة
+   ⑤ المتبقي غير المرتجع. كل معيار **يضيّق** المرشحين ولا يفتح باباً جديداً للبحث —
+   ولهذا لا يمكن لإشعار على «طماطم» أن يصل إلى بيع سمك إطلاقاً.
+   وإن بقي أكثر من مرشح **بمصادر عينية مختلفة** (حوضان/قطيعان) لا يُخمَّن: يُعكس المال
+   ويُطلب التصحيح اليدوي. أما إن اتحد مصدرهم العيني فأيّهم سيّان. */
+function ksCnPick(inv,item){
+  const refId=inv.refId||"", refNo=inv.refNo||"";
+  if(!refId && !refNo) return {src:null, why:'noref'};
+  const nm=s=>String(s||"").replace(/\s+/g," ").trim();
+  const pool=(DB.harvests||[]).filter(h=>!h.creditNote &&
+    ((refId && h.invId===refId) || (refNo && h.invNo===refNo)));
+  if(!pool.length) return {src:null, why:'noref'};
+  let c=pool.filter(h=>ksCnRemaining(h)>0.0001);
+  if(!c.length) return {src:null, why:'done'};
+  if(pool.length>1){                       /* فاتورة بأكثر من سطر ⇒ الاسم إلزامي */
+    const byName=c.filter(h=>nm(h.productName)===nm(item.name));
+    if(!byName.length) return {src:null, why:'noname'};
+    c=byName;
+  }
+  const narrow=f=>{ const s=c.filter(f); if(s.length && s.length<c.length) c=s; };
+  if(c.length>1 && item.unit) narrow(h=>nm(h.unit)===nm(item.unit));
+  if(c.length>1 && (+item.price||0)>0) narrow(h=>{
+    const up=(+h.qty)?Math.abs((+h.total||0)/(+h.qty||1)):0;
+    return Math.abs(up-(+item.price||0))<0.01; });
+  if(c.length>1) narrow(h=>ksCnRemaining(h)>=Math.abs(+item.qty||0)-0.0001);
+  if(c.length>1){
+    const key=h=>[h.fishSale?'f':'',h.tank||'',h.livestockSale?'l':'',h.animal||'',h.section||''].join('|');
+    if(!c.every(h=>key(h)===key(c[0]))) return {src:null, why:'ambig'};
+    c=[c.slice().sort((x,y)=>ksCnRemaining(y)-ksCnRemaining(x))[0]];
+  }
+  return {src:c[0], why:'ok'};
+}
 function invPostCredit(inv){ /* الإشعار الدائن: عكس مالي فعلي — إيراد وضريبة سالبان في سجل المبيعات */
   if(inv.creditPosted || inv.type!=='credit') return;
-  const __noMatch=[];
+  const __noMatch=[], __capped=[];
   (inv.items||[]).forEach(i=>{
     const gross=+invLineTotal(i).toFixed(2), tax=+invLineTax(i).toFixed(2);
     /* 🐟🐑 الإشعار الدائن كان يعكس المال فقط: السمك المباع لا يعود للحوض والرؤوس لا تعود للقطيع
@@ -16078,17 +16119,21 @@ function invPostCredit(inv){ /* الإشعار الدائن: عكس مالي ف�
        النموذج **يُلزم** باختيار الفاتورة الأصلية ويحفظها في `refId`/`refNo` — لكن هذا الكود كان
        يقرأ `refInvId`/`refInv` (اسمان لا وجود لهما) فيسقط دائماً إلى مطابقة **باسم المنتج**،
        ومقارنة `undefined===undefined` كانت تلتقط أي بيع بلا فاتورة ⇒ إشعار على «طماطم»
-       يعيد سمكاً للحوض. الآن: البحث محصور في **سطور الفاتورة المرجعية نفسها**، وبلا مرجع
+       يعيد سمكاً للحوض. الآن: `ksCnPick` تضيّق داخل الفاتورة المرجعية وحدها، وبلا مرجع
        صالح لا يُعكس أي أثر عيني إطلاقاً (المال يُعكس دائماً). */
-    const __refId=inv.refId||"", __refNo=inv.refNo||"";
-    const __ofInv=(DB.harvests||[]).filter(h=>!h.creditNote &&
-      ((__refId && h.invId===__refId) || (__refNo && h.invNo===__refNo)));
-    const __src=__ofInv.find(h=>h.productName===i.name)
-      || (__ofInv.length===1 ? __ofInv[0] : null);
-    if(!__src && (__refId||__refNo)) __noMatch.push(i.name);
-    const __ratio=(__src&&(+__src.qty||0)>0)?Math.min(1,(+i.qty||0)/(+__src.qty||0)):1;
+    const __pk=ksCnPick(inv,i), __src=__pk.src;
+    if(!__src && __pk.why!=='noref') __noMatch.push(i.name+
+      (__pk.why==='ambig' ? " (سطران متطابقان من مصدرين مختلفين)"
+       : __pk.why==='done' ? " (سبق ردّه بالكامل)"
+       : " (لا سطر بهذا الاسم في الفاتورة المرجعية)"));
+    /* 🚧 سقف الكمية العينية: لا تُردّ أكثر مما بقي فعلاً من السطر */
+    const __want=Math.abs(+i.qty||0);
+    const __rem=__src?ksCnRemaining(__src):0;
+    const __eff=__src?Math.min(__want,Math.max(0,__rem)):0;
+    if(__src && __eff<__want-0.0001) __capped.push(i.name+" ("+fmt(__eff)+" من "+fmt(__want)+")");
+    const __ratio=(__src&&Math.abs(+__src.qty||0)>0)?(__eff/Math.abs(+__src.qty||0)):0;
     DB.harvests.push({id:uid(), date:inv.date||today(), cycleId:i.cycleId||"",
-      productName:"↩️ إشعار دائن — "+i.name, section:(__src&&__src.section)||"", qty:-(+i.qty||0), unit:i.unit||"",
+      productName:"↩️ إشعار دائن — "+i.name, section:(__src&&__src.section)||"", qty:-__want, unit:i.unit||"",
       price:0, total:-gross, taxAmt:-tax, taxRate:(+i.tax||0), customerId:inv.custId||"",
       fishSale:!!(__src&&__src.fishSale), tank:(__src&&__src.tank)||undefined,
       fishCount:(__src&&__src.fishCount!=null)?-Math.round((+__src.fishCount||0)*__ratio):undefined,
@@ -16103,6 +16148,8 @@ function invPostCredit(inv){ /* الإشعار الدائن: عكس مالي ف�
   inv.creditPosted=true;
   if(__noMatch.length) try{ toast("ℹ️ عُكس المال فقط لبنود لم تُطابَق في الفاتورة المرجعية: "+__noMatch.join("، ")
     +" — راجع الكميات العينية (المخزون/الأحواض/القطيع) يدوياً"); }catch(e){}
+  if(__capped.length) try{ toast("⚠️ كمية مرتجعة تتجاوز المتبقي من البيع الأصلي — رُدّ المتاح فقط عينياً: "
+    +__capped.join("، ")+" (المبلغ عُكس كاملاً كما في الإشعار)"); }catch(e){}
   try{ renderHarvests(); renderDebts(); renderCustomers(); renderLivestock(); renderFish(); }catch(e){}
 }
 function markInvoicePaid(id){

@@ -4156,6 +4156,9 @@ Object.assign(I18N.ur,{
 "مقبول ⚠️ يمكن تحسينه":"مناسب ⚠️ بہتری ممکن","منخفض 🔴 يحتاج مراجعة":"کم 🔴 جائزہ درکار","خسارة ❌":"نقصان ❌",
 "نسبة الربح من المبيعات":"فروخت سے منافع کا تناسب",
 "* الربح = مبيعات الدورة − تكلفة البداية − المصروفات المرتبطة بها (المصروفات العامة غير المرتبطة محسوبة في صافي الربح أعلاه)":"* منافع = سائیکل فروخت − ابتدائی لاگت − منسلک اخراجات (غیر منسلک عمومی اخراجات اوپر خالص منافع میں شامل ہیں)"});
+/* i18n v12.15 */
+Object.assign(I18N.en,{"🔁 مصالحة مع الدفاتر:":"🔁 Reconciliation with the books:","تحصيلات آجلة غير مربوطة بفاتورة":"Deferred receipts not linked to an invoice","رصيد دائن للعملاء (إشعارات على فواتير مسددة)":"Customer credit balance (notes on settled invoices)","فروق أخرى":"Other differences"});
+Object.assign(I18N.ur,{"🔁 مصالحة مع الدفاتر:":"🔁 کھاتوں سے مطابقت:","تحصيلات آجلة غير مربوطة بفاتورة":"انوائس سے غیر منسلک مؤخر وصولیاں","رصيد دائن للعملاء (إشعارات على فواتير مسددة)":"گاہکوں کا کریڈٹ بیلنس","فروق أخرى":"دیگر فرق"});
 /* i18n v12.14 — البنود الخمسة */
 Object.assign(I18N.en,{"🔍 سجل التدقيق الكامل":"🔍 Full audit trail","الإجراء":"Action","كل الإجراءات":"All actions","✅ اعتماد":"✅ Approved","↩️ إرجاع للتصحيح":"↩️ Returned for correction","❌ إلغاء بقيد عكسي":"❌ Voided (reversing entry)","🚫 رفض وسحب":"🚫 Rejected & withdrawn","💵 سداد":"💵 Settled","الشخص":"Person","الجميع":"Everyone","بحث في الوصف":"Search description","مَن نفّذه":"Performed by","مُسجِّل السجل":"Recorded by","السبب / الملاحظة":"Reason / note","إجمالي الإجراءات":"Total actions","📤 تصدير CSV":"📤 Export CSV","↩️ تراجع":"↩️ Undo","🐟 عدد المباع / المحصود":"🐟 Sold / harvested count","يُسجَّل بيعاً «بانتظار التسعير» يسعّره المسؤول":"Recorded as a sale awaiting pricing by the supervisor","🛒 إعادة المحاولة":"🛒 Retry","⏳ بانتظار حفظ الفاتورة":"⏳ Awaiting invoice save","بانتظار التسعير":"Awaiting pricing","🧮 مطابقة صندوق/بنك":"🧮 Cash/bank reconciliation"});
 Object.assign(I18N.ur,{"🔍 سجل التدقيق الكامل":"🔍 مکمل آڈٹ ریکارڈ","الإجراء":"کارروائی","كل الإجراءات":"تمام کارروائیاں","✅ اعتماد":"✅ منظور","↩️ إرجاع للتصحيح":"↩️ درستی کے لیے واپس","❌ إلغاء بقيد عكسي":"❌ الٹی انٹری سے منسوخ","🚫 رفض وسحب":"🚫 مسترد و واپس","💵 سداد":"💵 ادائیگی","الشخص":"شخص","الجميع":"سب","بحث في الوصف":"تفصیل میں تلاش","مَن نفّذه":"کس نے کیا","مُسجِّل السجل":"درج کرنے والا","السبب / الملاحظة":"وجہ / نوٹ","إجمالي الإجراءات":"کل کارروائیاں","📤 تصدير CSV":"📤 CSV برآمد","↩️ تراجع":"↩️ واپس","🐟 عدد المباع / المحصود":"🐟 فروخت/حاصل تعداد","يُسجَّل بيعاً «بانتظار التسعير» يسعّره المسؤول":"قیمت کے انتظار میں فروخت درج ہوگی","🛒 إعادة المحاولة":"🛒 دوبارہ کوشش","⏳ بانتظار حفظ الفاتورة":"⏳ انوائس محفوظ ہونے کا انتظار","بانتظار التسعير":"قیمت کے انتظار میں","🧮 مطابقة صندوق/بنك":"🧮 کیش/بینک مطابقت"});
@@ -4279,7 +4282,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.14-B";
+const KS_VER="v12.15-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -9983,7 +9986,34 @@ function renderDebts(){
   tblDebts.innerHTML = `<tr><th>التاريخ</th><th>العميل</th><th>المنتج</th><th>الكمية</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th></th></tr>`
     + (rows || `<tr><td colspan="8" class="muted">👍 لا توجد ديون — كل المبيعات مسددة</td></tr>`)
     + (unpaid.length>__CAP?`<tr><td colspan="8" class="muted">📄 معروض أحدث ${fmt(__CAP)} من ${fmt(unpaid.length)} فاتورة — والإجمالي أدناه على الفواتير كلها</td></tr>`:"")
-    + (rows?`<tr><th colspan="6">إجمالي المتبقي (${fmt(unpaid.length)} فاتورة)</th><th class="neg">${fmtSR(total)}</th><th></th></tr>`:"");
+    + (rows?`<tr><th colspan="6">إجمالي المتبقي (${fmt(unpaid.length)} فاتورة)</th><th class="neg">${fmtSR(total)}</th><th></th></tr>`:"")
+    + ksDebtsVsLedger(total);
+}
+function ksDebtsVsLedger(invoiceTotal){
+  /* 🔁 «مجموع الفواتير غير المسددة» و«رصيد الذمم في الدفاتر» رقمان مختلفان بطبيعتهما:
+     أي حركة على الذمم لا تمر بفاتورة (تحصيل آجل غير مربوط، أو إشعار دائن على فاتورة مسددة)
+     تُغيّر الدفتر ولا تُغيّر قائمة الفواتير. كانا يظهران بلا أي تفسير — الآن يُصالَحان صراحةً. */
+  try{
+    const bal=acctBalances("", "");
+    const x=bal["1103"]||{d:0,c:0};
+    const ledger=+(x.d-x.c).toFixed(2);
+    const diff=+(invoiceTotal-ledger).toFixed(2);
+    if(Math.abs(diff)<0.01) return "";
+    const defer=+((DB.deferredPayments||[])
+      .filter(r=>r.status==="paid" && r.type==="receivable" && !r.harvestId)
+      .reduce((s,r)=>s+(+r.amount||0),0)).toFixed(2);
+    const grp={};
+    (DB.harvests||[]).forEach(h=>{ const k=(h.returnOf||h.reversalOf||h.id); grp[k]=(grp[k]||0)+hRemain(h); });
+    const credit=+(Object.keys(grp).reduce((s,k)=>s+(grp[k]<-0.005?-grp[k]:0),0)).toFixed(2);
+    const other=+(diff-defer-credit).toFixed(2);
+    const parts=[];
+    if(defer>0.005) parts.push(`تحصيلات آجلة غير مربوطة بفاتورة: ${fmtSR(defer)}`);
+    if(credit>0.005) parts.push(`رصيد دائن للعملاء (إشعارات على فواتير مسددة): ${fmtSR(credit)}`);
+    if(Math.abs(other)>0.01) parts.push(`فروق أخرى: ${fmtSR(other)}`);
+    return `<tr><td colspan="8" class="muted" style="font-size:.78rem;line-height:1.7">
+      🔁 <b>مصالحة مع الدفاتر:</b> مجموع الفواتير ${fmtSR(invoiceTotal)} · رصيد الذمم في الدفاتر (1103) ${fmtSR(ledger)} · الفرق <b>${fmtSR(diff)}</b>
+      ${parts.length?"<br>السبب: "+parts.join(" · "):""}</td></tr>`;
+  }catch(e){ return ""; }
 }
 function renderCustomers(){
   const rows = DB.customers.map(c=>{
@@ -16043,7 +16073,11 @@ function invPostCredit(inv){ /* الإشعار الدائن: عكس مالي ف�
     const gross=+invLineTotal(i).toFixed(2), tax=+invLineTax(i).toFixed(2);
     /* 🐟🐑 الإشعار الدائن كان يعكس المال فقط: السمك المباع لا يعود للحوض والرؤوس لا تعود للقطيع
        ⇒ حوض 1000 يبقى 800 بعد إلغاء البيع كاملاً. الآن يُعكس الأثر العيني أيضاً. */
-    const __src=(DB.harvests||[]).find(h=>h.invId===inv.refInvId||(h.invNo&&inv.refInv&&h.invNo===inv.refInv&&h.productName===i.name))
+    /* ⚠️ `h.invId===inv.refInvId` كان يطابق حين يكون الطرفان undefined ⇒ الإشعار الدائن يلتقط
+       **أي** بيع بلا فاتورة (بيع سمك من اليومية مثلاً) فيعيد للحوض سمكاً لم يُرجَع إطلاقاً.
+       الآن: لا مطابقة إلا بمرجع موجود فعلاً، والاحتياط مقيَّد بمبيعات الفواتير. */
+    const __src=(inv.refInvId ? (DB.harvests||[]).find(h=>h.invId&&h.invId===inv.refInvId) : null)
+      || (inv.refInv ? (DB.harvests||[]).find(h=>h.invNo&&h.invNo===inv.refInv&&h.productName===i.name) : null)
       || (DB.harvests||[]).find(h=>h.fromInvoice&&!h.creditNote&&h.productName===i.name&&(+h.qty||0)>0);
     const __ratio=(__src&&(+__src.qty||0)>0)?Math.min(1,(+i.qty||0)/(+__src.qty||0)):1;
     DB.harvests.push({id:uid(), date:inv.date||today(), cycleId:i.cycleId||"",
@@ -16054,6 +16088,9 @@ function invPostCredit(inv){ /* الإشعار الدائن: عكس مالي ف�
       livestockSale:!!(__src&&__src.livestockSale), animal:(__src&&__src.animal)||undefined,
       heads:(__src&&__src.heads!=null)?-Math.round((+__src.heads||0)*__ratio):undefined,
       paid:false, employee:(CURRENT_USER?CURRENT_USER.name:""),
+      /* 🔗 الربط بالبيع الأصلي يجعل شاشة الديون تصافي الإشعار مع دين الفاتورة
+         (كانت تعرض الدين كاملاً بينما الدفتر واللوحة يصافيانه) */
+      returnOf:(__src?__src.id:undefined),
       notes:"↩️ إشعار دائن "+(inv.no||""), fromInvoice:true, creditNote:true, invId:inv.id, invNo:inv.no});
   });
   inv.creditPosted=true;

@@ -728,7 +728,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <p id="cgMsg" class="muted" style="font-size:.72rem;margin-top:10px;min-height:1em"></p>
       <div style="margin-top:10px;border-top:1px solid #eee;padding-top:10px;display:flex;flex-direction:column;gap:6px">
         <a href="#" onclick="cgShow('join');return false" style="font-size:.74rem;color:#065f46">👷 موظف جديد؟ اطلب الانضمام لمزرعتك</a>
-        <a href="#" onclick="cloudGateNewFarm();return false" style="font-size:.7rem;color:#888">🏡 مزرعة جديدة؟ أنشئ حسابها بالإيميل وكلمة المرور أعلاه</a>
+        <a href="#" onclick="cgShow('new');return false" style="font-size:.74rem;color:#065f46">🏡 مزرعة جديدة؟ اطلب اشتراكك</a>
       </div>
     </div>
     <div id="cgView_join" style="display:none">
@@ -745,6 +745,40 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       </div>
       <button class="btn" style="width:100%;margin-top:14px" onclick="cloudGateJoin()">📨 إنشاء الحساب وإرسال الطلب</button>
       <p id="cgJMsg" class="muted" style="font-size:.72rem;margin-top:10px;min-height:1em"></p>
+      <div style="margin-top:8px"><a href="#" onclick="cgShow('login');return false" style="font-size:.72rem;color:#666">→ رجوع لتسجيل الدخول</a></div>
+    </div>
+    <div id="cgView_new" style="display:none">
+      <p class="muted" style="font-size:.78rem;margin-bottom:12px">اطلب اشتراك مزرعتك — نتواصل معك ونفعّل حسابك (تجربة أو اشتراك)</p>
+      <div style="text-align:right">
+        <label style="font-size:.75rem">اسم المزرعة / المنشأة *</label>
+        <input id="cgNfName" style="width:100%;box-sizing:border-box;margin-bottom:8px" placeholder="مثال: مزرعة الواحة">
+        <label style="font-size:.75rem">اسم المسؤول *</label>
+        <input id="cgNfOwner" style="width:100%;box-sizing:border-box;margin-bottom:8px">
+        <label style="font-size:.75rem">الجوال *</label>
+        <input id="cgNfPhone" inputmode="tel" style="direction:ltr;width:100%;box-sizing:border-box;margin-bottom:8px" placeholder="05XXXXXXXX">
+        <label style="font-size:.75rem">المدينة / المنطقة</label>
+        <input id="cgNfCity" style="width:100%;box-sizing:border-box;margin-bottom:8px">
+        <label style="font-size:.75rem">النشاط المطلوب</label>
+        <div id="cgNfMods" style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px">
+          <button type="button" class="lskChip" data-m="agri" style="padding:6px 12px;font-size:.74rem" onclick="cgModTgl(this)">🌱 الزراعة</button>
+          <button type="button" class="lskChip" data-m="lvs" style="padding:6px 12px;font-size:.74rem" onclick="cgModTgl(this)">🐑 المواشي</button>
+          <button type="button" class="lskChip" data-m="fish" style="padding:6px 12px;font-size:.74rem" onclick="cgModTgl(this)">🐟 الأسماك</button>
+        </div>
+        <label style="font-size:.75rem">السجل التجاري</label>
+        <input id="cgNfCr" inputmode="numeric" style="direction:ltr;width:100%;box-sizing:border-box;margin-bottom:8px">
+        <label style="font-size:.75rem">الرقم الضريبي</label>
+        <input id="cgNfTax" inputmode="numeric" style="direction:ltr;width:100%;box-sizing:border-box;margin-bottom:4px">
+        <p class="muted" style="font-size:.66rem;margin:0 0 10px">يصلاننا مع طلبك لإصدار فاتورة الاشتراك — وتُدخلهما داخل السستم بنفسك بعد التفعيل</p>
+        <label style="font-size:.75rem">ملاحظة (اختياري)</label>
+        <input id="cgNfNote" style="width:100%;box-sizing:border-box;margin-bottom:10px" placeholder="حجم المزرعة، عدد الموظفين، أي طلب خاص…">
+        <hr style="border:0;border-top:1px solid #eee;margin:12px 0">
+        <label style="font-size:.75rem">الإيميل * (به تدخل السستم)</label>
+        <input id="cgNfEmail" type="email" style="direction:ltr;width:100%;box-sizing:border-box;margin-bottom:8px" placeholder="you@email.com">
+        <label style="font-size:.75rem">كلمة المرور * (6 أحرف فأكثر)</label>
+        <input id="cgNfPw" type="password" style="direction:ltr;width:100%;box-sizing:border-box">
+      </div>
+      <button class="btn" style="width:100%;margin-top:14px" onclick="cloudGateNewReq()">📨 إرسال طلب الاشتراك</button>
+      <p id="cgNfMsg" class="muted" style="font-size:.72rem;margin-top:10px;min-height:1em"></p>
       <div style="margin-top:8px"><a href="#" onclick="cgShow('login');return false" style="font-size:.72rem;color:#666">→ رجوع لتسجيل الدخول</a></div>
     </div>
     <div id="cgView_pend" style="display:none">
@@ -3975,6 +4009,9 @@ I18N_PAT.push(
 Object.assign(I18N.en,{"المكشوفة": "Open field", "مكيف 1": "Cooled 1", "مكيف 2": "Cooled 2", "غير مكيف": "Non-cooled", "المواشي": "Livestock"});
 Object.assign(I18N.ur,{"المكشوفة": "کھلی", "مكيف 1": "کولڈ 1", "مكيف 2": "کولڈ 2", "غير مكيف": "نان کولڈ", "المواشي": "مویشی"});
 I18N_PAT.push({re:/^(.+) %$/,en:"$1 %",ur:"$1 %"});
+/* 🏡 شاشة طلب اشتراك مزرعة جديدة (v12.25-A) */
+Object.assign(I18N.en,{"🏡 مزرعة جديدة؟ اطلب اشتراكك":"🏡 New farm? Request a subscription","اطلب اشتراك مزرعتك — نتواصل معك ونفعّل حسابك (تجربة أو اشتراك)":"Request a subscription — we'll contact you and activate your account (trial or subscription)","اسم المزرعة / المنشأة *":"Farm / business name *","اسم المسؤول *":"Contact person *","الجوال *":"Mobile *","المدينة / المنطقة":"City / region","النشاط المطلوب":"Requested activity","السجل التجاري":"Commercial registration","يصلاننا مع طلبك لإصدار فاتورة الاشتراك — وتُدخلهما داخل السستم بنفسك بعد التفعيل":"Sent with your request so we can issue the subscription invoice — you enter them inside the system yourself after activation","ملاحظة (اختياري)":"Note (optional)","الإيميل * (به تدخل السستم)":"Email * (you sign in with it)","كلمة المرور * (6 أحرف فأكثر)":"Password * (6+ characters)","📨 إرسال طلب الاشتراك":"📨 Send subscription request","بيانات الطلب":"Request details","مثال: مزرعة الواحة":"e.g. Al-Waha Farm","حجم المزرعة، عدد الموظفين، أي طلب خاص…":"Farm size, staff count, any special request…"});
+Object.assign(I18N.ur,{"🏡 مزرعة جديدة؟ اطلب اشتراكك":"🏡 نیا فارم؟ سبسکرپشن کی درخواست","اطلب اشتراك مزرعتك — نتواصل معك ونفعّل حسابك (تجربة أو اشتراك)":"اپنے فارم کے لیے سبسکرپشن مانگیں — ہم رابطہ کر کے اکاؤنٹ فعال کریں گے","اسم المزرعة / المنشأة *":"فارم / ادارے کا نام *","اسم المسؤول *":"ذمہ دار کا نام *","الجوال *":"موبائل *","المدينة / المنطقة":"شہر / علاقہ","النشاط المطلوب":"مطلوبہ سرگرمی","السجل التجاري":"تجارتی رجسٹریشن","يصلاننا مع طلبك لإصدار فاتورة الاشتراك — وتُدخلهما داخل السستم بنفسك بعد التفعيل":"سبسکرپشن انوائس کے لیے درخواست کے ساتھ آتے ہیں — فعال ہونے کے بعد آپ خود سسٹم میں درج کریں گے","ملاحظة (اختياري)":"نوٹ (اختیاری)","الإيميل * (به تدخل السستم)":"ای میل * (اسی سے لاگ ان)","كلمة المرور * (6 أحرف فأكثر)":"پاس ورڈ * (6 حروف یا زیادہ)","📨 إرسال طلب الاشتراك":"📨 درخواست بھیجیں","بيانات الطلب":"درخواست کی تفصیل","مثال: مزرعة الواحة":"مثلاً: الواحہ فارم","حجم المزرعة، عدد الموظفين، أي طلب خاص…":"فارم کا حجم، ملازمین کی تعداد، کوئی خاص درخواست…"});
 Object.assign(I18N.en,{"الأصول": "Assets", "الأصول المتداولة": "Current assets", "الصندوق": "Cash", "البنك": "Bank", "ذمم مدينة": "receivables", "ذمم دائنة": "payables", "الموردين": "Suppliers", "سلف الموظفين": "Employee advances", "الأصول غير المتداولة": "Non-current assets", "الأصول الثابتة والمعدات": "Fixed assets & equipment", "مجمع الإهلاك": "Accumulated depreciation", "الالتزامات (الخصوم)": "Liabilities", "الالتزامات المتداولة": "Current liabilities", "مصروفات مستحقة": "Accrued expenses", "ضريبة القيمة المضافة": "VAT", "حقوق الملكية": "Equity", "رأس المال": "Capital", "جاري المالك / مسحوبات": "Owner's account / drawings", "الأرباح المحتجزة": "Retained earnings", "الإيرادات": "Revenue", "إيرادات المبيعات": "Sales revenue", "إيرادات أخرى": "Other revenue", "مردودات المبيعات": "Sales returns", "المصروفات": "Expenses", "تكلفة الإيرادات (مباشرة)": "Cost of revenue (direct)", "بذور وشتلات": "Seeds & seedlings", "تكاليف الدورات الزراعية": "Crop cycle costs", "مصروفات تشغيلية": "Operating expenses", "مصروفات إدارية وعمومية": "Admin & general expenses", "رواتب وعمالة": "Wages & labor", "مصروفات أخرى": "Other expenses", "مصروف الإهلاك": "Depreciation expense", "فروقات الجرد": "Stocktake variances", "الدخول الموحد ☁️ — المالك بإيميل المزرعة، والموظف بإيميله الخاص": "Unified sign-in ☁️ — owner with the farm email, employees with their own email", "👷 موظف جديد؟ اطلب الانضمام لمزرعتك": "👷 New employee? Request to join your farm", "🏡 مزرعة جديدة؟ أنشئ حسابها بالإيميل وكلمة المرور أعلاه": "🏡 New farm? Create its account with the email & password above", "أنشئ حسابك وأرسل طلب انضمام — تدخل بعد اعتماد صاحب المزرعة": "Create your account and send a join request — you enter once the owner approves", "🔑 رمز المزرعة (اطلبه من صاحب المزرعة)": "🔑 Farm code (ask the farm owner)", "📨 إنشاء الحساب وإرسال الطلب": "📨 Create account & send request", "🔑 رمز المزرعة:": "🔑 Farm code:", "👤 اسم الأدمن الرئيسي": "👤 Main admin name", "اسم الأدمن الرئيسي": "Main admin name", "المالك": "Owner", "عامل": "Worker", "فني": "Technician", "تمر خلاص": "Khalas dates", "تمر سكري": "Sukkari dates", "الأسماك": "Fish", "غير موزع": "Unallocated", "عام (كل الأقسام)": "General (all sections)"});
 Object.assign(I18N.ur,{"الأصول": "اثاثے", "الأصول المتداولة": "جاری اثاثے", "الصندوق": "نقدی", "البنك": "بینک", "ذمم مدينة": "وصولیاں", "ذمم دائنة": "واجبات", "الموردين": "سپلائرز", "سلف الموظفين": "ملازم پیشگی", "الأصول غير المتداولة": "غیر جاری اثاثے", "الأصول الثابتة والمعدات": "مقررہ اثاثے و آلات", "مجمع الإهلاك": "مجموعی فرسودگی", "الالتزامات (الخصوم)": "واجبات", "الالتزامات المتداولة": "جاری واجبات", "مصروفات مستحقة": "واجب الادا اخراجات", "ضريبة القيمة المضافة": "ویٹ ٹیکس", "حقوق الملكية": "ملکیتی حقوق", "رأس المال": "سرمایہ", "جاري المالك / مسحوبات": "مالک کا کھاتہ / نکاسی", "الأرباح المحتجزة": "محفوظ منافع", "الإيرادات": "آمدنی", "إيرادات المبيعات": "فروخت آمدنی", "إيرادات أخرى": "دیگر آمدنی", "مردودات المبيعات": "فروخت واپسی", "المصروفات": "اخراجات", "تكلفة الإيرادات (مباشرة)": "براہ راست لاگت", "بذور وشتلات": "بیج و پنیری", "تكاليف الدورات الزراعية": "سائیکل لاگت", "مصروفات تشغيلية": "آپریٹنگ اخراجات", "مصروفات إدارية وعمومية": "انتظامی اخراجات", "رواتب وعمالة": "تنخواہیں و مزدوری", "مصروفات أخرى": "دیگر اخراجات", "مصروف الإهلاك": "فرسودگی خرچ", "فروقات الجرد": "گنتی کا فرق", "الدخول الموحد ☁️ — المالك بإيميل المزرعة، والموظف بإيميله الخاص": "متحد لاگ ان ☁️ — مالک فارم ای میل سے، ملازم اپنی ای میل سے", "👷 موظف جديد؟ اطلب الانضمام لمزرعتك": "👷 نیا ملازم؟ اپنے فارم میں شمولیت مانگیں", "🏡 مزرعة جديدة؟ أنشئ حسابها بالإيميل وكلمة المرور أعلاه": "🏡 نیا فارم؟ اوپر ای میل و پاس ورڈ سے اکاؤنٹ بنائیں", "أنشئ حسابك وأرسل طلب انضمام — تدخل بعد اعتماد صاحب المزرعة": "اکاؤنٹ بنا کر شمولیت کی درخواست بھیجیں — مالک کی منظوری کے بعد داخلہ", "🔑 رمز المزرعة (اطلبه من صاحب المزرعة)": "🔑 فارم کوڈ (مالک سے لیں)", "📨 إنشاء الحساب وإرسال الطلب": "📨 اکاؤنٹ بنائیں و درخواست بھیجیں", "🔑 رمز المزرعة:": "🔑 فارم کوڈ:", "👤 اسم الأدمن الرئيسي": "👤 مرکزی ایڈمن کا نام", "اسم الأدمن الرئيسي": "مرکزی ایڈمن کا نام", "المالك": "مالک", "عامل": "مزدور", "فني": "ٹیکنیشن", "تمر خلاص": "خلاص کھجور", "تمر سكري": "سکری کھجور", "الأسماك": "مچھلی", "غير موزع": "غیر مختص", "عام (كل الأقسام)": "عام (تمام سیکشن)"});
 I18N_PAT.push(
@@ -4273,7 +4310,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.24-A";
+const KS_VER="v12.25-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4995,15 +5032,28 @@ async function planFetch(){
     try{ localStorage.setItem("ksFarmPlan", JSON.stringify(FARM_PLAN)); }catch(e){}
   }catch(e){}
 }
-async function planRegisterSelf(em){
+async function planRegisterSelf(em, req){
   try{
     const s=cloudSess(); if(!s||!s.uid) return;
     /* الاسم من بيانات هذا الجهاز فقط إن كانت تخص هذه المزرعة — وإلا فارغ (لا يتسرب اسم مزرعة سابقة) */
     let nm=""; try{ if(ksDataOwner()===s.uid) nm=(DB&&DB.settings&&(DB.settings.companyName||DB.settings.adminName))||""; }catch(e){}
-    await cloudAuthFetch("/rest/v1/farm_plan?on_conflict=farm_id",{method:"POST",
+    const row={farm_id:s.uid, email:em||s.email||"", name:nm, status:"pending", modules:{}};
+    if(req){
+      /* 📨 طلب اشتراك من بوابة «مزرعة جديدة»: بيانات التواصل والنشاط المطلوب تصل للمزود.
+         ⚠️ السجل التجاري والرقم الضريبي يُخزَّنان **في صف الطلب فقط** لإصدار فاتورة الاشتراك،
+         ولا يُكتبان في إعدادات المزرعة — لأن الهوية القانونية تُقفل بأول كتابة، وخطأ إملائي
+         فيها يحتاج تدخل المزود. العميل يُدخلها بنفسه داخل السستم بعد التفعيل. */
+      if(req.name) row.name=req.name;
+      row.phone=req.phone||""; row.city=req.city||"";
+      row.cr_no=req.cr||""; row.tax_no=req.tax||"";
+      row.req_modules=req.mods||{};
+      row.req_note=[req.owner?("المسؤول: "+req.owner):"", req.note||""].filter(Boolean).join(" · ");
+    }
+    const r=await cloudAuthFetch("/rest/v1/farm_plan?on_conflict=farm_id",{method:"POST",
       headers:{Prefer:"resolution=ignore-duplicates"},
-      body:JSON.stringify([{farm_id:s.uid,email:em||s.email||"",name:nm,status:"pending",modules:{}}])});
-  }catch(e){}
+      body:JSON.stringify([row])});
+    return !!(r && r.ok);
+  }catch(e){ return false; }
 }
 function planChip(){
   let c=document.getElementById("planChip");
@@ -5159,7 +5209,7 @@ async function providerRender(){
     const box=(l,v,c)=>'<div class="card" style="padding:10px 16px;border-inline-start:4px solid '+c+'"><div class="muted" style="font-size:.7rem">'+l+'</div><div style="font-size:1.2rem;font-weight:800">'+v+'</div></div>';
     kp.innerHTML=box("🏡 المزارع",rows.length,"#047857")+box("✅ نشطة",n("active"),"#2563eb")+box("⏳ تجريبية",n("trial"),"#7c3aed")+box("🕓 بانتظار",n("pending"),"#d97706")+box("⚠️ تنتهي قريباً",soon,"#dc2626");
   }
-  tbl.innerHTML='<tr><th>المزرعة</th><th>المديولات</th><th>الحالة</th><th>حتى</th><th>إجراءات</th></tr>'
+  tbl.innerHTML='<tr><th>المزرعة</th><th>بيانات الطلب</th><th>المديولات</th><th>الحالة</th><th>حتى</th><th>إجراءات</th></tr>'
     +(rows.length?rows.map(p=>{
       const mods=PLAN_MODS.map(mm=>'<button type="button" class="lskChip'+(p.modules&&p.modules[mm[0]]===true?" on":"")+'" style="padding:5px 10px;font-size:.7rem" onclick="provModTgl(\''+p.farm_id+'\',\''+mm[0]+'\',this)">'+mm[1]+' '+mm[2]+'</button>').join(" ");
       const till=p.status==="trial"?(p.trial_ends||"—"):(p.expires_at||"—");
@@ -5170,8 +5220,16 @@ async function providerRender(){
           :'<button class="btn small secondary" onclick="provSusp(\''+p.farm_id+'\',true)">⏸️ إيقاف</button> ')
         +'<button class="del" onclick="provDel(\''+p.farm_id+'\')">🗑️</button>';
       const nm=escH(p.name||"—")+'<span class="muted" style="display:block;font-size:.68rem;direction:ltr;text-align:right">'+escH(p.email||p.farm_id)+'</span>';
-      return '<tr><td style="font-weight:700">'+nm+'</td><td><div style="display:flex;gap:5px;flex-wrap:wrap">'+mods+'</div></td><td>'+provBadge(p)+'</td><td style="white-space:nowrap">'+till+'</td><td style="white-space:nowrap">'+acts+'</td></tr>';
-    }).join(""):'<tr><td colspan="5" class="muted" style="padding:22px;text-align:center">🏡 لا مزارع مسجلة بعد — أول مزرعة تنشئ حسابها ستظهر هنا تلقائياً</td></tr>');
+      /* 📨 بيانات طلب الاشتراك — يحتاجها المزود قبل المكالمة وعند إصدار فاتورة الاشتراك */
+      const wa=String(p.phone||"").replace(/[^0-9]/g,"").replace(/^0/,"966");
+      const line=(ic,v)=>v?('<div style="font-size:.7rem;white-space:nowrap">'+ic+' '+escH(String(v))+'</div>'):'';
+      const rq=PLAN_MODS.filter(mm=>p.req_modules&&p.req_modules[mm[0]]===true).map(mm=>mm[1]+mm[2]).join(" ");
+      const info=line("📱",p.phone)
+        +(p.phone?'<a href="https://wa.me/'+wa+'" target="_blank" rel="noopener" style="font-size:.66rem">واتساب ↗</a>':'')
+        +line("📍",p.city)+line("🏷️",rq&&("مطلوب: "+rq))+line("🧾",p.cr_no&&("س.ت "+p.cr_no))
+        +line("🧮",p.tax_no&&("ض. "+p.tax_no))+line("📝",p.req_note);
+      return '<tr><td style="font-weight:700">'+nm+'</td><td>'+(info||'<span class="muted" style="font-size:.7rem">—</span>')+'</td><td><div style="display:flex;gap:5px;flex-wrap:wrap">'+mods+'</div></td><td>'+provBadge(p)+'</td><td style="white-space:nowrap">'+till+'</td><td style="white-space:nowrap">'+acts+'</td></tr>';
+    }).join(""):'<tr><td colspan="6" class="muted" style="padding:22px;text-align:center">🏡 لا مزارع مسجلة بعد — أول مزرعة تنشئ حسابها ستظهر هنا تلقائياً</td></tr>');
 }
 
 function cloudStatusUI(msg){
@@ -6167,7 +6225,12 @@ function cloudGateShow(){
     }
   }
 }
-function cgShow(v){ ["login","join","pend"].forEach(x=>{ const el=document.getElementById("cgView_"+x); if(el) el.style.display=(x===v)?"":"none"; }); }
+function cgShow(v){ ["login","join","pend","new"].forEach(x=>{ const el=document.getElementById("cgView_"+x); if(el) el.style.display=(x===v)?"":"none"; }); }
+function cgModTgl(b){ if(b) b.classList.toggle("on"); }
+function cgReqMods(){
+  const o={}; try{ document.querySelectorAll("#cgNfMods .lskChip").forEach(b=>{ if(b.classList.contains("on")) o[b.dataset.m]=true; }); }catch(e){}
+  return o;
+}
 async function cloudGateLogin(){
   const em=(document.getElementById("cgEmail")||{}).value||"", pw=(document.getElementById("cgPw")||{}).value||"";
   const msg=document.getElementById("cgMsg");
@@ -6196,35 +6259,48 @@ async function cloudGateLogin(){
       :"لا يوجد اتصال، وتعذر التحقق المحلي"):__ksAuthMsg(e)), true);
   }
 }
-async function cloudGateNewFarm(){
-  const em=(document.getElementById("cgEmail")||{}).value||"", pw=(document.getElementById("cgPw")||{}).value||"";
-  const msg=document.getElementById("cgMsg");
-  if(!em||!pw||pw.length<6){ __ksGateMsg("cgMsg","⚠️ اكتب الإيميل وكلمة مرور (6 أحرف فأكثر) في الخانتين أعلاه، ثم اضغط الرابط مرة أخرى", true); return; }
-  if(!confirm("إنشاء حساب مزرعة جديدة فاضية بهذا الإيميل؟")) return;
-  if(msg)msg.textContent="⏳ جارٍ إنشاء الحساب...";
+async function cloudGateNewReq(){
+  const g=id=>(document.getElementById(id)||{}).value||"";
+  const nm=g("cgNfName").trim(), ow=g("cgNfOwner").trim(), ph=g("cgNfPhone").trim();
+  const em=g("cgNfEmail").trim(), pw=g("cgNfPw");
+  const miss=[];
+  if(!nm) miss.push("اسم المزرعة"); if(!ow) miss.push("اسم المسؤول");
+  if(!ph) miss.push("الجوال");      if(!em) miss.push("الإيميل");
+  if(!pw||pw.length<6) miss.push("كلمة المرور (6 أحرف فأكثر)");
+  if(miss.length){ __ksGateMsg("cgNfMsg","⚠️ أكمل: "+miss.join("، "), true); return; }
+  __ksGateMsg("cgNfMsg","⏳ جارٍ إرسال الطلب…", false);
   try{
     await cloudSignup(em,pw);
-    /* 🛡️ الحساب قد يُنشأ **بلا جلسة** (إعداد «تأكيد الإيميل» مفعّل في السحابة):
-       الكود القديم كان يكمل ويعيد التحميل ⇒ ترجع البوابة كما هي فيبدو أن الزر «لا يفعل شيئاً»،
-       ويترك على الجهاز قاعدة فارغة بلا مالك. الآن نكشفها ونقولها صراحةً. */
+    /* حساب بلا جلسة (تأكيد إيميل مفعّل في السحابة) ⇒ يُقال صراحةً بدل «لا شيء يحدث» */
     if(!cloudSess()){
-      __ksGateMsg("cgMsg","📧 أُنشئ الحساب لكنه يحتاج تأكيد الإيميل — افتح رسالة التأكيد في بريدك ثم ادخل من الأعلى", true);
+      __ksGateMsg("cgNfMsg","📧 أُنشئ الحساب لكنه يحتاج تأكيد الإيميل — افتح رسالة التأكيد في بريدك ثم ادخل من شاشة الدخول", true);
       return;
     }
-    try{ await planRegisterSelf(em); }catch(e){}
+    /* 🛡️ لو فشل تسجيل الطلب (أعمدة الطلب غير منفَّذة في السحابة مثلاً) فالعميل سينتظر
+       طلباً لم يصل أحداً — نقولها له صراحةً بدل صمت يبدو نجاحاً. */
+    const __okReq = await planRegisterSelf(em, {name:nm, owner:ow, phone:ph, city:g("cgNfCity").trim(),
+      cr:g("cgNfCr").trim(), tax:g("cgNfTax").trim(), note:g("cgNfNote").trim(), mods:cgReqMods()});
     await __credStore(em,pw);
     sessionStorage.setItem("ksAuthed","1");
     try{
       if(!localStorage.getItem(KEY)){
         const _d=blank();
-        const _nm=String(prompt("👤 اسمك (الأدمن الرئيسي — يظهر في السجلات والتقارير):")||"").trim();
-        if(_nm) _d.settings.adminName=_nm;
+        /* ⚠️ الاسم والمسؤول والجوال فقط — **لا** السجل التجاري ولا الرقم الضريبي:
+           الهوية القانونية تُقفل بأول كتابة، وخطأ إملائي فيها يحتاج تدخّل المزود.
+           العميل يُدخلها بنفسه من «بيانات الشركة» بعد التفعيل. */
+        _d.settings.companyName=nm; _d.settings.adminName=ow; _d.settings.coPhone=ph;
         localStorage.setItem(KEY, JSON.stringify(_d));
         try{ ksStampOwner(); }catch(e2){}
       }
     }catch(e){}
-    location.reload();
-  }catch(e){ __ksGateMsg("cgMsg","❌ "+__ksAuthMsg(e), true); }
+    if(!__okReq){
+      __ksGateMsg("cgNfMsg","⚠️ أُنشئ حسابك لكن تعذّر تسجيل الطلب — تواصل معنا على الرقم المعلن وسنفعّله يدوياً", true);
+      return;
+    }
+    const pm=document.getElementById("cgPendMsg");
+    if(pm) pm.textContent="✅ وصل طلبك — سنتواصل معك على "+ph+" لتفعيل حسابك (تجربة أو اشتراك)";
+    cgShow("pend");
+  }catch(e){ __ksGateMsg("cgNfMsg","❌ "+__ksAuthMsg(e), true); }
 }
 async function cloudGateJoin(){
   const nm=(document.getElementById("cgName")||{}).value||"", em=(document.getElementById("cgJEmail")||{}).value||"";

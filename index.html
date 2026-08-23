@@ -4273,7 +4273,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.21-A";
+const KS_VER="v12.22-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4539,6 +4539,27 @@ function ksFreeze(kind){
 }
 /* ✅ true = هذه النافذة مسموح لها الكتابة/الرفع (تُستدعى منفيةً). */
 function ksTabAllowed(){ if(ksTabDrift()){ ksFreeze(); return false; } return !window.__ksFrozen; }
+/* ── 🏷️ انحراف البيانات: الختم هو الحَكَم لا الجلسة ──────────────────────────────
+   ksTabDrift يسأل: «هل تبدّلت هوية النافذة؟» — وهو لا يرى الحالة الأخطر:
+   نافذة واحدة تحمل في ذاكرتها بيانات مزرعة أ بينما جلستها صارت مزرعة ب
+   (تسجيل دخول مزرعة ثانية على نفس الجهاز، والبوابة لم تُطبّق النسخة بعد،
+   أو رفضت المسح لأن عمل مزرعة أ لم يصل السحابة). في تلك اللحظة كانت كل
+   الحراس تمرّ — النافذة مربوطة بـب وksAuthed=1 — فأي حفظ أو رفع أو لقطة
+   يكتب **بيانات أ تحت هوية ب**. الختم ksDataOwner يعرف الجواب، ولم يكن يُسأل.
+   القطبية: ksDataDrift ⇒ true = انحراف (تُستدعى موجبةً) */
+function ksDataDrift(){
+  try{
+    const own=(typeof ksDataOwner==="function")?ksDataOwner():"";
+    const cur=(typeof cloudFarmId==="function")?cloudFarmId():"";
+    return !!(own && cur && own!==cur);
+  }catch(e){ return false; }
+}
+function ksDataDriftBlock(what){
+  if(!ksDataDrift()) return false;
+  try{ if(!window.__ksDriftToast){ window.__ksDriftToast=1;
+        toast("⛔ بيانات هذا الجهاز تخص مزرعة أخرى — لن يُحفظ أو يُرفع منها شيء"); } }catch(e){}
+  return true;
+}
 /* ── سلامة البيانات: لا يُمسح شيء لم يصل السحابة ── */
 function ksIsDirty(){
   try{
@@ -4613,6 +4634,9 @@ function ksWipeFarmData(){ /* مسح كامل لأثر المزرعة الساب
   try{ localStorage.removeItem(KEY); localStorage.removeItem("ksFarmSnaps");
        localStorage.removeItem("ksFarmPlan"); localStorage.removeItem("ksDataOwner");
        localStorage.removeItem("ksPend");
+       /* بصمة كلمة مرور المستخدم السابق: الجهاز يُسلَّم لغيره، ولا مستهلك لها بعد المسح
+          (الدخول المحلي يشترط وجود بيانات المزرعة وقد مُسحت) — فلا تُترك أثراً قابلاً للكسر */
+       localStorage.removeItem("ksCredHash");
        localStorage.removeItem("ksNotifMuted"); localStorage.removeItem("ksNotifSeen"); }catch(e){}
 }
 function __persistNow(){
@@ -4626,6 +4650,7 @@ function __persistNow(){
     });
   }catch(e){}
   if(typeof ksTabAllowed==="function" && !ksTabAllowed()) return;   /* 🛑 نافذة يتيمة: لا تكتب على بيانات مزرعة أخرى */
+  if(ksDataDriftBlock("حفظ")) return;   /* 🛑 الذاكرة تحمل مزرعة أخرى: لا كتابة ولا إعادة ختم */
   ksStampOwner();
   window.__ksDirty=true; try{ localStorage.setItem("ksPend","1"); }catch(e){} /* تغيّر محلي بانتظار الرفع (ksPend يصمد بعد إعادة التحميل) */
   const json=JSON.stringify(DB);
@@ -4756,6 +4781,7 @@ async function cloudPush(__preAuth, __force){
   __cloudTimer=null;
   if(!cloudOn()||__cloudBusy) return;
   if(typeof ksTabAllowed==="function" && !ksTabAllowed()) return;   /* 🛑 لا نرفع بهوية مزرعة غير هوية هذه النافذة */
+  if(ksDataDriftBlock("رفع")) return;   /* 🛑 لا نرفع بيانات مزرعة إلى صف مزرعة أخرى */
   try{ if(!__preAuth && sessionStorage.getItem("ksAuthed")!=="1") return; }catch(e){}  /* لا رفع قبل الدخول إلا لرفع البقايا */
   const __fid=cloudFarmId();                                    /* 🔒 تُثبَّت هنا: أي await بعدها قد تُبدّل الجلسة */
   const __ok=()=>(!ksTabDrift() && cloudFarmId()===__fid);
@@ -4811,6 +4837,7 @@ async function cloudPush(__preAuth, __force){
       try{ const __tx=await r.text();
         if(__tx.includes("LEGAL_IDENTITY_LOCKED")){ __m="🔒 رفض السيرفر: الهوية القانونية لا تطابق المسجلة — تواصل مع مزود السستم"; toast(__m); }
         else if(__tx.includes("PLAN_LOCKED")){ __m="🔒 رفض السيرفر: اشتراك المزرعة غير نشط — التعديلات لم تُرفع"; toast(__m); try{ planFetch().then(()=>planApply()); }catch(e2){} }
+        else if(__tx.includes("TAX_BELONGS_TO_ANOTHER_FARM")){ __m="🔒 رفض السيرفر: الرقم الضريبي في هذه البيانات مسجَّل لمزرعة أخرى — لم يُرفع شيء"; toast(__m); }
         else if(__tx.includes("MEMBER_WRITE_DENIED")){ __m=__ksDenyMsg(__tx); toast(__m); }
       }catch(e){}
       cloudStatusUI(__m);
@@ -9253,6 +9280,7 @@ function ksSaveSnaps(mine){
 }
 function autoSnap(json){
   try{
+    if(typeof ksDataDrift==="function" && ksDataDrift()) return;  /* 🛑 لا لقطة ولا كتابة ببيانات مزرعة أخرى (مستدعيها محروس، وهذا دفاع ثانٍ) */
     const t=today();
     if(DB.settings && DB.settings.lastAutoSnap===t) return; // لقطة تلقائية مرة واحدة يومياً
     const snaps=getSnaps();
@@ -9265,6 +9293,7 @@ function autoSnap(json){
 }
 function takeSnap(manual){
   if(typeof ksTabAllowed==="function" && !ksTabAllowed()) return;
+  if(ksDataDrift()){ if(manual) toast("⛔ بيانات هذا الجهاز تخص مزرعة أخرى — لا تُؤخذ لقطة"); return; }
   try{
     const snaps = getSnaps();
     snaps.push({ts:new Date().toLocaleString("sv").slice(0,16), farm:(typeof cloudFarmId==="function"?cloudFarmId():""), data:JSON.stringify(DB)});

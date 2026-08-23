@@ -3289,6 +3289,13 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <div style="flex:1;min-width:180px"><label>الرقم الضريبي</label><input id="taxNoInp" inputmode="numeric" maxlength="15" placeholder="3xxxxxxxxxxxxx3" style="direction:ltr" oninput="saveCompanyInfo()"></div>
       <div style="flex:1;min-width:160px"><label>رقم الجوال</label><input id="coPhone" inputmode="tel" placeholder="05xxxxxxxx" style="direction:ltr" oninput="saveCompanyInfo()"></div>
       <div style="flex:1;min-width:180px"><label>رقم السجل الزراعي (اختياري)</label><input id="agrNoInp" placeholder="AGR-xxxxxx" style="direction:ltr" oninput="saveCompanyInfo()"></div>
+      <div style="flex:1 1 100%;min-width:220px;background:#f8faf8;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0">
+          <input type="checkbox" id="cmpNoVat" onchange="ksNoVatSet(this.checked)" style="width:auto;margin:0">
+          <span>منشأة غير مسجّلة في ضريبة القيمة المضافة</span>
+        </label>
+        <div class="muted" style="font-size:.7rem;margin-top:4px">الفواتير تصدر بلا ضريبة وبلا رمز QR، ولا يُطلب رقم ضريبي ولا سجل تجاري</div>
+      </div>
     </div>
     <b style="font-size:.82rem;color:var(--muted);display:block;margin-top:12px">📍 العنوان الوطني</b>
     <div class="row" style="flex-wrap:wrap;gap:12px;margin-top:6px">
@@ -4009,6 +4016,9 @@ I18N_PAT.push(
 Object.assign(I18N.en,{"المكشوفة": "Open field", "مكيف 1": "Cooled 1", "مكيف 2": "Cooled 2", "غير مكيف": "Non-cooled", "المواشي": "Livestock"});
 Object.assign(I18N.ur,{"المكشوفة": "کھلی", "مكيف 1": "کولڈ 1", "مكيف 2": "کولڈ 2", "غير مكيف": "نان کولڈ", "المواشي": "مویشی"});
 I18N_PAT.push({re:/^(.+) %$/,en:"$1 %",ur:"$1 %"});
+/* 🏷️ وضع المنشأة غير المسجّلة في الضريبة (v12.27-A) */
+Object.assign(I18N.en,{"منشأة غير مسجّلة في ضريبة القيمة المضافة":"Business not registered for VAT","الفواتير تصدر بلا ضريبة وبلا رمز QR، ولا يُطلب رقم ضريبي ولا سجل تجاري":"Invoices are issued without VAT or QR code; no VAT number or CR required","غير مطلوب — منشأة غير مسجّلة":"Not required — unregistered business","فاتورة":"Invoice"});
+Object.assign(I18N.ur,{"منشأة غير مسجّلة في ضريبة القيمة المضافة":"ادارہ ویٹ میں رجسٹرڈ نہیں","الفواتير تصدر بلا ضريبة وبلا رمز QR، ولا يُطلب رقم ضريبي ولا سجل تجاري":"انوائس بغیر ٹیکس اور بغیر QR — نہ ٹیکس نمبر درکار نہ تجارتی رجسٹریشن","غير مطلوب — منشأة غير مسجّلة":"درکار نہیں — غیر رجسٹرڈ ادارہ","فاتورة":"انوائس"});
 /* 🏡 شاشة طلب اشتراك مزرعة جديدة (v12.25-A) */
 Object.assign(I18N.en,{"🏡 مزرعة جديدة؟ اطلب اشتراكك":"🏡 New farm? Request a subscription","اطلب اشتراك مزرعتك — نتواصل معك ونفعّل حسابك (تجربة أو اشتراك)":"Request a subscription — we'll contact you and activate your account (trial or subscription)","اسم المزرعة / المنشأة *":"Farm / business name *","اسم المسؤول *":"Contact person *","الجوال *":"Mobile *","المدينة / المنطقة":"City / region","النشاط المطلوب":"Requested activity","السجل التجاري":"Commercial registration","يصلاننا مع طلبك لإصدار فاتورة الاشتراك — وتُدخلهما داخل السستم بنفسك بعد التفعيل":"Sent with your request so we can issue the subscription invoice — you enter them inside the system yourself after activation","ملاحظة (اختياري)":"Note (optional)","الإيميل * (به تدخل السستم)":"Email * (you sign in with it)","كلمة المرور * (6 أحرف فأكثر)":"Password * (6+ characters)","📨 إرسال طلب الاشتراك":"📨 Send subscription request","بيانات الطلب":"Request details","مثال: مزرعة الواحة":"e.g. Al-Waha Farm","حجم المزرعة، عدد الموظفين، أي طلب خاص…":"Farm size, staff count, any special request…"});
 Object.assign(I18N.ur,{"🏡 مزرعة جديدة؟ اطلب اشتراكك":"🏡 نیا فارم؟ سبسکرپشن کی درخواست","اطلب اشتراك مزرعتك — نتواصل معك ونفعّل حسابك (تجربة أو اشتراك)":"اپنے فارم کے لیے سبسکرپشن مانگیں — ہم رابطہ کر کے اکاؤنٹ فعال کریں گے","اسم المزرعة / المنشأة *":"فارم / ادارے کا نام *","اسم المسؤول *":"ذمہ دار کا نام *","الجوال *":"موبائل *","المدينة / المنطقة":"شہر / علاقہ","النشاط المطلوب":"مطلوبہ سرگرمی","السجل التجاري":"تجارتی رجسٹریشن","يصلاننا مع طلبك لإصدار فاتورة الاشتراك — وتُدخلهما داخل السستم بنفسك بعد التفعيل":"سبسکرپشن انوائس کے لیے درخواست کے ساتھ آتے ہیں — فعال ہونے کے بعد آپ خود سسٹم میں درج کریں گے","ملاحظة (اختياري)":"نوٹ (اختیاری)","الإيميل * (به تدخل السستم)":"ای میل * (اسی سے لاگ ان)","كلمة المرور * (6 أحرف فأكثر)":"پاس ورڈ * (6 حروف یا زیادہ)","📨 إرسال طلب الاشتراك":"📨 درخواست بھیجیں","بيانات الطلب":"درخواست کی تفصیل","مثال: مزرعة الواحة":"مثلاً: الواحہ فارم","حجم المزرعة، عدد الموظفين، أي طلب خاص…":"فارم کا حجم، ملازمین کی تعداد، کوئی خاص درخواست…"});
@@ -4310,7 +4320,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.26-A";
+const KS_VER="v12.27-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -6189,6 +6199,7 @@ function applyRole(){
   if(fabEl) fabEl.style.display = isOwner() ? "flex" : "none";
   // تحديث جرس التنبيهات عند الدخول
   setTimeout(buildNotifications, 500);
+  try{ ksNoVatUI(); }catch(e){}   /* 🏷️ إخفاء شاشة الضريبة لغير المسجَّل عند كل تطبيق للدور */
 }
 function cloudGateNeeded(){
   try{
@@ -8435,7 +8446,36 @@ function renderCycles(){
 
 /* ====== الإنتاج ====== */
 /* دوال ذمم المبيعات والمشتريات (أُعيد تعريفها — كانت مفقودة) */
-function ksVatRate(){ const v=+((DB.settings||{}).vatRate); return (isFinite(v)?v:15)/100; }  /* ⚠️ +undefined ?? 15 = NaN — لا تستعمل ?? مع + */
+/* ── 🏷️ منشأة غير مسجّلة في ضريبة القيمة المضافة ─────────────────────────────
+   التسجيل في الضريبة إلزامي فوق حدّ معيّن من الإيرادات فقط، وكثير من المزارع
+   الصغيرة دونه وبلا سجل تجاري. وإجبارها على إدخال رقم ضريبي لتستطيع البيع
+   خطأ نظامي أيضاً: **الفاتورة الضريبية بمتطلباتها (QR وحقول زاتكا) للمسجَّلين
+   فقط** — وغير المسجَّل يصدر «فاتورة» عادية بلا ضريبة. */
+function ksNoVat(){ try{ return (DB.settings||{}).noVat===true; }catch(e){ return false; } }
+function ksNoVatSet(on){
+  DB.settings.noVat=!!on;
+  if(on) DB.settings.vatRate=0;                 /* مصدر واحد: كل قارئ للنسبة يرى صفراً */
+  save(); try{ ksNoVatUI(); }catch(e){}
+  try{ renderCompanyInfo&&renderCompanyInfo(); }catch(e){}
+  try{ renderTax&&renderTax(); }catch(e){}
+  toast(on?"✅ وُضعت المنشأة كغير مسجّلة في الضريبة — الفواتير بلا ضريبة وبلا رقم ضريبي"
+          :"✅ عادت المنشأة مسجَّلة — أدخل الرقم الضريبي ونسبة الضريبة");
+}
+function ksNoVatUI(){
+  const on=ksNoVat();
+  try{ const c=document.getElementById("cmpNoVat"); if(c) c.checked=on; }catch(e){}
+  /* الحقول الضريبية تُعطَّل بصرياً بدل أن تبقى موهمة */
+  ["taxNoInp","unifiedNoInp"].forEach(id=>{ const e=document.getElementById(id);
+    if(e){ e.placeholder = on ? "غير مطلوب — منشأة غير مسجّلة" : (id==="taxNoInp"?"3xxxxxxxxxxxxx3":"70xxxxxxxx"); } });
+  try{ const v=document.getElementById("vatRate"); if(v){ v.disabled=on; if(on) v.value=0; } }catch(e){}
+  /* زر «🧾 إدارة الضرائب» في شريط المحاسبة (لا يوجد data-tab للضرائب — المُحدِّد الخاطئ كان يخفي لا شيء) */
+  try{ const bt=document.getElementById("sb_tax"); if(bt) bt.style.display=on?"none":""; }catch(e){}
+  try{ const card=document.getElementById("vatReviewCard"); if(card) card.style.display=on?"none":""; }catch(e){}
+  /* خانة «أساس السعر (شامل/غير شامل الضريبة)» بلا معنى لغير المسجَّل */
+  ["lvSlTaxBase","fpTaxBase"].forEach(id=>{ try{ const e=document.getElementById(id);
+    if(e){ const w=e.closest("div")||e; w.style.display=on?"none":""; if(on) e.value="none"; } }catch(err){} });
+}
+function ksVatRate(){ if(ksNoVat()) return 0; const v=+((DB.settings||{}).vatRate); return (isFinite(v)?v:15)/100; }  /* ⚠️ +undefined ?? 15 = NaN — لا تستعمل ?? مع + */
 function ksVatFields(base, total){
   /* base: incl (السعر شامل) / excl (تُضاف فوقه) / none — تُرجع {total, taxAmt, taxIncl} */
   const r=ksVatRate(), t=+total||0;
@@ -9656,8 +9696,8 @@ function printQuote(id){
     <div style="flex:1;padding-left:20px;border-left:1.5px solid #cfd8cf">
       <p style="font-size:13.5px;font-weight:700;color:#065f46;margin:0 0 6px">🏢 مقدم العرض <span style="color:#9aa39a;font-weight:400;font-size:10.5px">Issuer</span></p>
       <p style="margin:3px 0;font-size:13.5px"><b>${coName}</b>${coEn?` <span dir="ltr" style="color:#8a8f98;font-size:10px">${coEn}</span>`:''}</p>
-      ${ln('الرقم الضريبي','VAT No',st.taxNo)}
-      ${ln('الرقم الموحد (س.ت)','CR No',st.unifiedNo||st.crNo)}
+      ${ln('الرقم الضريبي','VAT No',((typeof ksNoVat==="function")&&ksNoVat())?'':st.taxNo)}
+      ${ln('الرقم الموحد (س.ت)','CR No',((typeof ksNoVat==="function")&&ksNoVat())?'':(st.unifiedNo||st.crNo))}
       ${ln('الجوال','Phone',st.coPhone)}
       ${ln('العنوان','Address',coAdr)}
     </div>
@@ -13001,6 +13041,7 @@ function fillCompanyInfo(){
   try{ renderCompanySummary(); renderBankAccts(); }catch(e){}
   const s=DB.settings, g=id=>document.getElementById(id);
   const _an=g("adminNameInp"); if(_an && !_an.matches(":focus")) _an.value=s.adminName||s.ownerName||"";
+  try{ ksNoVatUI(); }catch(e){}
   const map={companyNameInp:s.companyName, companyNameEnInp:s.companyNameEn, taxNoInp:s.taxNo, unifiedNoInp:(s.unifiedNo||s.crNo), coPhone:s.coPhone, agrNoInp:s.agrNo,
     coStreet:(s.coStreet||s.nationalAddress||""), coBldg:s.coBldg, coAddl:s.coAddl, coCity:s.coCity,
     coRegion:s.coRegion, coCountry:s.coCountry, coZip:s.coZip};
@@ -16831,10 +16872,11 @@ function invNextNo(){
 }
 function __companyDataMissing(){
   const st=DB.settings||{};
+  /* 🏷️ غير المسجَّل في الضريبة: لا يُطالَب برقم ضريبي ولا سجل تجاري */
   const req=[
     ["companyName","اسم المنشأة"],
-    ["unifiedNo","الرقم الوطني الموحد (السجل التجاري)"],
-    ["taxNo","الرقم الضريبي"],
+    ...(ksNoVat()?[]:[["unifiedNo","الرقم الوطني الموحد (السجل التجاري)"],
+                      ["taxNo","الرقم الضريبي"]]),
     ["coPhone","جوال المنشأة"],
     ["coStreet","الشارع"],["coBldg","رقم المبنى"],["coAddl","الرقم الإضافي"],
     ["coCity","المدينة"],["coRegion","الحي"],["coCountry","الدولة"],["coZip","الرمز البريدي"]
@@ -17198,8 +17240,10 @@ function printInvoice(id){
   function tlv(tag,val){ const enc=new TextEncoder().encode(val); return String.fromCharCode(tag,enc.length,...enc); }
   const qrTs=(inv.approvedAt&&inv.approvedAt.length>10)?inv.approvedAt:((inv.date||today())+"T00:00:00Z");
   const qrB64=btoa(tlv(1,coName)+tlv(2,st.taxNo||'')+tlv(3,qrTs)+tlv(4,total.toFixed(2))+tlv(5,taxT.toFixed(2)));
-  const ttlAr=inv.type==='credit'?'إشعار دائن':inv.type==='debit'?'إشعار مدين':inv.type==='simplified'?'فاتورة ضريبية مبسطة':'فاتورة ضريبية';
-  const ttlEn=inv.type==='credit'?'CREDIT NOTE':inv.type==='debit'?'DEBIT NOTE':inv.type==='simplified'?'SIMPLIFIED TAX INVOICE':'TAX INVOICE';
+  /* 🏷️ منشأة غير مسجّلة: «فاتورة» لا «فاتورة ضريبية»، وبلا رمز QR — متطلبات زاتكا للمسجَّلين فقط */
+  const __nv=(typeof ksNoVat==="function")&&ksNoVat();
+  const ttlAr=inv.type==='credit'?'إشعار دائن':inv.type==='debit'?'إشعار مدين':__nv?'فاتورة':inv.type==='simplified'?'فاتورة ضريبية مبسطة':'فاتورة ضريبية';
+  const ttlEn=inv.type==='credit'?'CREDIT NOTE':inv.type==='debit'?'DEBIT NOTE':__nv?'INVOICE':inv.type==='simplified'?'SIMPLIFIED TAX INVOICE':'TAX INVOICE';
   const ln=(lbl,en,val)=>val?`<p style="margin:3px 0;font-size:12.5px"><span style="color:#6b7280">${lbl} <span style="font-size:9.5px;color:#9aa39a">${en}</span>:</span> ${val}</p>`:'';
   const rows=inv.items.map((i,ix)=>`<tr${ix%2?'':' style="background:#f8faf8"'}><td>${ksNm(i.name)}</td><td style="font-size:10.5px;color:#555">${i.desc||'—'}</td><td style="text-align:center">${ksTxt(i.qty)}</td><td style="text-align:center">${i.unit||'—'}</td><td style="text-align:center">${i.price.toFixed(2)}</td><td style="text-align:center">${(+i.disc||0)?(+i.disc).toFixed(2):'—'}</td><td style="text-align:center">${invLineNet(i).toFixed(2)}</td><td style="text-align:center">${i.tax}%</td><td style="text-align:center">${invLineTax(i).toFixed(2)}</td><td style="text-align:center"><b>${invLineTotal(i).toFixed(2)}</b></td></tr>`).join('');
   const win=window.open('','_blank');
@@ -17233,8 +17277,8 @@ function printInvoice(id){
     <div style="flex:1;padding-left:20px;border-left:1.5px solid #cfd8cf">
       <p style="font-size:13.5px;font-weight:700;color:#065f46;margin:0 0 6px">🏢 البائع <span style="color:#9aa39a;font-weight:400;font-size:10.5px">Seller</span></p>
       <p style="margin:3px 0;font-size:13.5px"><b>${coName}</b>${coEn?` <span dir="ltr" style="color:#8a8f98;font-size:10px">${coEn}</span>`:''}</p>
-      ${ln('الرقم الضريبي','VAT No',st.taxNo)}
-      ${ln('الرقم الموحد (س.ت)','CR No',st.unifiedNo||st.crNo)}
+      ${ln('الرقم الضريبي','VAT No',((typeof ksNoVat==="function")&&ksNoVat())?'':st.taxNo)}
+      ${ln('الرقم الموحد (س.ت)','CR No',((typeof ksNoVat==="function")&&ksNoVat())?'':(st.unifiedNo||st.crNo))}
       ${ln('الجوال','Phone',st.coPhone)}
       ${ln('العنوان','Address',coAdr)}
     </div>
@@ -17252,7 +17296,7 @@ function printInvoice(id){
     <tbody>${rows}</tbody>
   </table>
   <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px;gap:16px">
-    <div><div id="qrcode"></div>${inv.notes?`<p style="font-size:11.5px;color:#6b7280;margin:8px 0 0">ملاحظات: ${ksTxt(inv.notes)}</p>`:''}</div>
+    <div>${__nv?'<p style="font-size:11px;color:#6b7280;margin:0;max-width:150px">منشأة غير مسجّلة في ضريبة القيمة المضافة</p>':'<div id="qrcode"></div>'}${inv.notes?`<p style="font-size:11.5px;color:#6b7280;margin:8px 0 0">ملاحظات: ${ksTxt(inv.notes)}</p>`:''}</div>
     <table style="border-collapse:collapse;font-size:13px;min-width:270px">
       <tr><td style="padding:4px 10px;color:#555">المجموع قبل الضريبة <span style="font-size:9px;color:#9aa39a">Subtotal</span></td><td style="text-align:left"><b>${sub.toFixed(2)}</b></td></tr>
       <tr><td style="padding:4px 10px;color:#555">ضريبة القيمة المضافة${(()=>{const rs=[...new Set(inv.items.map(i=>+i.tax||0))];return rs.length===1?" "+rs[0]+"%":"";})()} <span style="font-size:9px;color:#9aa39a">${(()=>{const rs=[...new Set(inv.items.map(i=>+i.tax||0))];return rs.length===1?"VAT "+rs[0]+"%":"VAT";})()}</span></td><td style="text-align:left"><b>${taxT.toFixed(2)}</b></td></tr>
@@ -17265,7 +17309,7 @@ function printInvoice(id){
   </div>`:''}
   <p style="text-align:center;font-size:11.5px;color:#6b7280;border-top:1px dashed #d1d5db;margin-top:14px;padding-top:9px">شكراً لتعاملكم معنا 🌱 ${coName}${coEn?' — '+coEn:''}</p>
   <div class="no-print" style="margin-top:14px;text-align:center"><button onclick="window.print()" style="padding:8px 26px;background:#065f46;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">🖨️ طباعة</button> <button onclick="try{window.close()}catch(e){};history.back()" style="padding:8px 20px;background:#fff;color:#333;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:14px;margin-inline-start:8px">↩️ رجوع</button></div>
-  <script>new QRCode(document.getElementById("qrcode"),{text:"${qrB64}",width:110,height:110});<\/script>
+  <script>try{ var __q=document.getElementById("qrcode"); if(__q) new QRCode(__q,{text:"${qrB64}",width:110,height:110}); }catch(e){}<\/script>
   </body></html>`);
   win.document.close();
 }

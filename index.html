@@ -4320,7 +4320,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.28-B";
+const KS_VER="v12.29-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4699,11 +4699,13 @@ function ksWipeFarmData(){ /* مسح كامل لأثر المزرعة الساب
        /* بصمة كلمة مرور المستخدم السابق: الجهاز يُسلَّم لغيره، ولا مستهلك لها بعد المسح
           (الدخول المحلي يشترط وجود بيانات المزرعة وقد مُسحت) — فلا تُترك أثراً قابلاً للكسر */
        localStorage.removeItem("ksCredHash");
-       localStorage.removeItem("ksNotifMuted"); localStorage.removeItem("ksNotifSeen"); }catch(e){}
+       localStorage.removeItem("ksNotifMuted"); localStorage.removeItem("ksNotifSeen");
+       localStorage.removeItem("ksPlanSeen"); localStorage.removeItem("ksPlanAt"); }catch(e){}
 }
 function __persistNow(){
   __saveTimer=null;
   if(__skipPersist) return;
+  if(window.__ksReadOnly) return;   /* 🔒 قراءة فقط: لا كتابة ولو جاء الاستدعاء من مؤقت سابق أو من فلش الإغلاق */
   /* 🛡️ ختم حالة الاعتماد لأي سجل جديد: مَن له صلاحية الاعتماد يُعتمد سجله تلقائياً، وغيره ينتظر */
   try{
     const __st=apvStamp();
@@ -5008,10 +5010,37 @@ window.__ksReadOnly=false;
 const PLAN_MODS=[["agri","🌱","الزراعة"],["lvs","🐑","المواشي"],["fish","🐟","الأسماك"]];
 function planIsProvider(){ try{ const s=cloudSess(); return !!s&&String(s.email||"").toLowerCase()===PROVIDER_EMAIL; }catch(e){ return false; } }
 function secModule(sec){ const s=String(sec||""); if(/سمك|أسماك|اسماك|استزراع/.test(s)) return "fish"; if(/مواشي|ضان|أغنام|اغنام|ماعز|حلال/.test(s)) return "lvs"; return "agri"; }
-function planDays(ds){ if(!ds) return null; const d=Math.ceil((new Date(ds)-new Date(today()))/864e5); return isNaN(d)?null:d; }
+/* ── ⏱️ مرجع اليوم: أكبر تاريخ رأيناه، لا ساعة الجهاز وحدها ──────────────────
+   حساب انتهاء الاشتراك كان يقرأ `today()` من ساعة الجهاز — فإرجاع التاريخ
+   شهراً للوراء يعيد اشتراكاً منتهياً «نشطاً». الآن: مرجع اليوم = الأكبر بين
+   ساعة الجهاز وأكبر يوم سبق أن رآه هذا الجهاز (يُختم خارج بيانات المزرعة
+   فلا يزول بمسحها). الساعة المتقدّمة تعمل كما كانت — التشديد على الرجوع فقط. */
+function ksDayMax(){ try{ return localStorage.getItem("ksDayMax")||""; }catch(e){ return ""; } }
+function ksNowDay(){
+  let t=""; try{ t=today(); }catch(e){ t=new Date().toISOString().slice(0,10); }
+  const m=ksDayMax();
+  if(!m || t>m){ try{ localStorage.setItem("ksDayMax", t); }catch(e){} return t; }
+  return m;                                     /* الساعة رجعت للوراء ⇒ نعتمد آخر يوم معروف */
+}
+/* 🕓 ختم «هذه المزرعة لها خطة اشتراك» — حذف الكاش لم يعد يعني «مزرعة قديمة بلا قيود» */
+function ksPlanSeen(){ try{ return localStorage.getItem("ksPlanSeen")||""; }catch(e){ return ""; } }
+function planDays(ds){ if(!ds) return null; const d=Math.ceil((new Date(ds)-new Date(ksNowDay()))/864e5); return isNaN(d)?null:d; }
 function planState(){
   if(planIsProvider()) return {mode:"full"};
-  if(!FARM_PLAN) return {mode:"full",legacy:true}; /* مزارع قائمة قبل نظام الاشتراكات */
+  if(!FARM_PLAN){
+    /* 🛡️ «لا خطة» كان يعني وصولاً كاملاً (تسامحاً مع المزارع الأقدم من نظام الاشتراكات)
+       ⇒ حذف كاش الخطة والبقاء بلا إنترنت كان يفتح السستم كاملاً بعد الانتهاء.
+       الآن: إن سبق أن رأينا خطة لهذه المزرعة فغيابها = قفل حتى تصل خطة صحيحة. */
+    try{ const f=cloudFarmId(); if(f && ksPlanSeen()===f) return {mode:"locked",why:"expired"}; }catch(e){}
+    return {mode:"full",legacy:true};
+  }
+  /* 🕓 كاش خطة لم يُحدَّث من السحابة منذ مدة طويلة لا يُعتمد عليه (حجب الاتصال للبقاء «نشطاً») */
+  try{
+    const f=cloudFarmId(), seen=(ksPlanSeen()===f);
+    const at=+(localStorage.getItem("ksPlanAt")||0);
+    /* بلا ختم جلب (حُذف للتحايل) أو ختم أقدم من أسبوعين ⇒ لا يُعتمد على الكاش */
+    if(seen && (!at || (Date.now()-at) > 14*864e5)) return {mode:"locked",why:"expired"};
+  }catch(e){}
   const p=FARM_PLAN;
   if(p.status==="suspended") return {mode:"locked",why:"suspended"};
   if(p.status==="pending")   return {mode:"pending",why:"pending"};
@@ -5030,7 +5059,8 @@ function planState(){
 function modOn(k){
   const st=planState();
   if(st.mode==="full") return true;
-  if(!FARM_PLAN.modules) return true;
+  /* ⚠️ صارت planState تُرجع «مقفل» مع FARM_PLAN=null (ختم «سبق أن رأينا خطة») ⇒ لا تفترض وجودها */
+  if(!FARM_PLAN || !FARM_PLAN.modules) return true;
   return FARM_PLAN.modules[k]===true;
 }
 async function planFetch(){
@@ -5039,7 +5069,10 @@ async function planFetch(){
     const r=await cloudAuthFetch("/rest/v1/farm_plan?farm_id=eq."+fid+"&select=*");
     if(!r.ok) return;
     const rows=await r.json(); FARM_PLAN=rows[0]||null;
-    try{ localStorage.setItem("ksFarmPlan", JSON.stringify(FARM_PLAN)); }catch(e){}
+    try{ localStorage.setItem("ksFarmPlan", JSON.stringify(FARM_PLAN));
+         localStorage.setItem("ksPlanAt", String(Date.now()));
+         if(FARM_PLAN) localStorage.setItem("ksPlanSeen", String(fid));
+    }catch(e){}
   }catch(e){}
 }
 async function planRegisterSelf(em, req){
@@ -5122,6 +5155,7 @@ async function planBoot(){
   try{ const __f=cloudFarmId();
        if(FARM_PLAN && __f && String(FARM_PLAN.farm_id||"")!==String(__f)){
          FARM_PLAN=null; localStorage.removeItem("ksFarmPlan"); } }catch(e){}
+  try{ const __f=cloudFarmId(); if(FARM_PLAN && __f) localStorage.setItem("ksPlanSeen", String(__f)); }catch(e){}
   if(FARM_PLAN) planApply();
   if(!cloudOn()) return;
   await planFetch(); planApply();

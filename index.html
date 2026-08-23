@@ -4273,7 +4273,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.22-A";
+const KS_VER="v12.23-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4554,6 +4554,21 @@ function ksDataDrift(){
     return !!(own && cur && own!==cur);
   }catch(e){ return false; }
 }
+/* 🚪 نقطة اعتراض واحدة بدل 26 موضع window.open: لا تخرج بيانات مزرعة في مطبوعة
+   أو ملف بينما هوية الجلسة مزرعة أخرى (أو النافذة مجمّدة). */
+function ksOutAllowed(){ return !(window.__ksFrozen || ksDataDrift()); }
+(function(){
+  try{
+    const __openOrig=window.open.bind(window);
+    window.open=function(){
+      if(!ksOutAllowed()){
+        try{ toast("⛔ بيانات هذا الجهاز تخص مزرعة أخرى — الطباعة والتصدير معطّلان"); }catch(e){}
+        return null;
+      }
+      return __openOrig.apply(window, arguments);
+    };
+  }catch(e){}
+})();
 function ksDataDriftBlock(what){
   if(!ksDataDrift()) return false;
   try{ if(!window.__ksDriftToast){ window.__ksDriftToast=1;
@@ -4890,7 +4905,11 @@ async function cloudBootCheck(){
     const m=await cloudResolveFarm();
     if(m && m.status==="rejected"){
       alert("⛔ أوقف صاحب المزرعة وصولك للسحابة");
-      cloudSetSess(null); localStorage.removeItem(KEY); sessionStorage.removeItem("ksUser");
+      /* 🛡️ «الإيقاف فوري» يجب أن يكون حرفياً: مسح الملف الرئيسي وحده كان يترك
+         **اللقطات** — وكل لقطة نسخة كاملة من قاعدة المزرعة (عملاء، رواتب، أسعار، فواتير)
+         قابلة للاستعادة على جهاز من أُوقف وصوله. ومعها الخطة وختم الملكية ومفاتيح التنبيهات. */
+      ksWipeFarmData(); localStorage.removeItem("ksCredHash");
+      cloudSetSess(null); sessionStorage.removeItem("ksUser"); sessionStorage.removeItem("ksAuthed");
       location.reload(); return;
     }
     if(m && m.status!=="approved"){ try{ cloudGateShow(); }catch(e){} return; } /* معلق: بوابة الانتظار بلا مسح بيانات */
@@ -5205,6 +5224,10 @@ function fmtSR(n){ return fmt(n)+" ⃁"; }
 
 /* ====== تصدير CSV ====== */
 function exportCSV(headers, rows, filename){
+  if(typeof ksOutAllowed==="function" && !ksOutAllowed()){
+    try{ toast("⛔ بيانات هذا الجهاز تخص مزرعة أخرى — التصدير معطّل"); }catch(e){}
+    return;
+  }
   if(typeof __lang!=="undefined" && __lang!=="ar"){
     headers=headers.map(h=>typeof h==="string"?__trString(h):h);
     rows=rows.map(r=>r.map(c=>typeof c==="string"?__trString(c):c));
@@ -9264,7 +9287,8 @@ function logoTag(h){ return DB.settings.logo ? `<img src="${DB.settings.logo}" s
 function getSnaps(){ try{
     const all=JSON.parse(localStorage.getItem("ksFarmSnaps")||"[]");
     const cur=(typeof cloudFarmId==="function")?cloudFarmId():"";
-    if(!cur) return all;
+    /* 🛡️ بلا هوية مزرعة (جلسة مسحوبة/موقوفة) لا تُعرض لقطات أحد — كانت تُعرض كلها */
+    if(!cur) return [];
     /* 🛡️ لقطة بلا وسم = ملكية مجهولة (بقايا إصدار قديم) ⇒ لا تُعرض ولا تُستعاد لأي مزرعة */
     return all.filter(s=>s.farm===cur);
   }catch(e){ return []; } }
@@ -9306,7 +9330,9 @@ function takeSnap(manual){
 function restoreSnap(i){
   if(typeof ksTabAllowed==="function" && !ksTabAllowed()) return;
   const snaps = getSnaps(); const s = snaps[i]; if(!s) return;
-  if(s.farm && typeof cloudFarmId==="function" && cloudFarmId() && s.farm!==cloudFarmId()){ toast("⛔ اللقطة تخص مزرعة أخرى"); return; }
+  const __cf=(typeof cloudFarmId==="function")?cloudFarmId():"";
+  if(!__cf){ toast("⛔ لا توجد جلسة مزرعة — لا تُستعاد أي لقطة"); return; }
+  if(s.farm!==__cf){ toast("⛔ اللقطة تخص مزرعة أخرى"); return; }
   if(!confirm("⚠️ استعادة لقطة "+s.ts+"؟\nكل التغييرات بعدها بتنحذف. الأفضل تاخذ لقطة جديدة قبل الاستعادة."))return;
   try{
     cancelPendingSave();

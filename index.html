@@ -4310,7 +4310,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.25-A";
+const KS_VER="v12.26-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -5068,7 +5068,7 @@ function planChip(){
 }
 function planGateShow(st){
   const M={
-    pending:{ic:"🕓",t:"حسابك جاهز — بانتظار التفعيل",p:"أُنشئت مزرعتك بنجاح وبياناتك آمنة. تواصل مع خيرات سايه لتفعيل الفترة التجريبية أو الاشتراك، ثم اضغط «تحقّق من التفعيل»."},
+    pending:{ic:"🕓",t:"حسابك جاهز — بانتظار التفعيل",p:"أُنشئت مزرعتك بنجاح وبياناتك آمنة. وصلنا طلبك وسنتواصل معك قريباً لتفعيل الفترة التجريبية أو الاشتراك — وبعد التفعيل اضغط «تحقّق من التفعيل»."},
     trialEnd:{ic:"⏳",t:"انتهت الفترة التجريبية (٧ أيام)",p:"نتمنى أن التجربة نالت رضاك! للاشتراك وتفعيل مزرعتك بشكل دائم تواصل مع خيرات سايه — كل بياناتك التجريبية محفوظة وسترجع كما هي لحظة التفعيل."},
     expired:{ic:"⏸️",t:"انتهى اشتراك مزرعتك",p:"بياناتك كلها محفوظة وآمنة في سحابتك ولن تُمس أبداً. جدد الاشتراك ويرجع كل شيء كما كان في نفس اللحظة."},
     suspended:{ic:"⏸️",t:"الاشتراك موقوف",p:"تم إيقاف اشتراك هذه المزرعة مؤقتاً — للاستفسار تواصل مع خيرات سايه."}
@@ -5082,7 +5082,6 @@ function planGateShow(st){
     +'<div style="font-size:2.6rem">'+m.ic+'</div>'
     +'<h2 style="margin:12px 0 8px;color:#065f46;font-size:1.1rem">'+m.t+'</h2>'
     +'<p class="muted" style="line-height:1.9;font-size:.85rem">'+m.p+'</p>'
-    +'<p style="font-size:.82rem;font-weight:700;margin:14px 0;direction:ltr">📧 '+PROVIDER_EMAIL+'</p>'
     +'<button class="btn" style="width:100%" onclick="planGateRefresh(this)">🔄 تحقّق من التفعيل</button>'
     +'<button class="btn secondary" style="width:100%;margin-top:8px" onclick="planGateOut()">تسجيل الخروج</button></div>';
   g.style.display="flex";

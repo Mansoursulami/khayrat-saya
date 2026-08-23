@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>مزرعة خيرات سايه — سستم التشغيل</title>
+<title>سستم تشغيل المزرعة</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
@@ -686,7 +686,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
 <header>
   <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:180px">
     <span id="logoWrap"><img id="logoImg"><span id="logoEmoji">🌱</span></span>
-    <h1><span id="headerFarmName">خيرات سايه</span></h1>
+    <h1><span id="headerFarmName">المزرعة</span></h1>
   </div>
   <div class="sub" id="todayLabel" style="display:none"></div>
   <div id="liveClock" style="margin-inline-end:6px"></div>
@@ -3756,8 +3756,8 @@ function setSysLang(l){
   try{
     const st=(typeof DB!=="undefined"&&DB.settings)||{};
     document.title = (l==="ar")
-      ? ((st.companyName||"مزرعة خيرات سايه")+" — سستم التشغيل")
-      : ((st.companyNameEn||st.companyName||"Khayrat Saya Farm")+" — Farm OS");
+      ? ((ksCoName())+" — سستم التشغيل")
+      : ((st.companyNameEn||st.companyName||"Farm")+" — Farm OS");
   }catch(e){}
 }
 </script>
@@ -4320,7 +4320,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.27-A";
+const KS_VER="v12.28-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -5338,6 +5338,8 @@ function exportCSV(headers, rows, filename){
   toast("✅ تم التصدير: " + filename + ".csv");
 }
 function exportWorkbook(){
+  /* 🛑 لا يخرج ملف من هذا الجهاز بهوية مزرعة أخرى (أو من نافذة مجمّدة) */
+  if(typeof ksOutAllowed==="function" && !ksOutAllowed()){ try{ toast("⛔ بيانات هذا الجهاز تخص مزرعة أخرى — التصدير معطّل"); }catch(e){} return; }
   if(typeof XLSX==="undefined"){
     toast("⚠️ مكتبة Excel غير متاحة (تحتاج إنترنت) — يُصدَّر CSV ملخص بدلاً منها");
     const rev=DB.harvests.reduce((s,h)=>s+hGross(h),0);
@@ -5365,7 +5367,7 @@ function exportWorkbook(){
   const debt=DB.harvests.reduce((s,h)=>s+hRemain(h),0);
   const sumRows=[["البيان","القيمة (⃁)"],["إجمالي المبيعات",rev],["إجمالي التكاليف",cost],["صافي الربح",rev-cost],["ديون العملاء غير المسددة",debt]];
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sumRows), "الملخص المالي");
-  XLSX.writeFile(wb, "مزرعة-خيرات-سايه_"+today()+".xlsx");
+  XLSX.writeFile(wb, ksCoName().replace(/[\\/:*?"<>|]/g,"-")+"_"+today()+".xlsx");
   toast("✅ تم تصدير ملف Excel (4 أوراق)");
 }
 function exportHarvestsCSV(){
@@ -5574,6 +5576,8 @@ function ksVoid(kind, id){
    مطفأ افتراضياً: المزرعة التي يسجّل فيها المالك وحده لا تحتاجه. */
 function ctrlMode(){ try{ return (DB.settings||{}).ctrlMode===true; }catch(e){ return false; } }
 function ctrlSet(on){
+  /* 🛡️ أخطرها: الوضع الرقابي هو ما يقيّد الموظف — فلا يجوز أن يطفئه الموظف نفسه */
+  if(!ksOwnerOnly("الوضع الرقابي")){ try{ ctrlUI(); }catch(e){} return; }
   DB.settings=DB.settings||{}; DB.settings.ctrlMode=!!on;
   logEdit(on?"🛡️ تفعيل الوضع الرقابي":"🔓 إيقاف الوضع الرقابي","");
   save(); try{ ctrlUI(); acctRenderAll(); renderApv(); }catch(e){}
@@ -7965,7 +7969,7 @@ let CUR_SEC = "الزراعة المكشوفة";
 function printFarmCensus(){
   const y=String(new Date().getFullYear());
   const st=DB.settings||{};
-  const coName=st.companyName||st.sellerName||"مزرعة خيرات سايه";
+  const coName=ksCoName();
   const kgOf=(qty,unit)=>{ const u=unit||"كجم"; if(u==="كجم")return +qty||0; if(u==="جم")return (+qty||0)/1000; if(u==="طن")return (+qty||0)*1000; try{ const k=invUnitKg(u)||0; return (+qty||0)*k; }catch(e){ return 0; } };
   let grandKg=0;
   const secRow=(l,c,pr)=>`<tr><td style="padding:6px 10px;border-bottom:1px solid #eee">${l}</td><td style="text-align:center;border-bottom:1px solid #eee;width:110px"><b>${c}</b></td><td style="text-align:center;border-bottom:1px solid #eee;width:150px">${pr||"—"}</td></tr>`;
@@ -8159,7 +8163,7 @@ function printLvReport(){
   if(!w){ toast("⚠️ اسمح بالنوافذ المنبثقة"); return; }
   w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>تقرير القطيع</title>
   <style>body{font-family:Tahoma,Arial;padding:24px;color:#1f2937}h1{color:#065f46;font-size:16pt}h2{color:#065f46;font-size:12pt;border-right:3px solid #065f46;padding-right:8px;margin:16px 0 8px}table{width:100%;border-collapse:collapse;margin:6px 0}th,td{border:1px solid #d1d5db;padding:6px 8px;font-size:10pt;text-align:right}th{background:#f0fdf4}@media print{button{display:none}}</style></head><body>
-  <h1>🐑 تقرير القطيع — ${DB.settings?.companyName||DB.settings?.farmName||"مزرعة خيرات سايه"}</h1>
+  <h1>🐑 تقرير القطيع — ${ksCoName()}</h1>
   <div style="color:#555;font-size:10pt">التاريخ: ${t}</div>
   <h2>الملخص</h2>
   <table><tr><th>صافي القطيع</th><th>المسجّل</th><th>المواليد</th><th>النفوق</th><th>المبيعات (رأس)</th></tr>
@@ -8451,8 +8455,26 @@ function renderCycles(){
    الصغيرة دونه وبلا سجل تجاري. وإجبارها على إدخال رقم ضريبي لتستطيع البيع
    خطأ نظامي أيضاً: **الفاتورة الضريبية بمتطلباتها (QR وحقول زاتكا) للمسجَّلين
    فقط** — وغير المسجَّل يصدر «فاتورة» عادية بلا ضريبة. */
+/* 🏷️ اسم المنشأة في كل مخرج (مطبوعة/ملف/رسالة).
+   كان الاحتياطي «مزرعة خيرات سايه» مكتوباً في 11 موضعاً — فمزرعة عميل لم يُدخل اسمه بعد
+   تُصدر مستنداتها **باسم مزرعة أخرى**. الاحتياطي الآن محايد. */
+function ksCoName(){
+  try{ const st=DB.settings||{};
+    return String(st.companyName||st.farmName||st.sellerName||"").trim() || "المزرعة";
+  }catch(e){ return "المزرعة"; }
+}
+/* 🔐 إعدادات تخصّ المزرعة كلها (الضريبة · الوضع الرقابي · هوية المنشأة) = قرار مالك.
+   إخفاء الشاشة عن الموظف لا يكفي: الاستدعاء المباشر كان يمرّ — نفس درس v12.17-A مع الحذف.
+   والرسالة تُكتم لثانيتين لأن بعض هذه الدوال تُستدعى مع كل حرف (oninput). */
+function ksOwnerOnly(what){
+  try{ if(typeof isOwner==="function" && isOwner()) return true; }catch(e){ return true; }
+  try{ const t=Date.now(); if(!window.__ksOwnMsgAt || t-window.__ksOwnMsgAt>2000){
+        window.__ksOwnMsgAt=t; toast("⚠️ "+(what||"هذا الإعداد")+" — لصاحب المزرعة فقط"); } }catch(e){}
+  return false;
+}
 function ksNoVat(){ try{ return (DB.settings||{}).noVat===true; }catch(e){ return false; } }
 function ksNoVatSet(on){
+  if(!ksOwnerOnly("تغيير حالة التسجيل الضريبي")){ try{ ksNoVatUI(); }catch(e){} return; }
   DB.settings.noVat=!!on;
   if(on) DB.settings.vatRate=0;                 /* مصدر واحد: كل قارئ للنسبة يرى صفراً */
   save(); try{ ksNoVatUI(); }catch(e){}
@@ -8600,7 +8622,7 @@ function printHarvestInvoice(id){
     priceFishSale(id); toast("💲 سعّر البيع أولاً ثم أعد الطباعة"); return;
   }
   const c = DB.cycles.find(x=>x.id===h.cycleId);
-  const farm = DB.settings?.companyName||DB.settings?.farmName||"مزرعة خيرات سايه";
+  const farm = ksCoName();
   const owner = DB.settings?.ownerName||DB.settings?.adminName||"";
   const phone = DB.settings?.phone||DB.settings?.coPhone||"";
   const invNum = "INV-" + h.id.slice(-6).toUpperCase();
@@ -9408,8 +9430,8 @@ function applyLogo(){
   else { logoImg.style.display="none"; if(em) em.style.display="inline"; }
   const nameEl = document.getElementById("headerFarmName");
   if(nameEl){
-    let nm = DB.settings.companyName || "خيرات سايه";
-    nm = nm.replace(/🌴/g,"").replace(/^\s*مزرعة\s*/,"").trim() || "خيرات سايه";
+    let nm = DB.settings.companyName || "المزرعة";
+    nm = nm.replace(/🌴/g,"").replace(/^\s*مزرعة\s*/,"").trim() || "المزرعة";
     if(typeof __lang!=="undefined" && __lang!=="ar" && DB.settings.companyNameEn) nm = DB.settings.companyNameEn;
     nameEl.textContent = nm;
   }
@@ -9655,7 +9677,7 @@ function printQuote(id){
   }
   const cust=DB.customers?.find(c=>c.id===q.customerId);
   const st=DB.settings||{};
-  const coName=st.companyName||st.sellerName||'مزرعة خيرات سايه';
+  const coName=ksCoName();
   const coEn=st.companyNameEn||'';
   const coAdr=[st.coStreet,st.coBldg?('مبنى '+st.coBldg):'',st.coAddl?('فرعي '+st.coAddl):'',st.coRegion?('حي '+st.coRegion):'',st.coCity,st.coZip,st.coCountry].filter(Boolean).join('، ');
   const cuAdr=cust?[cust.street,cust.bldg?('مبنى '+cust.bldg):'',cust.addl?('فرعي '+cust.addl):'',cust.region?('حي '+cust.region):'',cust.city,cust.zip,cust.country].filter(Boolean).join('، '):'';
@@ -10687,7 +10709,7 @@ function printProducts(){
   .sub{text-align:center;color:#666;font-size:12px;margin-bottom:14px}
   table{width:100%;border-collapse:collapse;font-size:12.5px}th{background:#065f46;color:#fff;padding:7px}td{border:1px solid #ddd;padding:6px;text-align:center}
   tr:nth-child(even) td{background:#f6faf8}</style></head><body>
-  <h2>${DB.settings.companyName||"مزرعة خيرات سايه"} — قائمة المنتجات</h2>
+  <h2>${ksCoName()} — قائمة المنتجات</h2>
   <div class="sub">${today()} · ${fmt(DB.products.length)} منتج</div>
   <table><tr><th>الرقم</th><th>المنتج</th><th>التصنيف</th><th>الوحدة</th><th>وزن الوحدة</th><th>السعر الافتراضي</th><th>القسم</th></tr>${rows}</table>
   <div class="no-print" style="margin-top:16px;text-align:center">
@@ -12575,6 +12597,7 @@ function renderFA(){
 function saveVat(){
   const vatRate=document.getElementById("vatRate"), vatPeriod=document.getElementById("vatPeriod");
   if(!vatRate||!vatPeriod) return;
+  if(!ksOwnerOnly("نسبة الضريبة ودورة الإقرار")){ try{ renderTax(); }catch(e){} return; }
   DB.settings.vatRate = (function(v){ return isFinite(v)?v:15; })(+vatRate.value);   /* 0% كانت تنقلب 15% بفعل || */
   DB.settings.vatPeriod = vatPeriod.value||"quarter";
   save(); renderTax(); toast("✅ تم حفظ إعدادات ضريبة القيمة المضافة");
@@ -12879,7 +12902,7 @@ function printFinancialReport(){
   const section = secSel?.value==="all"?"جميع الأقسام":(secSel?.value||"");
   const now = new Date().toLocaleDateString(__dateLocale());
   const owner = DB.settings?.ownerName||"—";
-  const farmName = DB.settings?.companyName||DB.settings?.farmName||"مزرعة خيرات سايه";
+  const farmName = ksCoName();
   const cycRows = DB.cycles.map(c=>{
     const hs=DB.harvests.filter(h=>h.cycleId===c.id);
     const r=hs.reduce((s,h)=>s+hNet(h),0), q=hs.reduce((s,h)=>s+h.qty,0);
@@ -12922,7 +12945,7 @@ function printFinancialReport(){
   <table><tr><th>المحصول</th><th>القسم</th><th>تاريخ الزراعة</th><th>الكمية</th><th>إجمالي التكاليف</th><th>المبيعات</th><th>الربح</th><th>الحالة</th></tr>${cycRows}</table>
   <h2>💸 المصروفات حسب الفئة</h2>
   <table><tr><th>البند</th><th>المبلغ</th></tr>${catRows}</table>
-  <div class="footer">تم إنشاء التقرير بواسطة نظام مزرعة خيرات سايه — ${now}</div>
+  <div class="footer">تم إنشاء التقرير بواسطة ${ksCoName()} — ${now}</div>
   </body></html>`;
   const w=window.open("","_blank","width=900,height=700");
   if(w){ w.document.write(html); w.document.close(); setTimeout(()=>{try{w.print();}catch(e){}},400); }
@@ -13190,6 +13213,7 @@ async function cloudRegisterLegal(){
   }catch(e){}
 }
 function saveAdminName(v){
+  if(!ksOwnerOnly("اسم الأدمن الرئيسي")) return;
   DB.settings.adminName=String(v||"").trim(); save();
   try{
     if(CURRENT_USER && CURRENT_USER.type==="owner"){
@@ -13200,6 +13224,7 @@ function saveAdminName(v){
   }catch(e){}
 }
 function saveCompanyInfo(showToast){
+  if(!ksOwnerOnly("بيانات المنشأة")) return;
   DB.settings.companyName   = document.getElementById("companyNameInp")?.value||"";
   DB.settings.companyNameEn  = document.getElementById("companyNameEnInp")?.value||"";
   const _nu=document.getElementById("unifiedNoInp")?.value||"";
@@ -13331,6 +13356,8 @@ function saveSections(){
 
 /* ====== تصدير CSV ====== */
 function dlCSV(rows, name){
+  /* 🛑 منفذ CSV ثانٍ مستقل عن exportCSV — يحتاج الحارس نفسه */
+  if(typeof ksOutAllowed==="function" && !ksOutAllowed()){ try{ toast("⛔ بيانات هذا الجهاز تخص مزرعة أخرى — التصدير معطّل"); }catch(e){} return; }
   if(typeof __lang!=="undefined" && __lang!=="ar")
     rows=rows.map(r=>r.map(c=>typeof c==="string"?__trString(c):c));
   const bom = "\uFEFF";
@@ -13629,14 +13656,14 @@ function waSale(id){
   const h = DB.harvests.find(x=>x.id===id); if(!h) return;
   const cust = DB.customers.find(c=>c.id===h.customerId||c.name===h.customer);
   const phone = cust?.phone||"";
-  const msg = encodeURIComponent(`مرحباً ${h.customer||""}،\nفاتورة مبيعات بتاريخ ${h.date}\nالمحصول: ${h.productName||prodName(h.productId)} — ${fmt(h.qty)} ${h.unit||"كجم"}\nالإجمالي: ${fmtSR(h.total)}\nمن: ${DB.settings.companyName||DB.settings.farmName||"مزرعة خيرات سايه"}`);
+  const msg = encodeURIComponent(`مرحباً ${h.customer||""}،\nفاتورة مبيعات بتاريخ ${h.date}\nالمحصول: ${h.productName||prodName(h.productId)} — ${fmt(h.qty)} ${h.unit||"كجم"}\nالإجمالي: ${fmtSR(h.total)}\nمن: ${ksCoName()}`);
   window.open(`https://wa.me/${phone.replace(/\D/g,"")}?text=${msg}`, "_blank");
 }
 function waCustomer(custId){
   const c = DB.customers.find(x=>x.id===custId); if(!c) return;
   const sales = DB.harvests.filter(h=>h.customerId===custId||h.customer===c.name);
   const debt  = sales.reduce((s,h)=>s+hRemain(h),0);
-  const msg = encodeURIComponent(`مرحباً ${c.name}،\nإجمالي رصيدك المستحق: ${fmtSR(debt)}\nيُرجى التواصل لترتيب السداد.\nمن: ${DB.settings.companyName||DB.settings.farmName||"مزرعة خيرات سايه"}`);
+  const msg = encodeURIComponent(`مرحباً ${c.name}،\nإجمالي رصيدك المستحق: ${fmtSR(debt)}\nيُرجى التواصل لترتيب السداد.\nمن: ${ksCoName()}`);
   const phone = (c.phone||"").replace(/\D/g,"");
   window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
 }
@@ -13885,6 +13912,8 @@ function impPurge(){
   toast("🧹 تم المسح ("+fmt(n)+" عنصر) — ارفع ملفاتك من جديد");
 }
 function impTemplate(){
+  /* 🛑 لا يخرج ملف من هذا الجهاز بهوية مزرعة أخرى (أو من نافذة مجمّدة) */
+  if(typeof ksOutAllowed==="function" && !ksOutAllowed()){ try{ toast("⛔ بيانات هذا الجهاز تخص مزرعة أخرى — التصدير معطّل"); }catch(e){} return; }
   const ty=document.getElementById("impType").value;
   const c=IMP_CFG[ty];
   let rowsA=[c.ex];
@@ -13915,7 +13944,7 @@ function printFreeReport(){
   const w2=window.open("","_blank","width=760,height=800");
   if(!w2){ toast("⚠️ اسمح بالنوافذ المنبثقة للطباعة"); return; }
   const st=DB.settings||{};
-  const co=st.companyName||st.sellerName||"مزرعة خيرات سايه";
+  const co=ksCoName();
   st.freeRepSeq=(+st.freeRepSeq||0)+1; save();
   const repNo="FR-"+String(st.freeRepSeq).padStart(4,"0");
   const genBy=(typeof CURRENT_USER!=="undefined"&&CURRENT_USER&&CURRENT_USER.name)||"المالك";
@@ -15800,6 +15829,8 @@ function exportReportPDF(){
   w.document.close(); setTimeout(()=>w.print(),500);
 }
 function exportReportExcel(){
+  /* 🛑 لا يخرج ملف من هذا الجهاز بهوية مزرعة أخرى (أو من نافذة مجمّدة) */
+  if(typeof ksOutAllowed==="function" && !ksOutAllowed()){ try{ toast("⛔ بيانات هذا الجهاز تخص مزرعة أخرى — التصدير معطّل"); }catch(e){} return; }
   const type=document.getElementById("repType")?.value||"month";
   const {cur,curLabel}=getDateRange(type);
   const secs=SECTIONS;
@@ -16135,6 +16166,8 @@ function exportPayrollPDF(){
   w.document.close(); setTimeout(()=>w.print(),500);
 }
 function exportPayrollExcel(){
+  /* 🛑 لا يخرج ملف من هذا الجهاز بهوية مزرعة أخرى (أو من نافذة مجمّدة) */
+  if(typeof ksOutAllowed==="function" && !ksOutAllowed()){ try{ toast("⛔ بيانات هذا الجهاز تخص مزرعة أخرى — التصدير معطّل"); }catch(e){} return; }
   const month=document.getElementById("payrollMonth")?.value;
   const run=month?(DB.payrollRuns||[]).find(r=>r.month===month):null;
   if(!run){toast("⚠️ أنشئ الكشف أولاً");return;}
@@ -16345,6 +16378,8 @@ function renderStockHistory(){
 }
 function delStockTake(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }  if(!confirm("حذف؟"))return; DB.stockTakes=(DB.stockTakes||[]).filter(x=>x.id!==id); save(); renderStockHistory(); }
 function exportStockCheckExcel(){
+  /* 🛑 لا يخرج ملف من هذا الجهاز بهوية مزرعة أخرى (أو من نافذة مجمّدة) */
+  if(typeof ksOutAllowed==="function" && !ksOutAllowed()){ try{ toast("⛔ بيانات هذا الجهاز تخص مزرعة أخرى — التصدير معطّل"); }catch(e){} return; }
   if(!currentStockCheck){toast("⚠️ ابدأ جرداً أولاً");return;}
   let csv="\uFEFF"+"الصنف,الوحدة,كمية النظام,الكمية الفعلية,الفرق,الحد الأدنى,الحالة\n";
   currentStockCheck.items.forEach(it=>{
@@ -16468,7 +16503,7 @@ function waInvoice(id){
   const lines=(r.items||[]).map(i=>`• ${i.name}${i.desc?" ("+i.desc+")":""} — ${i.qty} ${i.unit||""} × ${(+i.price).toFixed(2)}${i.disc?" − خصم "+(+i.disc).toFixed(2):""} = ${invLineTotal(i).toFixed(2)} ⃁`).join("\n");
   const ttl=r.status==="draft"?"📝 مسودة فاتورة (غير معتمدة)":(r.type==="credit"?"🧾 إشعار دائن":r.type==="debit"?"🧾 إشعار مدين":r.type==="simplified"?"🧾 فاتورة ضريبية مبسطة":"🧾 فاتورة ضريبية");
   const txt=`${ttl}${r.no?" رقم "+r.no:""}
-🏡 ${DB.settings.sellerName||"مزرعة خيرات سايه"}
+🏡 ${ksCoName()}
 📅 ${r.date||""}
 👤 العميل: ${cust?.name||r.custName||"عميل نقدي"}
 ${lines}
@@ -17230,7 +17265,7 @@ function printInvoice(id){
   const inv=DB.invoices.find(x=>x.id===id); if(!inv) return;
   const cust=DB.customers?.find(c=>c.id===inv.custId);
   const st=DB.settings||{};
-  const coName=st.companyName||st.sellerName||'مزرعة خيرات سايه';
+  const coName=ksCoName();
   const coEn=st.companyNameEn||'';
   const coAdr=[st.coStreet,st.coBldg?('مبنى '+st.coBldg):'',st.coAddl?('فرعي '+st.coAddl):'',st.coRegion?('حي '+st.coRegion):'',st.coCity,st.coZip,st.coCountry].filter(Boolean).join('، ');
   const cuAdr=cust?[cust.street,cust.bldg?('مبنى '+cust.bldg):'',cust.addl?('فرعي '+cust.addl):'',cust.region?('حي '+cust.region):'',cust.city,cust.zip,cust.country].filter(Boolean).join('، '):'';
@@ -17314,6 +17349,8 @@ function printInvoice(id){
   win.document.close();
 }
 function exportInvoiceXml(id){
+  /* 🛑 لا يخرج ملف من هذا الجهاز بهوية مزرعة أخرى (أو من نافذة مجمّدة) */
+  if(typeof ksOutAllowed==="function" && !ksOutAllowed()){ try{ toast("⛔ بيانات هذا الجهاز تخص مزرعة أخرى — التصدير معطّل"); }catch(e){} return; }
   const _r=(DB.invoices||[]).find(x=>x.id===id);
   if(_r&&_r.status==='draft'){ toast('⚠️ اعتمد الفاتورة أولاً — لا XML للمسودات'); return; }
   const inv=DB.invoices.find(x=>x.id===id); if(!inv) return;

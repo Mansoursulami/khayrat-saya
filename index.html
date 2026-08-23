@@ -4273,7 +4273,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.23-A";
+const KS_VER="v12.24-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4704,6 +4704,35 @@ function __cloudStoreTok(j,email){
     email:email||(j.user&&j.user.email)||old.email||"",
     uid:(j.user&&j.user.id)||old.uid||"",
     farmId:old.farmId||"",memberStatus:old.memberStatus||"",empId:old.empId||""});
+}
+/* 🗣️ رسائل سوبابيز تصل بالإنجليزية («User already registered») — ومالك مزرعة سعودي
+   لا يفهمها فيظن أن الزر «لا يعمل». هذا المترجم يحوّلها لعربية تقول له ماذا يفعل. */
+function __ksAuthMsg(e){
+  const t=String((e&&e.message)||e||"").toLowerCase();
+  if(t.includes("already registered")||t.includes("already been registered")||t.includes("user_already_exists"))
+    return "هذا الإيميل له حساب بالفعل — ادخل به من الأعلى مباشرة، أو استعمل إيميلاً آخر للمزرعة الجديدة";
+  if(t.includes("invalid login")||t.includes("invalid credentials"))
+    return "الإيميل أو كلمة المرور غير صحيحة";
+  if(t.includes("email not confirmed")||t.includes("not confirmed"))
+    return "الحساب يحتاج تأكيد الإيميل — افتح رسالة التأكيد في بريدك ثم ادخل";
+  if(t.includes("for security purposes")||t.includes("rate limit")||t.includes("too many"))
+    return "محاولات كثيرة في وقت قصير — انتظر دقيقة ثم أعد المحاولة";
+  if(t.includes("signups not allowed")||t.includes("signup is disabled"))
+    return "التسجيل مغلق حالياً — تواصل مع مزود السستم";
+  if(t.includes("password should be")||t.includes("weak password"))
+    return "كلمة المرور قصيرة — اجعلها 6 أحرف فأكثر";
+  if(t.includes("unable to validate email")||t.includes("invalid email"))
+    return "صيغة الإيميل غير صحيحة";
+  if(t.includes("failed to fetch")||t.includes("networkerror")||t.includes("load failed"))
+    return "لا يوجد اتصال بالإنترنت — التسجيل يحتاج اتصالاً";
+  return String((e&&e.message)||e||"تعذّر إتمام العملية");
+}
+function __ksGateMsg(id, text, bad){
+  const m=document.getElementById(id); if(!m) return;
+  m.textContent=text;
+  m.style.color = bad ? "#b91c1c" : "";
+  m.style.fontWeight = bad ? "700" : "";
+  m.style.fontSize = bad ? ".8rem" : "";
 }
 async function cloudSignup(email,pw){
   const r=await fetch(SUPA_URL+"/auth/v1/signup",{method:"POST",headers:{apikey:SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({email,password:pw})});
@@ -6162,19 +6191,26 @@ async function cloudGateLogin(){
       if(msg)msg.textContent="📴 دخول محلي بلا إنترنت — ستتم المزامنة عند عودة الاتصال";
       setTimeout(()=>location.reload(),600); return;
     }
-    if(msg)msg.textContent="❌ "+(isNet?(localStorage.getItem(KEY)&&ksDataOwner()&&ksDataOwner()!==cloudFarmId()
+    __ksGateMsg("cgMsg","❌ "+(isNet?(localStorage.getItem(KEY)&&ksDataOwner()&&ksDataOwner()!==cloudFarmId()
       ?"أول دخول لهذه المزرعة على هذا الجهاز يحتاج إنترنت (الجهاز يحمل بيانات مزرعة أخرى محفوظة ولن تُعرض)"
-      :"لا يوجد اتصال، وتعذر التحقق المحلي"):(e.message||"فشل الدخول"));
+      :"لا يوجد اتصال، وتعذر التحقق المحلي"):__ksAuthMsg(e)), true);
   }
 }
 async function cloudGateNewFarm(){
   const em=(document.getElementById("cgEmail")||{}).value||"", pw=(document.getElementById("cgPw")||{}).value||"";
   const msg=document.getElementById("cgMsg");
-  if(!em||!pw||pw.length<6){ if(msg)msg.textContent="⚠️ اكتب الإيميل وكلمة مرور (6+ أحرف) في الخانات أعلاه ثم اضغط الرابط"; return; }
+  if(!em||!pw||pw.length<6){ __ksGateMsg("cgMsg","⚠️ اكتب الإيميل وكلمة مرور (6 أحرف فأكثر) في الخانتين أعلاه، ثم اضغط الرابط مرة أخرى", true); return; }
   if(!confirm("إنشاء حساب مزرعة جديدة فاضية بهذا الإيميل؟")) return;
   if(msg)msg.textContent="⏳ جارٍ إنشاء الحساب...";
   try{
     await cloudSignup(em,pw);
+    /* 🛡️ الحساب قد يُنشأ **بلا جلسة** (إعداد «تأكيد الإيميل» مفعّل في السحابة):
+       الكود القديم كان يكمل ويعيد التحميل ⇒ ترجع البوابة كما هي فيبدو أن الزر «لا يفعل شيئاً»،
+       ويترك على الجهاز قاعدة فارغة بلا مالك. الآن نكشفها ونقولها صراحةً. */
+    if(!cloudSess()){
+      __ksGateMsg("cgMsg","📧 أُنشئ الحساب لكنه يحتاج تأكيد الإيميل — افتح رسالة التأكيد في بريدك ثم ادخل من الأعلى", true);
+      return;
+    }
     try{ await planRegisterSelf(em); }catch(e){}
     await __credStore(em,pw);
     sessionStorage.setItem("ksAuthed","1");
@@ -6184,10 +6220,11 @@ async function cloudGateNewFarm(){
         const _nm=String(prompt("👤 اسمك (الأدمن الرئيسي — يظهر في السجلات والتقارير):")||"").trim();
         if(_nm) _d.settings.adminName=_nm;
         localStorage.setItem(KEY, JSON.stringify(_d));
+        try{ ksStampOwner(); }catch(e2){}
       }
     }catch(e){}
     location.reload();
-  }catch(e){ if(msg)msg.textContent="❌ "+(e.message||"فشل إنشاء الحساب"); }
+  }catch(e){ __ksGateMsg("cgMsg","❌ "+__ksAuthMsg(e), true); }
 }
 async function cloudGateJoin(){
   const nm=(document.getElementById("cgName")||{}).value||"", em=(document.getElementById("cgJEmail")||{}).value||"";
@@ -6213,7 +6250,7 @@ async function cloudGateJoin(){
     s.farmId=code; s.memberStatus="pending"; localStorage.setItem("ksCloudSess",JSON.stringify(s));
     const pm=document.getElementById("cgPendMsg"); if(pm)pm.textContent="⏳ تم إرسال طلب الانضمام — بانتظار اعتماد صاحب المزرعة";
     cgShow("pend");
-  }catch(e){ if(msg)msg.textContent="❌ "+(e.message||"فشل الإرسال"); }
+  }catch(e){ __ksGateMsg("cgJMsg","❌ "+__ksAuthMsg(e), true); }
 }
 async function __gateApply(row){
   if(!ksApplyRow(cloudFarmId(), row)){ toast("⛔ تغيّرت هوية الجلسة — أُلغيت العملية"); return; }

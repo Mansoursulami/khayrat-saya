@@ -1716,6 +1716,13 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <div><label>ملاحظات</label><input id="exNotes"></div>
         <div><label>📎 فاتورة المصروف (صورة/PDF) *</label><input type="file" id="exFile" accept="image/*,.pdf" required onchange="expFilePick(event,'ex')"><span id="exFileHint" class="muted" style="font-size:.68rem"></span></div>
       </div>
+      <div class="row">
+        <div><label>طريقة السداد *</label>
+          <select id="exPay" onchange="exPaySync()"><option value="cash">💵 نقدي — مدفوع الآن</option><option value="credit">🧾 آجل — على الذمم (يُسدد لاحقاً)</option></select></div>
+        <div class="exCrOnly" style="display:none"><label>الجهة المستفيدة</label><input id="exPayee" placeholder="مثال: مؤسسة النقل / بلدية المحافظة"></div>
+        <div class="exCrOnly" style="display:none"><label>تاريخ الاستحقاق (اختياري)</label><input type="date" id="exDue"></div>
+      </div>
+      <p class="muted exCrOnly" style="display:none;font-size:.72rem;margin:-4px 0 8px">🧾 المصروف الآجل يُقيَّد ديناً على «الذمم الدائنة 2101» بتاريخه — لا يُخصم من الصندوق إلا يوم السداد الفعلي، ويظهر في «المصروفات الآجلة غير المسددة» أسفل الصفحة.</p>
       <button class="btn" id="exBtn">حفظ المصروف</button>
     </form>
   </div>
@@ -1753,6 +1760,9 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     <div style="flex:0"><button class="btn small secondary" onclick="exportExpensesCSV()">📥 تصدير CSV</button></div>
   </div>
   <div class="card table-wrap"><table id="tblExpenses"></table></div>
+
+  <h2 style="margin-top:16px">🧾 المصروفات الآجلة غير المسددة</h2>
+  <div class="card table-wrap"><table id="tblExpDebts"></table></div>
 </div>
 
 <!-- ============ المخزون ============ -->
@@ -2038,6 +2048,12 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <div class="table-wrap"><table id="tblEos"></table></div>
         <button class="btn secondary small" style="margin-top:8px" onclick="printEl('تصفية نهاية الخدمة', tblEos)">🖨️ طباعة التصفية</button>
         <p class="muted" style="margin-top:6px">المكافأة: نصف راتب شهر عن كل سنة من الخمس الأولى + راتب شهر عن كل سنة بعدها. الاستقالة: أقل من سنتين لا شيء، 2–5 الثلث، 5–10 الثلثان، أكثر من 10 كاملة. استرشادي — راجع محاسبك</p>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>🧾 توزيع مخصص نهاية الخدمة على الموظفين</h3>
+        <p class="muted" style="margin-bottom:8px">نصيب كل موظف من رصيد المخصص المتراكم (حساب 2105) — المستحق له حتى اليوم، وما صُرف منه، والباقي. المجموع يطابق رصيد الحساب في الدفاتر.</p>
+        <div class="table-wrap"><table id="tblEosDist"></table></div>
+        <button class="btn secondary small" style="margin-top:8px" onclick="printEl('توزيع مخصص نهاية الخدمة على الموظفين', tblEosDist)">🖨️ طباعة التوزيع</button>
       </div>
     </div>
 
@@ -4320,7 +4336,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.29-A";
+const KS_VER="v12.30-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -5388,8 +5404,8 @@ function exportWorkbook(){
     salesRows.push([h.date, c?prodName(c.productId):"—", c?c.section:"—", h.qty, h.unit||"كجم", h.price||"", h.total, h.customerId?custName(h.customerId):"نقدي", h.paid?"مدفوع":"آجل"]); });
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(salesRows), "المبيعات");
   // ورقة المصروفات
-  const expRows=[["التاريخ","البند","القسم","المبلغ","الموظف","ملاحظات"]];
-  DB.expenses.forEach(x=>expRows.push([x.date,x.cat,x.section||"",x.amount,x.employee||"",x.notes||""]));
+  const expRows=[["التاريخ","البند","القسم","المبلغ","طريقة السداد","الجهة","الاستحقاق","المتبقي","الموظف","ملاحظات"]];
+  DB.expenses.forEach(x=>expRows.push([x.date,x.cat,x.section||"",x.amount,(x.credit?"آجل":"نقدي"),x.payee||"",x.dueDate||"",exRemain(x),x.employee||"",x.notes||""]));
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(expRows), "المصروفات");
   // ورقة الدورات
   const cycRows=[["المنتج","القسم","تاريخ الزراعة","بداية المحصول","المساحة/العدد","تكلفة البدء","الحالة"]];
@@ -5417,8 +5433,8 @@ function exportHarvestsCSV(){
 }
 function exportExpensesCSV(){
   const rows = DB.expenses.filter(x=>inRange(x.date,fExFrom,fExTo)&&(fExCat.value==="all"||x.cat===fExCat.value)&&(fExSec.value==="all"||x.section===fExSec.value))
-    .map(x=>[x.date, x.cat, x.section, x.amount, x.employee||"", x.notes||""]);
-  exportCSV(["التاريخ","البند","القسم","المبلغ","الموظف","ملاحظات"], rows, "المصروفات");
+    .map(x=>[x.date, x.cat, x.section, x.amount, (x.credit?"آجل":"نقدي"), x.payee||"", x.dueDate||"", exRemain(x), x.employee||"", x.notes||""]);
+  exportCSV(["التاريخ","البند","القسم","المبلغ","طريقة السداد","الجهة","الاستحقاق","المتبقي","الموظف","ملاحظات"], rows, "المصروفات");
 }
 function exportCyclesCSV(){
   const rows = DB.cycles.map(c=>{
@@ -5581,6 +5597,8 @@ function ksVoid(kind, id){
   } else if(kind==="exp"){
     DB.expenses.push(Object.assign({}, base, {
       cat:r.cat, section:r.section||"", cycleId:r.cycleId||"", amount:-(+r.amount||0),
+      /* الآجل يُعكَس على نفس حساب الذمم الدائنة — وإلا صار الإلغاء إرجاعاً نقدياً لم يحدث */
+      credit:!!r.credit, payee:r.payee||"",
       notes:"إلغاء مصروف "+r.date+" — "+why}));
   } else {
     DB.purchases.push(Object.assign({}, base, {
@@ -8762,7 +8780,7 @@ function renderHarvests(){
   const rows = _listH.slice(0,_capH).map(h=>{
     const c = DB.cycles.find(x=>x.id===h.cycleId);
     const _orph=!h.cycleId;
-    return `<tr><td>${ksTxt(h.date)}</td><td><b>${escH(hProdName(h))}</b>${_orph?' <span class="badge warn" title="لا تدخل في ربحية الأقسام">⚠️ بلا دورة</span> <button class="edt" title="ربط بدورة" onclick="linkHarvestCycle(\''+h.id+'\')">🔗</button>':''}</td><td>${escH(hSecOf(h)||"—")}</td>
+    return `<tr><td>${ksTxt(h.date)}</td><td><b>${escH(hProdName(h))}</b>${_orph?' <span class="badge warn" title="لا تدخل في ربحية الأقسام">⚠️ بلا دورة</span> <button class="edt" title="ربط بدورة" onclick="linkHarvestCycle(\''+h.id+'\')">🔗</button>':''}</td><td>${escH(hSecOf(h)||"—")}${h.barn?`<br><span style="font-size:.68rem;color:var(--muted)">🏚️ ${escH(h.barn)}</span>`:""}</td>
       <td>${fmt(h.qty)} ${h.unit||"كجم"}</td><td>${h.unpriced?"—":hUnitPriceTxt(h)}</td><td class="pos">${h.unpriced?'<span class="badge warn">بانتظار التسعير</span>':fmtSR(h.total)}</td>
       <td>${h.customerId?custName(h.customerId):"نقدي"}</td>
       <td>${apvBadge('sale',h)}${h.paid?'<span class="badge active">مدفوع'+(h.paidDate?" "+h.paidDate:"")+'</span>'
@@ -8816,6 +8834,53 @@ function viewExpFile(id){
     (file.data.startsWith("data:application/pdf")?`<iframe src="${file.data}" style="width:100vw;height:100vh;border:none"></iframe>`:`<img src="${file.data}" style="max-width:98vw;max-height:98vh">`)+`</body>`);
   w.document.close();
 }
+/* ===== v12.30-A — المصروف الآجل =====
+   كل مصروف كان يُفترض نقدياً: يُقيَّد خصماً من الصندوق (1101) يوم تسجيله.
+   فمصروف يُسدَّد بعد شهرين كان ينقص النقدية اليوم ولا يظهر ديناً في أي مكان —
+   رصيد صندوق أقل من الحقيقة والتزام مخفي. الآن: آجل ⇒ ذمم دائنة (2101)،
+   والنقد لا يتحرّك إلا بقيد سداد مستقل بتاريخه الفعلي. */
+function exIsCredit(x){ return !!(x&&x.credit); }
+function exPaidAmt(x){
+  try{ return +(((x&&x.payments)||[]).reduce((s,p)=>s+(+p.amt||0),0)).toFixed(2); }catch(e){ return 0; }
+}
+function exRemain(x){
+  if(!exIsCredit(x) || x.voided) return 0;
+  if(x.paid) return 0;
+  return +Math.max(0, (+x.amount||0)-exPaidAmt(x)).toFixed(2);
+}
+function exSettleable(x){ return exIsCredit(x) && !x.voided && !x.reversalOf && (+x.amount||0)>0; }
+function exPaySync(){
+  const v=(document.getElementById("exPay")||{}).value;
+  document.querySelectorAll(".exCrOnly").forEach(el=>{ el.style.display=(v==="credit")?"":"none"; });
+}
+function payExpense(id){
+  if(!canSettle()){ toast("⚠️ ما عندك صلاحية تسجيل السداد"); return; }
+  const x=(DB.expenses||[]).find(r=>r.id===id); if(!x) return;
+  const remain=exRemain(x);
+  if(remain<=0.005){ toast("✅ هذا المصروف مسدَّد بالكامل"); return; }
+  const amt=parseFloat(prompt(`سداد مصروف ${ksTxt(x.cat)} — ${fmtSR(+x.amount||0)}\nالمتبقي: ${fmtSR(remain)}\nأدخل مبلغ الدفعة:`));
+  if(!amt || !(amt>0)) return;
+  if(amt>remain+0.005){ toast("⚠️ المبلغ ("+fmt(amt)+") أكبر من المتبقي ("+fmt(remain)+" ⃁) — صحّحه"); return; }
+  const d=todayStr();
+  if(!ksDateAllowed(d,"تاريخ السداد")) return;
+  x.payments=x.payments||[];
+  x.payments.push({date:d, amt:+Math.min(amt,remain).toFixed(2), acc:"1101"});
+  if(exRemain(x)<=0.005){ x.paid=true; x.paidDate=d; x.settledBy=(CURRENT_USER||{}).name||""; }
+  logEdit("💵 سداد مصروف آجل", (x.date||"")+" — "+ksTxt(x.cat)+" "+fmt(Math.min(amt,remain))+" ⃁");
+  save(); renderExpenses(); toast("✅ سُجّلت الدفعة");
+}
+function markExpensePaid(id){
+  if(!canSettle()){ toast("⚠️ ما عندك صلاحية تسجيل السداد"); return; }
+  const x=(DB.expenses||[]).find(r=>r.id===id); if(!x) return;
+  const rem=exRemain(x);
+  if(rem<=0.005){ toast("✅ مسدَّد بالكامل مسبقاً"); return; }
+  const d=todayStr();
+  if(!ksDateAllowed(d,"تاريخ السداد")) return;
+  (x.payments=x.payments||[]).push({date:d, amt:rem, acc:"1101"});
+  x.paid=true; x.paidDate=d; x.settledBy=(CURRENT_USER||{}).name||"";
+  logEdit("💵 سداد مصروف آجل (كامل)", (x.date||"")+" — "+ksTxt(x.cat)+" "+fmt(rem)+" ⃁");
+  save(); renderExpenses(); toast("✅ سُدد بالكامل ("+fmt(rem)+" ⃁) — وانقيد");
+}
 function addExpense(e){
   e.preventDefault();
   if(!EDIT.expense && !window.__expFiles.ex){ toast("⚠️ أرفق فاتورة المصروف أولاً (إلزامية)"); return; }
@@ -8823,14 +8888,25 @@ function addExpense(e){
   if(!ksDateAllowed(exDate.value,"تاريخ المصروف")) return;
   /* كان الإقرار يفترض ضريبة داخلة 15% على كل مصروف بلا استثناء — بما فيه الرسوم الحكومية غير الخاضعة */
   const __vt=(document.getElementById("exVatable")||{}).value;
+  const __cr=((document.getElementById("exPay")||{}).value)==="credit";
   const rec = {date:exDate.value, cat:exCat.value, section:exSection.value, cycleId:exCycle.value||"",
     amount:+exAmount.value, employee:(exEmp.value.trim()||(CURRENT_USER?CURRENT_USER.name:'')), notes:exNotes.value,
-    vatable:(__vt===undefined? true : __vt!=="0")};
+    vatable:(__vt===undefined? true : __vt!=="0"),
+    credit:__cr,
+    payee:__cr?((document.getElementById("exPayee")||{}).value||"").trim():"",
+    dueDate:__cr?((document.getElementById("exDue")||{}).value||""):""};
   if(window.__expFiles.ex) rec.invFile=window.__expFiles.ex;
   if(EDIT.expense){
     const _o=DB.expenses.find(x=>x.id===EDIT.expense);
+    /* 🛡️ دفعات مسجَّلة على مصروف آجل: لا يُحوَّل لنقدي ولا يُخفَّض تحت المسدَّد
+       — وإلا صار قيد سداد بلا دين يقابله، أو دين سالب. */
+    const _pd=exPaidAmt(_o);
+    if(_pd>0.005 && !rec.credit){ toast("⛔ عليه دفعات مسجَّلة ("+fmt(_pd)+" ⃁) — لا يمكن تحويله إلى نقدي. احذف الدفعات أو أبقه آجلاً"); return; }
+    if(_pd>0.005 && rec.amount < _pd-0.005){ toast("⛔ المبلغ الجديد ("+fmt(rec.amount)+") أقل من المسدَّد فعلاً ("+fmt(_pd)+" ⃁)"); return; }
     const _d=_diff(_o,rec,{date:"التاريخ",cat:"البند",section:"القسم",amount:"المبلغ"});
     Object.assign(_o, rec);
+    if(!rec.credit){ delete _o.payments; delete _o.paid; delete _o.paidDate; delete _o.settledBy; }
+    else if(exRemain(_o)>0.005){ delete _o.paid; delete _o.paidDate; }   /* زيادة المبلغ تعيد فتح الدين */
     _o.apv="p"; delete _o.apvBy; delete _o.apvDate; /* أي تعديل يعيد السجل لدورة الاعتماد */
     if(_d) logEdit("✏️ تعديل مصروف",_d);
     EDIT.expense=null; exBtn.textContent="حفظ المصروف"; markEditing("cardExpense",false); }
@@ -8839,7 +8915,8 @@ function addExpense(e){
   save(); e.target.reset(); exDate.value=today();
   { const _v=document.getElementById("exVatable"); if(_v) _v.dataset.touched=""; }
   try{ exVatSync(); }catch(e2){}
-  renderExpenses(); toast("✅ تم الحفظ");
+  try{ exPaySync(); }catch(e2){}
+  renderExpenses(); toast(__cr?"✅ تم الحفظ — مصروف آجل على الذمم":"✅ تم الحفظ");
 }
 function editExpense(id){
   const x = DB.expenses.find(r=>r.id===id); if(!x) return;
@@ -8851,6 +8928,10 @@ function editExpense(id){
   }
   exCycle.value=x.cycleId||"";
   exEmp.value=x.employee||""; exNotes.value=x.notes||"";
+  { const _p=document.getElementById("exPay"); if(_p) _p.value=exIsCredit(x)?"credit":"cash";
+    const _pe=document.getElementById("exPayee"); if(_pe) _pe.value=x.payee||"";
+    const _pd=document.getElementById("exDue"); if(_pd) _pd.value=x.dueDate||"";
+    try{ exPaySync(); }catch(e2){} }
   EDIT.expense=id; exBtn.textContent="💾 حفظ التعديل"; markEditing("cardExpense",true);
 }
 function delExpense(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
@@ -8870,15 +8951,48 @@ function renderExpenses(){
   const _capE = window.__exShowAll ? _listE.length : 300;
   const rows = _listE.slice(0,_capE).map(x=>{
     const cyc = x.cycleId ? DB.cycles.find(c=>c.id===x.cycleId) : null;
-    return `<tr><td>${ksTxt(x.date)}</td><td><b>${ksTxt(x.cat)}</b></td><td>${ksTxt(x.section)}</td>
+    return `<tr><td>${ksTxt(x.date)}</td><td><b>${ksTxt(x.cat)}</b>${x.payee?`<br><span style="font-size:.68rem;color:var(--muted)">🏢 ${ksTxt(x.payee)}</span>`:""}</td><td>${ksTxt(x.section)}</td>
      <td>${cyc?prodName(cyc.productId):"—"}</td>
-     <td class="neg">${fmtSR(x.amount)}</td><td>${x.employee||""}${apvBadge('exp',x)}</td><td>${x.notes||""}</td>
+     <td class="neg">${fmtSR(x.amount)}</td>
+     <td>${exSettleUI(x)}</td>
+     <td>${x.employee||""}${apvBadge('exp',x)}</td><td>${x.notes||""}</td>
      <td>${(x.invFile||x.invFileRef)?`<button class="edt" title="عرض الفاتورة" onclick="viewExpFile('${x.id}')">📎</button>`:""}${canEdit(x.employee)?`<button class="edt" onclick="editExpense('${x.id}')">✏️</button>`:""}${canDelete(x.employee)?`<button class="del" onclick="delExpense('${x.id}')">🗑️</button>`:""}</td></tr>`;
   }).join("");
   tblExpenses.innerHTML =
-    `<tr><th>التاريخ</th><th>البند</th><th>القسم</th><th>الدورة</th><th>المبلغ</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
-    + (rows || `<tr><td colspan="8" class="muted">💸 لا مصروفات بعد — سجّل أول مصروف من النموذج أعلاه، أو عدّل الفلاتر</td></tr>`)
-    + (_listE.length>_capE?`<tr><td colspan="8" class="muted">يُعرض أحدث ${fmt(_capE)} من ${fmt(_listE.length)} سجل — <button class="btn small secondary" onclick="window.__exShowAll=true;renderExpenses()">عرض الكل</button></td></tr>`:"");
+    `<tr><th>التاريخ</th><th>البند</th><th>القسم</th><th>الدورة</th><th>المبلغ</th><th>السداد</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
+    + (rows || `<tr><td colspan="9" class="muted">💸 لا مصروفات بعد — سجّل أول مصروف من النموذج أعلاه، أو عدّل الفلاتر</td></tr>`)
+    + (_listE.length>_capE?`<tr><td colspan="9" class="muted">يُعرض أحدث ${fmt(_capE)} من ${fmt(_listE.length)} سجل — <button class="btn small secondary" onclick="window.__exShowAll=true;renderExpenses()">عرض الكل</button></td></tr>`:"");
+  renderExpDebts();
+}
+function exSettleUI(x){
+  if(!exSettleable(x)) return '<span class="badge active">نقدي</span>';
+  const rem=exRemain(x), pd=exPaidAmt(x);
+  if(rem<=0.005) return `<span class="badge active">مسدَّد${x.paidDate?" "+x.paidDate:""}</span>`;
+  const due=x.dueDate?(x.dueDate<today()?`<br><span class="badge danger" title="تجاوز الاستحقاق">متأخر ${x.dueDate}</span>`:`<br><span class="muted" style="font-size:.68rem">استحقاق ${x.dueDate}</span>`):"";
+  const badge=pd>0.005?`<span class="badge warn">جزئي — باقي ${fmt(rem)}</span>`:'<span class="badge danger">آجل</span>';
+  return `${badge} <button class="btn small secondary" onclick="payExpense('${x.id}')">دفعة</button> <button class="btn small secondary" onclick="markExpensePaid('${x.id}')">سداد</button>${due}`;
+}
+function renderExpDebts(){
+  const el=document.getElementById("tblExpDebts"); if(!el) return;
+  const purExp=new Set((DB.purchases||[]).map(p=>p.expId||""));
+  const list=(DB.expenses||[]).filter(x=>!purExp.has(x.id) && exRemain(x)>0.005)
+    .filter(x=> isOwner() || x.cat!=="رواتب وعمالة")
+    .slice().sort((a,b)=>String(a.dueDate||a.date).localeCompare(String(b.dueDate||b.date)));
+  const t0=today();
+  const rows=list.map(x=>{
+    const rem=exRemain(x), pd=exPaidAmt(x);
+    const late=x.dueDate&&x.dueDate<t0;
+    return `<tr${late?' style="background:#fef2f2"':''}><td>${ksTxt(x.date)}</td><td><b>${ksTxt(x.cat)}</b></td>
+      <td>${x.payee?ksTxt(x.payee):'<span class="muted">—</span>'}</td>
+      <td>${x.dueDate?(late?`<span class="badge danger">متأخر ${x.dueDate}</span>`:x.dueDate):'<span class="muted">بلا تاريخ</span>'}</td>
+      <td class="neg">${fmtSR(rem)}${pd>0.005?` <span class="muted">(مدفوع ${fmt(pd)})</span>`:""}</td>
+      <td><button class="btn small secondary" onclick="payExpense('${x.id}')">💵 دفعة</button>
+          <button class="btn small" onclick="markExpensePaid('${x.id}')">✅ سداد كامل</button></td></tr>`;
+  }).join("");
+  const tot=list.reduce((s,x)=>s+exRemain(x),0);
+  el.innerHTML=`<tr><th>تاريخ المصروف</th><th>البند</th><th>الجهة</th><th>الاستحقاق</th><th>المتبقي</th><th></th></tr>`
+    +(rows||`<tr><td colspan="6" class="muted">👍 لا مصروفات آجلة غير مسددة</td></tr>`)
+    +(rows?`<tr style="font-weight:800"><th colspan="4">الإجمالي (${fmt(list.length)} مصروف)</th><th class="neg">${fmtSR(tot)}</th><th></th></tr>`:"");
 }
 
 /* ====== المصاريف المتكررة ====== */
@@ -11777,8 +11891,20 @@ function autoEntries(from, to){
   const purExp = new Set(DB.purchases.map(p=>p.expId||""));
   DB.expenses.forEach(x=>{
     if(!inP(x.date) || purExp.has(x.id) || !apvPosted(x)) return;
-    es.push({date:x.date, desc:x.cat+(x.notes?" — "+x.notes:""), auto:true,
-      lines:[{a:catAcc(x.cat), d:x.amount, c:0},{a:"1101", d:0, c:x.amount}]});
+    /* 📅 الآجل يُقيَّد ديناً على الذمم الدائنة بتاريخه، والنقد لا يتحرّك إلا يوم السداد */
+    es.push({date:x.date, desc:x.cat+(x.credit?" (آجل)":"")+(x.payee?" — "+x.payee:"")+(x.notes?" — "+x.notes:""), auto:true,
+      lines:[{a:catAcc(x.cat), d:x.amount, c:0},{a:(x.credit?"2101":"1101"), d:0, c:x.amount}]});
+  });
+  /* 💵 سداد المصروفات الآجلة بتواريخه الفعلية */
+  DB.expenses.forEach(x=>{
+    if(purExp.has(x.id) || !x.credit || !apvPosted(x)) return;
+    const g=+x.amount||0;
+    const pays=((x.payments)||[]).map(p=>({date:p.date||x.date, amt:+p.amt||0, acc:p.acc||"1101"}));
+    const rec=pays.reduce((s2,p)=>s2+p.amt,0);
+    if(x.paid && Math.abs(g-rec)>0.005) pays.push({date:x.paidDate||x.date, amt:+(g-rec).toFixed(2), acc:"1101"});
+    pays.forEach(p=>{ if(inP(p.date) && Math.abs(p.amt)>0.005)
+      es.push({date:p.date, desc:"سداد مصروف آجل — "+x.cat+(x.payee?" — "+x.payee:""), auto:true,
+        lines:[{a:"2101", d:p.amt, c:0},{a:(p.acc||"1101"), d:0, c:p.amt}]}); });
   });
   /* 💵 سداد الموردين بتواريخه الفعلية */
   DB.purchases.forEach(p=>{
@@ -12271,6 +12397,11 @@ function renderCashFc(){
   (DB.purchases||[]).forEach(p=>{ const rem=pRemain(p); if(!(rem>0)) return;
     const due=p.dueDate||""; if(!due){ unsched-=rem; return; }
     if(due>=t&&due<=end) put(due,rem,"out"); else if(due<t) put(t,rem,"out"); });
+  /* v12.30-A — المصروفات الآجلة التزام نقدي قادم مثلها مثل فواتير الموردين */
+  { const __px=new Set((DB.purchases||[]).map(p=>p.expId||""));
+    (DB.expenses||[]).forEach(x=>{ if(__px.has(x.id)) return; const rem=exRemain(x); if(!(rem>0)) return;
+      const due=x.dueDate||""; if(!due){ unsched-=rem; return; }
+      if(due>=t&&due<=end) put(due,rem,"out"); else if(due<t) put(t,rem,"out"); }); }
   /* الرواتب: آخر يوم في كل شهر ضمن النافذة */
   const sal=(DB.employees||[]).filter(e=>+e.salary>0).reduce((s2,e)=>s2+(+e.salary||0)+(+e.allowances||0),0);
   if(sal>0){
@@ -13435,8 +13566,8 @@ function csvHarvests(){
     "سجل_الإنتاج_والمبيعات");
 }
 function csvExpenses(){
-  dlCSV([["التاريخ","الفئة","القسم","المبلغ","الموظف","ملاحظات"],
-    ...DB.expenses.map(x=>[x.date,x.cat,x.section||"",x.amount,x.employee||"",x.notes||""])],
+  dlCSV([["التاريخ","الفئة","القسم","المبلغ","طريقة السداد","الجهة","الاستحقاق","المتبقي","الموظف","ملاحظات"],
+    ...DB.expenses.map(x=>[x.date,x.cat,x.section||"",x.amount,(x.credit?"آجل":"نقدي"),x.payee||"",x.dueDate||"",exRemain(x),x.employee||"",x.notes||""])],
     "سجل_المصروفات");
 }
 function csvCycles(){
@@ -14451,6 +14582,7 @@ function eosFill(){
 }
 function renderHrAll(){
   try{ eosBasisNote(); }catch(e){}
+  try{ renderEosDist(); }catch(e){}
   ["advEmp","lvEmp","custEmp","atEmp","eosEmp"].forEach(id=>{
     const el=document.getElementById(id); if(!el) return;
     const v=el.value; el.innerHTML=empOpts(); if(v) el.value=v;
@@ -14644,21 +14776,102 @@ function eosAccrue(month, silent){
     if(DB.journals.some(j=>j.eosMonth===ms)){ if(!silent) toast("✔️ استحقاق "+ms+" مُرحَّل مسبقاً"); return 0; }
     const last=new Date(+ms.slice(0,4), +ms.slice(5,7), 0);
     const atISO=`${ms}-${String(last.getDate()).padStart(2,'0')}`;
-    let tot=0; const det=[];
+    let tot=0; const det=[], eosDet=[];
     (DB.employees||[]).filter(e=>e.status!=="مؤرشف").forEach(e=>{
-      const v=eosMonthlyAccrual(e, atISO); if(v>0){ tot+=v; det.push(e.name+": "+fmt(v)); }
+      const v=eosMonthlyAccrual(e, atISO);
+      /* v12.30-A — نصيب كل موظف كان يُكتب نصاً في «ملاحظات» القيد فقط:
+         رصيد المخصص إجمالي ولا أحد يعرف كم لكل موظف. الآن يُخزَّن مُهيكلاً. */
+      if(v>0){ tot+=v; det.push(e.name+": "+fmt(v)); eosDet.push({id:e.id, name:e.name, amt:v}); }
     });
     tot=+tot.toFixed(2);
     if(tot<=0){ if(!silent) toast("لا يوجد استحقاق لهذا الشهر"); return 0; }
     DB.journals.push({id:uid(), date:atISO, eosMonth:ms,
       desc:"استحقاق مكافأة نهاية الخدمة — "+ms,
       lines:[{a:"5306",debit:tot,credit:0},{a:"2105",debit:0,credit:tot}],
+      eosDet,
       employee:CURRENT_USER?CURRENT_USER.name:"", notes:det.join(" · ")});
     save();
     try{ renderJournals(); renderTrial(); renderLedger(); renderOverview(); }catch(e){}
+    try{ renderEosDist(); }catch(e){}
     if(!silent) toast("✅ رُحّل استحقاق نهاية الخدمة "+ms+" — "+fmtSR(tot));
     return tot;
   }catch(e){ return 0; }
+}
+/* ===== v12.30-A — توزيع مخصص نهاية الخدمة على الموظفين =====
+   المخصص (2105) كان رقماً إجمالياً واحداً: لا يعرف المالك نصيب كل موظف منه،
+   ولا يقدر يعرف كم يلزمه لو خرج موظف بعينه. هنا نوزّعه من مصدر مُهيكل:
+   • قيود الاستحقاق الجديدة تحمل eosDet[] (المصدر الموثوق).
+   • القيود القديمة: نقرأ نص «ملاحظات» ونقبله **فقط** إذا طابق مجموعُه إجمالي القيد
+     (تحقّق ذاتي — لا ننسب لموظف رقماً غير مؤكد).
+   • ما لم يُنسب يظهر صراحةً في سطر «غير موزّع» حتى يبقى المجموع = رصيد 2105 دائماً. */
+function eosParseNotes(txt, total){
+  const out=[];
+  String(txt||"").split("·").forEach(part=>{
+    const s=part.trim(); if(!s) return;
+    const i=s.lastIndexOf(":"); if(i<=0) return;
+    const nm=s.slice(0,i).trim();
+    const v=parseFloat(s.slice(i+1).replace(/[^\d.\-]/g,""));
+    if(!nm || !isFinite(v) || v<=0) return;
+    out.push({id:"", name:nm, amt:v});
+  });
+  if(!out.length) return null;
+  const sum=+out.reduce((s,r)=>s+r.amt,0).toFixed(2);
+  if(Math.abs(sum-(+total||0))>0.05) return null;   /* لا يطابق ⇒ لا نخمّن */
+  return out;
+}
+function eosEmpShares(){
+  const emps=DB.employees||[], js=DB.journals||[];
+  const byId={}, order=[];
+  const bump=(id,name,f,v)=>{
+    const k=id||("~"+name);
+    if(!byId[k]){ byId[k]={id:id||"", name:name||"—", acc:0, paid:0, missing:!id}; order.push(k); }
+    byId[k][f]=+(byId[k][f]+v).toFixed(2);
+  };
+  let unalloc=0;
+  js.forEach(j=>{
+    const cr=(j.lines||[]).reduce((s,l)=>s+((l&&l.a==="2105")?(+l.credit||0):0),0);
+    const db=(j.lines||[]).reduce((s,l)=>s+((l&&l.a==="2105")?(+l.debit||0):0),0);
+    if(cr>0.005){
+      let det=Array.isArray(j.eosDet)&&j.eosDet.length?j.eosDet:null;
+      if(det){ const s=+det.reduce((x,r)=>x+(+r.amt||0),0).toFixed(2); if(Math.abs(s-cr)>0.05) det=null; }
+      if(!det) det=eosParseNotes(j.notes, cr);
+      if(det) det.forEach(r=>{
+        const em=(r.id&&emps.find(e=>e.id===r.id))||emps.find(e=>e.name===r.name);
+        bump(em?em.id:"", em?em.name:r.name, "acc", +r.amt||0);
+      });
+      else unalloc=+(unalloc+cr).toFixed(2);
+    }
+    if(db>0.005){
+      let em=j.eosPayEmp?emps.find(e=>e.id===j.eosPayEmp):null;
+      if(!em && j.eosPayName) em=emps.find(e=>e.name===j.eosPayName);
+      if(!em){ const m=String(j.desc||"").match(/نهاية الخدمة\s*[—–-]\s*(.+)$/); if(m) em=emps.find(e=>e.name===m[1].trim()); }
+      if(em) bump(em.id, em.name, "paid", db);
+      else unalloc=+(unalloc-db).toFixed(2);
+    }
+  });
+  const rows=order.map(k=>byId[k]).map(r=>Object.assign({}, r, {bal:+(r.acc-r.paid).toFixed(2)}))
+    .sort((a,b)=>b.bal-a.bal);
+  const sum=+rows.reduce((s,r)=>s+r.bal,0).toFixed(2);
+  const liab=eosLiability();
+  return {rows, unalloc:+unalloc.toFixed(2), sum, liab, ok:Math.abs(sum+unalloc-liab)<=0.05};
+}
+function renderEosDist(){
+  const el=document.getElementById("tblEosDist"); if(!el) return;
+  const d=eosEmpShares();
+  const emps=DB.employees||[];
+  el.innerHTML=`<tr><th>الموظف</th><th>الحالة</th><th>المستحق المتراكم</th><th>المصروف من المخصص</th><th>نصيبه من المخصص</th></tr>`
+    +(d.rows.length?d.rows.map(r=>{
+      const em=emps.find(e=>e.id===r.id);
+      const st=r.missing?'<span class="badge warn" title="اسم لم يعد مطابقاً لأي موظف مسجَّل">اسم قديم</span>'
+        :(em&&em.status==="مؤرشف")?'<span class="badge">مؤرشف</span>':'<span class="badge active">على رأس العمل</span>';
+      return `<tr><td><b>${ksNm(r.name)}</b></td><td>${st}</td><td>${fmtSR(r.acc)}</td>
+        <td class="${r.paid?"neg":""}">${r.paid?fmtSR(r.paid):"—"}</td>
+        <td style="font-weight:700">${fmtSR(r.bal)}</td></tr>`;
+    }).join("")
+    :`<tr><td colspan="5" class="muted">🧾 لا استحقاقات مُرحَّلة بعد — اضغط «📅 رحّل استحقاق الشهر» أو اعتمد كشف رواتب ليبدأ التراكم</td></tr>`)
+    +(d.unalloc?`<tr><td colspan="4">غير موزّع على موظف بعينه <span class="muted" style="font-size:.7rem">(قيود يدوية على 2105 أو استحقاقات قديمة بلا تفصيل)</span></td><td style="font-weight:700">${fmtSR(d.unalloc)}</td></tr>`:"")
+    +`<tr style="background:var(--green-light);font-weight:800"><td colspan="4">إجمالي المخصص (حساب 2105)</td><td>${fmtSR(d.liab)}</td></tr>`
+    +(d.ok?"":`<tr><td colspan="5" style="color:var(--red);font-weight:700">⚠️ مجموع الأنصبة (${fmt(d.sum+d.unalloc)}) لا يطابق رصيد المخصص (${fmt(d.liab)}) — راجع القيود اليدوية على حساب 2105</td></tr>`);
 }
 function eosLiability(){ /* رصيد المخصص الحالي */
   try{ return +(DB.journals||[]).reduce((s,j)=>s+(j.lines||[]).reduce((x,l)=>x+((l.a==="2105")?((+l.credit||0)-(+l.debit||0)):0),0),0).toFixed(2); }catch(e){ return 0; }
@@ -14678,8 +14891,10 @@ function eosPay(){
   lines.push({a:"1101",debit:0,credit:+v.toFixed(2)});
   DB.journals=DB.journals||[];
   DB.journals.push({id:uid(), date:todayStr(), desc:"صرف مكافأة نهاية الخدمة — "+em.name,
-    lines, employee:CURRENT_USER?CURRENT_USER.name:""});
+    lines, eosPayEmp:em.id, eosPayName:em.name, eosProvAmt:fromProv,
+    employee:CURRENT_USER?CURRENT_USER.name:""});
   save(); try{ renderJournals(); renderTrial(); renderLedger(); calcEos(); }catch(e){}
+  try{ renderEosDist(); }catch(e){}
   toast("✅ صُرفت المكافأة — "+(extra>0?"خُصم "+fmt(fromProv)+" من المخصص و"+fmt(extra)+" مصروفاً":"خُصمت من المخصص"));
 }
 function calcEos(){
@@ -14970,6 +15185,12 @@ function renderLvSaleForm(){
       +(sales.length?sales.map(h=>`<tr><td>${ksTxt(h.date)}</td><td>${h.saleType||""}</td><td>${(h.productName||"").replace("🐄 ","")}</td><td>${fmt(h.qty)} ${h.unit||""}</td><td>${fmtSR(h.price)}</td><td class="pos">${fmtSR(h.total)}</td><td>${h.customerId?custName(h.customerId):"نقدي"}</td><td>${h.paid?"مدفوع":"آجل"}</td></tr>`).join(""):`<tr><td colspan="8" class="muted">💰 لا مبيعات مواشي بعد — سجّل البيع من (التجارة ← الإنتاج والمبيعات)</td></tr>`);
   }
 }
+/* v12.30-A — الحظيرة كانت تُخزَّن في كل سجلات المواشي ولا تظهر في أي جدول:
+   الموظف يختارها عند التسجيل ثم لا يجدها في السجل ⇒ حقل ميت وبيانات مدفونة. */
+function lvBarnTxt(b){
+  b=String(b||"").trim();
+  return b?`<span title="الحظيرة">🏚️ ${ksTxt(b)}</span>`:'<span class="muted">—</span>';
+}
 function renderLivestock(){
   const lv = getLivestock();
   // تعيين التاريخ الافتراضي
@@ -15026,44 +15247,44 @@ function renderLivestock(){
         <div class="kpi-card"><div class="kpi-val">${last7.toFixed(1)} ل</div><div class="kpi-label">آخر 7 أيام</div></div>
         <div class="kpi-card"><div class="kpi-val">${logs.length?((+logs[0].morning||0)+(+logs[0].evening||0)).toFixed(1)+" ل":"—"}</div><div class="kpi-label">آخر تسجيل</div></div>`;
     }
-    tblM.innerHTML=`<tr><th>التاريخ</th><th>صباحي (ل)</th><th>مسائي (ل)</th><th>الإجمالي</th><th>الجودة</th><th>ملاحظات</th><th></th></tr>`
+    tblM.innerHTML=`<tr><th>التاريخ</th><th>الحظيرة</th><th>صباحي (ل)</th><th>مسائي (ل)</th><th>الإجمالي</th><th>الجودة</th><th>ملاحظات</th><th></th></tr>`
       +(logs.length?logs.map(l=>`<tr>
-          <td>${ksTxt(l.date)}</td><td>${l.morning||0}</td><td>${l.evening||0}</td>
+          <td>${ksTxt(l.date)}</td><td>${lvBarnTxt(l.barn)}</td><td>${l.morning||0}</td><td>${l.evening||0}</td>
           <td><b>${((+l.morning||0)+(+l.evening||0)).toFixed(1)}</b></td>
           <td>${l.quality||""}</td><td>${l.notes||""}</td>
           <td><button class="del" onclick="delLvMilk('${l.id}')">🗑️</button></td>
         </tr>`).join("")
-      :`<tr><td colspan="7" class="muted">🥛 لا سجلات حليب — سجّل الحلب الصباحي والمسائي من النموذج أعلاه</td></tr>`);
+      :`<tr><td colspan="8" class="muted">🥛 لا سجلات حليب — سجّل الحلب الصباحي والمسائي من النموذج أعلاه</td></tr>`);
   }
 
   // سجل المواليد والنفوق
   const tblBD=document.getElementById("tblLvBD"); if(tblBD){
     const logs=[...(lv.birthDeathLogs||[])].reverse();
-    tblBD.innerHTML=`<tr><th>التاريخ</th><th>النوع</th><th>الحيوان</th><th>العدد</th><th>الفطام</th><th>ملاحظات</th><th></th></tr>`
+    tblBD.innerHTML=`<tr><th>التاريخ</th><th>النوع</th><th>الحيوان</th><th>الحظيرة</th><th>العدد</th><th>الفطام</th><th>ملاحظات</th><th></th></tr>`
       +(logs.length?logs.map(l=>`<tr>
           <td>${ksTxt(l.date)}</td>
           <td><span style="color:${l.type==="مولود"?"#166534":"#dc2626"};font-weight:700">${l.type==="مولود"?"🐾":"💀"} ${ksTxt(l.type)}</span></td>
-          <td>${l.animal||""}</td><td>${l.count||1}</td>
+          <td>${l.animal||""}</td><td>${lvBarnTxt(l.barn)}</td><td>${l.count||1}</td>
           <td>${l.type!=="مولود"?"—":l.weaned?'<span class="badge active">تم ✓</span>':l.weanDate?((l.weanDate<today()?`<span class="badge danger">متأخر ${l.weanDate}</span>`:`<span class="badge warn">${l.weanDate}</span>`)+` <button class="btn small secondary" onclick="markLvWeaned('${l.id}')">✓ فُطم</button>`):"—"}</td>
           <td>${l.notes||""}</td>
           <td><button class="del" onclick="delLvBD('${l.id}')">🗑️</button></td>
         </tr>`).join("")
-      :`<tr><td colspan="7" class="muted">🐾 لا مواليد أو نفوق مسجّل — سجّل الأحداث من النموذج أعلاه وتنعكس على صافي القطيع</td></tr>`);
+      :`<tr><td colspan="8" class="muted">🐾 لا مواليد أو نفوق مسجّل — سجّل الأحداث من النموذج أعلاه وتنعكس على صافي القطيع</td></tr>`);
   }
   try{ lvRenderLambProg(); }catch(e){}
 
   // سجل الصحة والعلاج
   const tblH=document.getElementById("tblLvHealth"); if(tblH){
     const logs=[...(lv.healthLogs||[])].reverse();
-    tblH.innerHTML=`<tr><th>التاريخ</th><th>الحيوان</th><th>العدد</th><th>المشكلة</th><th>العلاج</th><th>الطبيب</th><th>متابعة</th><th>ملاحظات</th><th></th></tr>`
+    tblH.innerHTML=`<tr><th>التاريخ</th><th>الحيوان</th><th>الحظيرة</th><th>العدد</th><th>المشكلة</th><th>العلاج</th><th>الطبيب</th><th>متابعة</th><th>ملاحظات</th><th></th></tr>`
       +(logs.length?logs.map(l=>`<tr>
-          <td>${ksTxt(l.date)}</td><td>${l.animal||""}</td><td>${l.count||1}</td>
+          <td>${ksTxt(l.date)}</td><td>${l.animal||""}</td><td>${lvBarnTxt(l.barn)}</td><td>${l.count||1}</td>
           <td style="color:#dc2626;font-weight:600">${l.issue||""}</td>
           <td>${l.treatment||""}</td><td>${l.vet||"—"}</td>
           <td>${l.followUp||"—"}</td><td>${l.notes||""}</td>
           <td><button class="del" onclick="delLvHealth('${l.id}')">🗑️</button></td>
         </tr>`).join("")
-      :`<tr><td colspan="9" class="muted">🩺 لا سجلات صحية — سجّل الحالات والعلاج أعلاه، ويمكن خصم الدواء من الصيدلية مباشرة</td></tr>`);
+      :`<tr><td colspan="10" class="muted">🩺 لا سجلات صحية — سجّل الحالات والعلاج أعلاه، ويمكن خصم الدواء من الصيدلية مباشرة</td></tr>`);
   }
 
   // سجل الحظائر: تعبئة القوائم + الإشغال
@@ -15094,8 +15315,8 @@ function renderLivestock(){
   if(fdSel){ const cur=fdSel.value; const feeds=DB.inventory.filter(i=>i.cat==="أعلاف"); fdSel.innerHTML=feeds.length?feeds.map(i=>`<option value="${i.id}">${ksNm(i.name)} (متوفر ${fmt(i.qty)} ${ksTxt(i.unit)})</option>`).join(""):`<option value="">لا يوجد علف بالمخزون</option>`; if(cur) fdSel.value=cur; }
   const tblFd=document.getElementById("tblLvFeed"); if(tblFd){
     const logs=[...(lv.feedLogs||[])].reverse();
-    tblFd.innerHTML=`<tr><th>التاريخ</th><th>صنف العلف</th><th>الكمية (كجم)</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
-      +(logs.length?logs.map(l=>`<tr><td>${ksTxt(l.date)}</td><td>${l.itemName||"—"}</td><td>${fmt(l.qty)}</td><td>${l.employee||""}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvFeed('${l.id}')">🗑️</button></td></tr>`).join(""):`<tr><td colspan="6" class="muted">🌾 لا سجلات تغذية — سجّل العلف اليومي أعلاه ويُخصم من المخزون وتُقيَّد تكلفته تلقائياً</td></tr>`);
+    tblFd.innerHTML=`<tr><th>التاريخ</th><th>صنف العلف</th><th>الحظيرة</th><th>الكمية (كجم)</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
+      +(logs.length?logs.map(l=>`<tr><td>${ksTxt(l.date)}</td><td>${l.itemName||"—"}</td><td>${lvBarnTxt(l.barn)}</td><td>${fmt(l.qty)}</td><td>${l.employee||""}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvFeed('${l.id}')">🗑️</button></td></tr>`).join(""):`<tr><td colspan="7" class="muted">🌾 لا سجلات تغذية — سجّل العلف اليومي أعلاه ويُخصم من المخزون وتُقيَّد تكلفته تلقائياً</td></tr>`);
   }
   // الصيدلية البيطرية
   const mdSel=document.getElementById("lvMdUseSel");
@@ -15122,45 +15343,45 @@ function renderLivestock(){
   // بطاقات الحيوانات الفردية
   const tblI=document.getElementById("tblLvIndiv"); if(tblI){
     const items=lv.individuals||[];
-    tblI.innerHTML=`<tr><th>الوسم</th><th>النوع</th><th>المسمى</th><th>السلالة</th><th>الجنس</th><th>الميلاد</th><th>الأم</th><th>الوزن</th><th>الحالة</th><th></th></tr>`
+    tblI.innerHTML=`<tr><th>الوسم</th><th>النوع</th><th>المسمى</th><th>السلالة</th><th>الجنس</th><th>الميلاد</th><th>الأم</th><th>الوزن</th><th>الحظيرة</th><th>الحالة</th><th></th></tr>`
       +(items.length?items.map(a=>{
         const _an=lvAgeName(a.type,a.birth), _sx=lvSexName(a.type,a.gender);
-        return `<tr><td><b>${ksTxt(a.tag)}</b></td><td>${a.type||"—"}</td><td>${_an?`<b style="color:var(--green-dark)">${_an}</b>`:"—"}</td><td>${a.breed||"—"}</td><td>${_sx?`${_sx} (${a.gender})`:(a.gender||"—")}</td><td>${a.birth||"—"}</td><td>${a.mother||"—"}</td><td>${a.weight?fmt(a.weight)+" كجم":"—"}</td><td>${a.status||""}</td><td><button class="btn small secondary" onclick="showLvProfile('${a.tag}')">📋 ملف</button>${a.status==="نشط"?` <button class="btn small secondary" title="تسجيل نفوق" onclick="markLvIndivDead('${a.id}')">💀</button> <button class="btn small secondary" title="تحديد كمباع" onclick="markLvIndivSold('${a.id}')">🛒</button>`:""} <button class="del" onclick="delLvIndiv('${a.id}')">🗑️</button></td></tr>`;
-      }).join(""):`<tr><td colspan="10" class="muted">🐐 لا بطاقات فردية — سجّل حيواناتك المميزة برقم وسم لمتابعة ملف كل حيوان</td></tr>`);
+        return `<tr><td><b>${ksTxt(a.tag)}</b></td><td>${a.type||"—"}</td><td>${_an?`<b style="color:var(--green-dark)">${_an}</b>`:"—"}</td><td>${a.breed||"—"}</td><td>${_sx?`${_sx} (${a.gender})`:(a.gender||"—")}</td><td>${a.birth||"—"}</td><td>${a.mother||"—"}</td><td>${a.weight?fmt(a.weight)+" كجم":"—"}</td><td>${lvBarnTxt(a.barn)}</td><td>${a.status||""}</td><td><button class="btn small secondary" onclick="showLvProfile('${a.tag}')">📋 ملف</button>${a.status==="نشط"?` <button class="btn small secondary" title="تسجيل نفوق" onclick="markLvIndivDead('${a.id}')">💀</button> <button class="btn small secondary" title="تحديد كمباع" onclick="markLvIndivSold('${a.id}')">🛒</button>`:""} <button class="del" onclick="delLvIndiv('${a.id}')">🗑️</button></td></tr>`;
+      }).join(""):`<tr><td colspan="11" class="muted">🐐 لا بطاقات فردية — سجّل حيواناتك المميزة برقم وسم لمتابعة ملف كل حيوان</td></tr>`);
   }
   renderLvSaleForm();
   // جدول الأوزان مع النمو
   const tblW=document.getElementById("tblLvWeight"); if(tblW){
     const wl=(lv.weightLogs||[]);
     const logs=[...wl].reverse();
-    tblW.innerHTML=`<tr><th>التاريخ</th><th>الوسم/الحيوان</th><th>الوزن (كجم)</th><th>التغيّر</th><th>ملاحظات</th><th></th></tr>`
+    tblW.innerHTML=`<tr><th>التاريخ</th><th>الوسم/الحيوان</th><th>الحظيرة</th><th>الوزن (كجم)</th><th>التغيّر</th><th>ملاحظات</th><th></th></tr>`
       +(logs.length?logs.map(l=>{
         const prev=wl.filter(x=>x.tag===l.tag&&x.date<l.date).sort((a,b)=>b.date.localeCompare(a.date))[0];
         const d=prev?(l.weight-prev.weight):null;
         const dTxt=d===null?"—":`<span style="color:${d>=0?'var(--green)':'var(--red)'}">${d>=0?"▲ +":"▼ "}${fmt(Math.abs(d))} كجم</span>`;
-        return `<tr><td>${ksTxt(l.date)}</td><td><b>${ksTxt(l.tag)}</b></td><td>${fmt(l.weight)}</td><td>${dTxt}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvWeight('${l.id}')">🗑️</button></td></tr>`;
-      }).join(""):`<tr><td colspan="6" class="muted">⚖️ لا أوزان — سجّل الأوزان دورياً أعلاه ليحسب النظام معدل النمو</td></tr>`);
+        return `<tr><td>${ksTxt(l.date)}</td><td><b>${ksTxt(l.tag)}</b></td><td>${lvBarnTxt(l.barn)}</td><td>${fmt(l.weight)}</td><td>${dTxt}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvWeight('${l.id}')">🗑️</button></td></tr>`;
+      }).join(""):`<tr><td colspan="7" class="muted">⚖️ لا أوزان — سجّل الأوزان دورياً أعلاه ليحسب النظام معدل النمو</td></tr>`);
   }
 
   // جدول التطعيمات
   const tblV=document.getElementById("tblLvVaccine"); if(tblV){
     const logs=[...(lv.vaccines||[])].reverse(); const t0=today(); const soon=new Date(Date.now()+14*864e5).toISOString().slice(0,10);
-    tblV.innerHTML=`<tr><th>التاريخ</th><th>الحيوان</th><th>التطعيم</th><th>العدد</th><th>المنفّذ</th><th>الجرعة القادمة</th><th>ملاحظات</th><th></th></tr>`
+    tblV.innerHTML=`<tr><th>التاريخ</th><th>الحيوان</th><th>الحظيرة</th><th>التطعيم</th><th>العدد</th><th>المنفّذ</th><th>الجرعة القادمة</th><th>ملاحظات</th><th></th></tr>`
       +(logs.length?logs.map(l=>{
         const due=l.next?(l.next<t0?`<span class="badge danger">فات ${l.next}</span>`:(l.next<=soon?`<span class="badge warn">${l.next}</span>`:l.next)):"—";
-        return `<tr><td>${ksTxt(l.date)}</td><td>${l.animal||"—"}</td><td><b>${ksNm(l.name)}</b></td><td>${l.count||1}</td><td>${l.vet||"—"}</td><td>${due}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvVaccine('${l.id}')">🗑️</button></td></tr>`;
-      }).join(""):`<tr><td colspan="8" class="muted">💉 لا تطعيمات — سجّلها أعلاه مع موعد الجرعة القادمة وينبّهك النظام تلقائياً</td></tr>`);
+        return `<tr><td>${ksTxt(l.date)}</td><td>${l.animal||"—"}</td><td>${lvBarnTxt(l.barn)}</td><td><b>${ksNm(l.name)}</b></td><td>${l.count||1}</td><td>${l.vet||"—"}</td><td>${due}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvVaccine('${l.id}')">🗑️</button></td></tr>`;
+      }).join(""):`<tr><td colspan="9" class="muted">💉 لا تطعيمات — سجّلها أعلاه مع موعد الجرعة القادمة وينبّهك النظام تلقائياً</td></tr>`);
   }
   // جدول التلقيح والتكاثر
   const tblBr=document.getElementById("tblLvBreeding"); if(tblBr){
     const logs=[...(lv.breeding||[])].reverse(); const soon=new Date(Date.now()+14*864e5).toISOString().slice(0,10);
-    tblBr.innerHTML=`<tr><th>تاريخ التلقيح</th><th>الحيوان/الأم</th><th>النوع</th><th>المرحلة</th><th>الولادة المتوقّعة</th><th>الحالة</th><th>ملاحظات</th><th></th></tr>`
+    tblBr.innerHTML=`<tr><th>تاريخ التلقيح</th><th>الحيوان/الأم</th><th>الحظيرة</th><th>النوع</th><th>المرحلة</th><th>الولادة المتوقّعة</th><th>الحالة</th><th>ملاحظات</th><th></th></tr>`
       +(logs.length?logs.map(l=>{
         const active=l.status!=="ولدت"&&l.status!=="فشل";
         const due=l.due?(active&&l.due<=soon?`<span class="badge warn">${l.due}</span>`:l.due):"—";
         const stg=lvPregStage(l);
-        return `<tr><td>${ksTxt(l.date)}</td><td>${l.animal||"—"}</td><td>${l.type||""}</td><td>${stg?`<span class="badge ${stg.cls}">${stg.t}</span>`:"—"}</td><td>${due}</td><td>${l.status||""}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvBreeding('${l.id}')">🗑️</button></td></tr>`;
-      }).join(""):`<tr><td colspan="8" class="muted">🐄 لا سجلات تلقيح — سجّلها أعلاه ليتابع النظام الحمل ويذكّرك بالولادات المتوقّعة</td></tr>`);
+        return `<tr><td>${ksTxt(l.date)}</td><td>${l.animal||"—"}</td><td>${lvBarnTxt(l.barn)}</td><td>${l.type||""}</td><td>${stg?`<span class="badge ${stg.cls}">${stg.t}</span>`:"—"}</td><td>${due}</td><td>${l.status||""}</td><td>${l.notes||""}</td><td><button class="del" onclick="delLvBreeding('${l.id}')">🗑️</button></td></tr>`;
+      }).join(""):`<tr><td colspan="9" class="muted">🐄 لا سجلات تلقيح — سجّلها أعلاه ليتابع النظام الحمل ويذكّرك بالولادات المتوقّعة</td></tr>`);
   }
 }
 
@@ -15604,13 +15825,14 @@ function showLvProfile(tag){
   const br=(lv.breeding||[]).filter(x=>(x.animal||"")===tag);
   const ind=(lv.individuals||[]).find(x=>x.tag===tag)||{};
   let html=`<h3 style="margin-bottom:4px">🐐 ملف الحيوان: ${tag}</h3>
-    <div class="muted" style="margin-bottom:10px;font-size:.85rem">${[lvAgeName(ind.type,ind.birth),lvSexName(ind.type,ind.gender)||ind.gender,ind.breed,ind.birth?("ميلاد "+ind.birth):"",ind.weight?(ind.weight+" كجم"):"",ind.status].filter(Boolean).join(" • ")}</div>`;
+    <div class="muted" style="margin-bottom:10px;font-size:.85rem">${[lvAgeName(ind.type,ind.birth),lvSexName(ind.type,ind.gender)||ind.gender,ind.breed,ind.birth?("ميلاد "+ind.birth):"",ind.weight?(ind.weight+" كجم"):"",ind.barn?("🏚️ "+ind.barn):"",ind.status].filter(Boolean).join(" • ")}</div>`;
   const sec=(title,arr,fn)=>`<h4 style="margin:10px 0 4px">${title} (${arr.length})</h4>`+(arr.length?'<ul style="margin:0;padding-inline-start:18px;font-size:.85rem">'+arr.map(fn).join("")+'</ul>':'<p class="muted" style="font-size:.8rem">—</p>');
-  html+=sec("💉 التطعيمات",vac,v=>`<li>${v.date} — ${v.name}${v.next?(" (القادمة "+v.next+")"):""}</li>`);
-  html+=sec("🩺 السجل الصحي",health,h=>`<li>${h.date} — ${h.issue||""}${h.treatment?(" → "+h.treatment):""}</li>`);
-  html+=sec("🐄 التلقيح والتكاثر",br,b=>`<li>${b.date} — ${b.type||""} (${b.status||""})${b.due?(" • ولادة "+b.due):""}</li>`);
+  const _bn=x=>x&&x.barn?` <span class="muted">🏚️ ${ksTxt(x.barn)}</span>`:"";
+  html+=sec("💉 التطعيمات",vac,v=>`<li>${v.date} — ${v.name}${v.next?(" (القادمة "+v.next+")"):""}${_bn(v)}</li>`);
+  html+=sec("🩺 السجل الصحي",health,h=>`<li>${h.date} — ${h.issue||""}${h.treatment?(" → "+h.treatment):""}${_bn(h)}</li>`);
+  html+=sec("🐄 التلقيح والتكاثر",br,b=>`<li>${b.date} — ${b.type||""} (${b.status||""})${b.due?(" • ولادة "+b.due):""}${_bn(b)}</li>`);
   const wts=(lv.weightLogs||[]).filter(x=>x.tag===tag).sort((a,b)=>a.date.localeCompare(b.date));
-  html+=sec("⚖️ الأوزان",wts,w=>`<li>${w.date} — ${w.weight} كجم</li>`);
+  html+=sec("⚖️ الأوزان",wts,w=>`<li>${w.date} — ${w.weight} كجم${_bn(w)}</li>`);
   const box=document.getElementById("lvProfileBody"); if(box){ box.innerHTML=html; document.getElementById("lvProfileModal").style.display="flex"; }
 }
 function calcLvRation(){

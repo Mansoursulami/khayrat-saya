@@ -3397,6 +3397,14 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <button class="btn secondary" type="button" style="border-color:#c66;color:#791F1F" onclick="cloudLogout()">🔌 قطع الاتصال</button>
     </div>
     <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)">
+    <h3 style="margin-top:14px">📤 تصدير بيانات المزرعة</h3>
+    <p class="muted" style="margin-bottom:8px">نسخة كاملة من بياناتك بين يديك في أي وقت — لأرشفتها أو نقلها أو تسليمها. التصدير لصاحب المزرعة وحده.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn secondary" type="button" onclick="ksExportAll()">⬇️ تصدير كامل (JSON)</button>
+      <button class="btn secondary" type="button" onclick="ksExportReadable()">📄 نسخة للقراءة (HTML)</button>
+    </div>
+    <p class="muted" style="font-size:.72rem;margin-top:6px">ملف JSON يشمل كل شيء بلا استثناء ومعه المرفقات — احفظه في مكان آمن فهو نسخة كاملة من بياناتك. وملف HTML يفتح في أي متصفح للقراءة والطباعة.</p>
+    <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)">
     <h3 style="margin-top:14px">📸 لقطات الاسترجاع (داخل هذا الجهاز)</h3>
     <p class="muted" style="margin-bottom:8px">نسختك الاحتياطية الحقيقية هي السحابة (تُزامَن تلقائياً بعد كل حفظ). هذه اللقطات طبقة استرجاع إضافية: لقطة أسبوعية تلقائية (آخر 4) ترجعك لما قبل أي خطأ كبير.</p>
     <button class="btn secondary" onclick="takeSnap(true)">📸 أخذ لقطة الآن</button>
@@ -3407,6 +3415,9 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     <p class="muted" style="margin-bottom:10px">تظهر لك فقط (جلسة إيميل المزود). المديولات أزرار تُضغط تفعيلاً/إيقافاً وتُنفذ في السحابة فوراً، ثم اختر للمزرعة: تجربة ٧ أيام أو اشتراك سنة.</p>
     <div id="provKpis" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px"></div>
     <div class="table-wrap"><table id="tblProvider"></table></div>
+    <h3 style="margin-top:18px">🧾 فواتير الاشتراك</h3>
+    <p class="muted" style="margin-bottom:8px">تُصدر من زر 🧾 أمام كل مزرعة ببياناتها المسجّلة، وتُحفظ في بياناتك أنت وتُزامَن مع سحابتك.</p>
+    <div class="table-wrap"><table id="tblSubInv"></table></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:end">
       <div style="flex:1;min-width:230px"><label>إضافة مزرعة يدوياً برمزها</label><input id="provAddCode" placeholder="رمز المزرعة (uid) xxxxxxxx-…" style="direction:ltr"></div>
       <div style="min-width:150px"><label>اسم المزرعة</label><input id="provAddName" placeholder="اختياري"></div>
@@ -4336,7 +4347,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.30-A";
+const KS_VER="v12.31-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -5251,6 +5262,7 @@ async function providerRender(){
   if(!planIsProvider()) return;
   const tbl=document.getElementById("tblProvider"), kp=document.getElementById("provKpis");
   if(!tbl) return;
+  try{ renderSubInv(); }catch(e){}
   tbl.innerHTML='<tr><td class="muted" style="padding:20px">⏳ جارٍ جلب المزارع من السحابة…</td></tr>';
   let rows=[];
   try{
@@ -5262,6 +5274,7 @@ async function providerRender(){
     return;
   }
   window.__provRows=rows;
+  try{ renderSubInv(); }catch(e){}
   if(kp){
     const n=s=>rows.filter(x=>x.status===s).length;
     const soon=rows.filter(x=>x.status==="active"&&planDaysRow(x)!==null&&planDaysRow(x)<=30&&planDaysRow(x)>=0).length;
@@ -5277,6 +5290,7 @@ async function providerRender(){
         +(p.status==="suspended"
           ?'<button class="btn small secondary" onclick="provSusp(\''+p.farm_id+'\',false)">▶️ استئناف</button> '
           :'<button class="btn small secondary" onclick="provSusp(\''+p.farm_id+'\',true)">⏸️ إيقاف</button> ')
+        +'<button class="btn small secondary" onclick="provInvoice(\''+p.farm_id+'\')">🧾 فاتورة</button> '
         +'<button class="del" onclick="provDel(\''+p.farm_id+'\')">🗑️</button>';
       const nm=escH(p.name||"—")+'<span class="muted" style="display:block;font-size:.68rem;direction:ltr;text-align:right">'+escH(p.email||p.farm_id)+'</span>';
       /* 📨 بيانات طلب الاشتراك — يحتاجها المزود قبل المكالمة وعند إصدار فاتورة الاشتراك */
@@ -5289,6 +5303,243 @@ async function providerRender(){
         +line("🧮",p.tax_no&&("ض. "+p.tax_no))+line("📝",p.req_note);
       return '<tr><td style="font-weight:700">'+nm+'</td><td>'+(info||'<span class="muted" style="font-size:.7rem">—</span>')+'</td><td><div style="display:flex;gap:5px;flex-wrap:wrap">'+mods+'</div></td><td>'+provBadge(p)+'</td><td style="white-space:nowrap">'+till+'</td><td style="white-space:nowrap">'+acts+'</td></tr>';
     }).join(""):'<tr><td colspan="6" class="muted" style="padding:22px;text-align:center">🏡 لا مزارع مسجلة بعد — أول مزرعة تنشئ حسابها ستظهر هنا تلقائياً</td></tr>');
+}
+
+/* ═══════════ v12.31-A — تصدير كامل لبيانات المزرعة ═══════════
+   التزام تعاقدي: المادة (٤) من اتفاقية معالجة البيانات تُلزمنا بتمكين المنشأة من
+   تصدير بياناتها بصيغة قابلة للقراءة، والمادة (١١) بإعادتها عند انتهاء الاشتراك.
+   مخرجان: JSON كامل (كل شيء بلا استثناء، صالح للنقل والاسترجاع) و HTML للقراءة البشرية. */
+const KS_COLL={
+  harvests:"المبيعات", expenses:"المصروفات", purchases:"فواتير الشراء", suppliers:"المورّدون",
+  customers:"العملاء", employees:"الموظفون", products:"المنتجات", inventory:"المخزون",
+  invMoves:"حركات المخزون", cycles:"الدورات الزراعية", tasks:"سجل الأعمال", journals:"القيود اليومية",
+  accounts:"دليل الحسابات", invoices:"الفواتير الإلكترونية", quotes:"عروض الأسعار", orders:"الطلبات",
+  payments:"تحصيلات العملاء", supPayments:"سدادات المورّدين", deferredPayments:"السندات الآجلة",
+  advances:"السلف", attendance:"الحضور والانصراف", leaves:"الإجازات", holidays:"العطلات",
+  shifts:"المناوبات", performance:"تقييم الأداء", custody:"العهد", contracts:"العقود",
+  payrollRuns:"كشوف الرواتب", salaryPays:"صرف الرواتب", fixedAssets:"الأصول الثابتة",
+  recurring:"المصاريف المتكررة", purchaseReqs:"طلبات الشراء", stockChecks:"الجرد الدوري",
+  pesticides:"الرش والمبيدات", irrigation:"الري", quality:"الجودة", diseases:"الأمراض",
+  maintenance:"الصيانة", equipment:"المعدات", soilTests:"فحوص التربة", climate:"قياسات المناخ",
+  transfers:"التحويلات", tanks:"أحواض الأسماك", fishLogs:"يوميات الأسماك", waterLogs:"قياسات المياه",
+  returns:"المردودات", rejects:"المرفوضات", trash:"سلة المهملات", editLog:"سجل التدقيق",
+  subInvoices:"فواتير الاشتراك", recons:"مطابقات الصندوق والبنك"
+};
+const KS_LV_COLL={
+  animals:"جرد الحيوانات", dailyReports:"التقارير اليومية", milkLogs:"سجل الحليب",
+  birthDeathLogs:"المواليد والنفوق", healthLogs:"السجل الصحي", vaccines:"التطعيمات",
+  breeding:"التلقيح والتكاثر", individuals:"البطاقات الفردية", feedLogs:"سجل التغذية",
+  weightLogs:"سجل الأوزان", barns:"الحظائر", barnTransfers:"النقل بين الحظائر",
+  medicines:"الصيدلية البيطرية", medUses:"استخدامات الأدوية"
+};
+const KS_FLD={id:"المعرّف",date:"التاريخ",name:"الاسم",amount:"المبلغ",qty:"الكمية",unit:"الوحدة",
+  price:"السعر",total:"الإجمالي",cat:"البند",section:"القسم",notes:"ملاحظات",employee:"الموظف",
+  status:"الحالة",phone:"الجوال",email:"البريد",salary:"الراتب",customerId:"العميل",supplierId:"المورّد",
+  taxAmt:"الضريبة",paid:"مدفوع",dueDate:"الاستحقاق",productName:"المنتج",cost:"التكلفة",
+  vatNo:"الرقم الضريبي",idNo:"رقم الهوية",job:"الوظيفة",barn:"الحظيرة",credit:"آجل",payee:"الجهة"};
+
+function ksExportGuard(what){
+  if(typeof ksOutAllowed==="function" && !ksOutAllowed()){
+    try{ toast("⛔ بيانات هذا الجهاز تخص مزرعة أخرى — التصدير معطّل"); }catch(e){} return false;
+  }
+  if(typeof ksOwnerOnly==="function" && !ksOwnerOnly(what)) return false;
+  return true;
+}
+function ksDlFile(text, filename, mime){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([text],{type:(mime||"text/plain")+";charset=utf-8"}));
+  a.download=filename; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ try{ URL.revokeObjectURL(a.href); a.remove(); }catch(e){} },100);
+}
+function ksSafeName(s){ return String(s||"المزرعة").replace(/[\\/:*?"<>|]/g,"-").trim()||"المزرعة"; }
+function ksRecCounts(){
+  const c={}; let t=0;
+  try{
+    Object.keys(DB).forEach(k=>{ if(Array.isArray(DB[k])){ c[k]=DB[k].length; t+=DB[k].length; } });
+    const lv=DB.livestock; if(lv&&!Array.isArray(lv)) Object.keys(lv).forEach(k=>{
+      if(Array.isArray(lv[k])){ c["livestock."+k]=lv[k].length; t+=lv[k].length; } });
+  }catch(e){}
+  c.__total=t; return c;
+}
+function ksExportAll(){
+  if(!ksExportGuard("تصدير بيانات المزرعة")) return;
+  try{
+    const counts=ksRecCounts();
+    const pack={ meta:{
+      kind:"full-farm-export",
+      farm:ksCoName(),
+      farmId:(typeof cloudFarmId==="function"?(cloudFarmId()||""):""),
+      exportedAt:new Date().toISOString(),
+      exportedBy:((typeof CURRENT_USER!=="undefined"&&CURRENT_USER)?CURRENT_USER.name:"")||"",
+      systemVersion:(typeof KS_VER!=="undefined"?KS_VER:""),
+      recordCount:counts.__total, counts:counts,
+      note:"ملف تصدير كامل لبيانات المزرعة — يشمل المرفقات المخزّنة. يُحفظ في مكان آمن."
+    }, data:DB };
+    ksDlFile(JSON.stringify(pack,null,1),
+      "بيانات-"+ksSafeName(ksCoName())+"-"+today()+".json","application/json");
+    try{ logEdit("📤 تصدير كامل للبيانات","JSON — "+counts.__total+" سجل"); }catch(e){}
+    toast("✅ صُدِّر ملف البيانات الكامل ("+fmt(counts.__total)+" سجل)");
+  }catch(e){ toast("❌ تعذر التصدير: "+(e&&e.message||"")); }
+}
+function ksExportReadable(){
+  if(!ksExportGuard("تصدير بيانات المزرعة")) return;
+  try{
+    const esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    const cv=v=>{
+      if(v===null||v===undefined||v==="") return "";
+      if(typeof v==="boolean") return v?"نعم":"لا";
+      if(typeof v==="object"){ try{ const s=JSON.stringify(v); return s.length>200?s.slice(0,200)+"…":s; }catch(e){ return ""; } }
+      const s=String(v);
+      if(/^data:/.test(s)) return "[مرفق محفوظ في ملف JSON]";
+      return s.length>300?s.slice(0,300)+"…":s;
+    };
+    const sec=(title,arr)=>{
+      if(!Array.isArray(arr)||!arr.length) return "";
+      const keys=[]; arr.slice(0,200).forEach(o=>{ if(o&&typeof o==="object") Object.keys(o).forEach(k=>{ if(!keys.includes(k)) keys.push(k); }); });
+      if(!keys.length) return "";
+      const head=keys.map(k=>"<th>"+esc(KS_FLD[k]||k)+"</th>").join("");
+      const body=arr.map(o=>"<tr>"+keys.map(k=>"<td>"+esc(cv(o&&o[k]))+"</td>").join("")+"</tr>").join("");
+      return '<h2>'+esc(title)+' <span class="n">('+arr.length+')</span></h2>'
+        +'<div class="w"><table><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div>';
+    };
+    let body="", n=0;
+    Object.keys(KS_COLL).forEach(k=>{ if(Array.isArray(DB[k])&&DB[k].length){ body+=sec(KS_COLL[k],DB[k]); n+=DB[k].length; } });
+    Object.keys(DB).forEach(k=>{ if(!KS_COLL[k]&&Array.isArray(DB[k])&&DB[k].length){ body+=sec(k,DB[k]); n+=DB[k].length; } });
+    const lv=DB.livestock;
+    if(lv&&!Array.isArray(lv)) Object.keys(lv).forEach(k=>{
+      if(Array.isArray(lv[k])&&lv[k].length){ body+=sec("المواشي — "+(KS_LV_COLL[k]||k),lv[k]); n+=lv[k].length; } });
+    if(DB.settings) body+='<h2>إعدادات المزرعة</h2><div class="w"><table><tbody>'
+      +Object.keys(DB.settings).map(k=>"<tr><th>"+esc(k)+"</th><td>"+esc(cv(DB.settings[k]))+"</td></tr>").join("")
+      +'</tbody></table></div>';
+    const html='<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8">'
+      +'<meta name="viewport" content="width=device-width,initial-scale=1">'
+      +'<title>بيانات '+esc(ksCoName())+'</title><style>'
+      +'*{box-sizing:border-box}body{font-family:Tahoma,Arial,sans-serif;margin:0;padding:18px;background:#f8fafc;color:#111;font-size:12px}'
+      +'h1{color:#166534;font-size:20px;margin:0 0 4px}h2{color:#166534;font-size:15px;margin:22px 0 6px;border-right:4px solid #166534;padding-right:8px}'
+      +'.n{color:#666;font-weight:400;font-size:12px}.w{overflow-x:auto;background:#fff;border:1px solid #e5e7eb;border-radius:8px}'
+      +'table{width:100%;border-collapse:collapse;white-space:nowrap}'
+      +'th{background:#f1f5f9;text-align:right;padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:11px}'
+      +'td{padding:5px 8px;border-bottom:1px solid #f1f5f9;font-size:11px}tr:nth-child(even) td{background:#fafafa}'
+      +'.hd{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;margin-bottom:10px}'
+      +'.mu{color:#666;font-size:11px}</style></head><body>'
+      +'<div class="hd"><h1>بيانات '+esc(ksCoName())+'</h1>'
+      +'<div class="mu">تاريخ التصدير: '+esc(new Date().toLocaleString("sv").slice(0,16))
+      +' · إجمالي السجلات: '+n+' · إصدار السستم: '+esc(typeof KS_VER!=="undefined"?KS_VER:"")+'</div>'
+      +'<div class="mu">هذا ملف للقراءة والأرشفة. النسخة الكاملة القابلة للنقل والاسترجاع هي ملف JSON.</div></div>'
+      +(body||'<p class="mu">لا توجد بيانات.</p>')+'</body></html>';
+    ksDlFile(html,"بيانات-"+ksSafeName(ksCoName())+"-"+today()+".html","text/html");
+    try{ logEdit("📤 تصدير قابل للقراءة","HTML — "+n+" سجل"); }catch(e){}
+    toast("✅ صُدِّر الملف القابل للقراءة ("+fmt(n)+" سجل)");
+  }catch(e){ toast("❌ تعذر التصدير: "+(e&&e.message||"")); }
+}
+
+/* ═══════════ v12.31-A — فاتورة الاشتراك من لوحة المزود ═══════════
+   كانت بيانات السجل التجاري والرقم الضريبي تُجمع «لإصدار فاتورة الاشتراك» ولا يوجد ما يصدرها. */
+/* القراءة لا تُعدّل الحالة أبداً — الرسم يجب ألا يخلق مصفوفة فيبدو أن البيانات تغيّرت
+   (كشفه اختبار العزل ⑩: فتح لوحة المزود كان «يغيّر» بيانات المزود بلا سبب). */
+function subInvList(){ return Array.isArray(DB.subInvoices)?DB.subInvoices:[]; }
+function subInvEnsure(){ if(!Array.isArray(DB.subInvoices)) DB.subInvoices=[]; return DB.subInvoices; }
+function subInvNextNo(){
+  const mx=subInvList().reduce((m,x)=>{ const n=parseInt(String(x.no||"").replace(/\D/g,""),10); return isFinite(n)&&n>m?n:m; },0);
+  return "SUB-"+String(mx+1).padStart(4,"0");
+}
+function provInvoice(farmId){
+  if(!planIsProvider()){ toast("⚠️ لوحة المزود فقط"); return; }
+  const p=(window.__provRows||[]).find(x=>x.farm_id===farmId);
+  if(!p){ toast("⚠️ لم يُعثر على بيانات المزرعة"); return; }
+  const t=today();
+  const yr=(function(){ const d=new Date(t+"T00:00:00"); d.setFullYear(d.getFullYear()+1); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); })();
+  qa2Open({ title:"🧾 فاتورة اشتراك — "+(p.name||p.email||farmId),
+    note:"تُحفظ في بياناتك وتُطبع، ويمكن إعادة طباعتها لاحقاً من جدول فواتير الاشتراك.",
+    fields:[
+      {id:"base",label:"قيمة الاشتراك الأساسي (⃁)",req:1,type:"number"},
+      {id:"mods",label:"قيمة المديولات الإضافية (⃁)",type:"number",val:"0"},
+      {id:"from",label:"من تاريخ",type:"date",val:t},
+      {id:"to",label:"إلى تاريخ",type:"date",val:yr},
+      {id:"vat",label:"نسبة الضريبة % (صفر إن كنت غير مسجَّل)",type:"number",val:"15"},
+      {id:"note",label:"ملاحظة (اختياري)"}
+    ],
+    onSave:v=>{
+      const base=+v.base||0, mods=+v.mods||0, rate=Math.max(0,+v.vat||0);
+      if(!(base+mods>0)){ toast("⚠️ أدخل قيمة الاشتراك"); return false; }
+      if(v.from&&v.to&&v.to<v.from){ toast("⛔ تاريخ النهاية قبل البداية"); return false; }
+      const net=+(base+mods).toFixed(2), vat=+(net*rate/100).toFixed(2), tot=+(net+vat).toFixed(2);
+      const items=[{desc:"اشتراك سنوي في سستم تشغيل المزرعة",amount:base}];
+      if(mods>0) items.push({desc:"مديولات إضافية",amount:mods});
+      const inv={ id:uid(), no:subInvNextNo(), date:t,
+        farmId:farmId, farmName:p.name||"", email:p.email||"", phone:p.phone||"", city:p.city||"",
+        crNo:p.cr_no||"", taxNo:p.tax_no||"", from:v.from||"", to:v.to||"",
+        items:items, net:net, vatRate:rate, vat:vat, total:tot, note:v.note||"" };
+      subInvEnsure().push(inv); save();
+      try{ logEdit("🧾 إصدار فاتورة اشتراك", inv.no+" — "+(p.name||farmId)+" — "+fmt(tot)+" ⃁"); }catch(e){}
+      try{ renderSubInv(); }catch(e){}
+      subInvPrint(inv.id);
+      toast("✅ صدرت الفاتورة "+inv.no);
+    }});
+}
+function subInvPrint(id){
+  const inv=subInvList().find(x=>x.id===id); if(!inv){ toast("⚠️ الفاتورة غير موجودة"); return; }
+  if(typeof ksOutAllowed==="function" && !ksOutAllowed()){ toast("⛔ الطباعة معطّلة"); return; }
+  const st=DB.settings||{}, esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const taxed=(+inv.vatRate||0)>0;
+  const rows=(inv.items||[]).map(it=>"<tr><td>"+esc(it.desc)+"</td><td class='l'>"+fmt(it.amount)+"</td></tr>").join("");
+  const sellerTax=st.taxNo?"<div>الرقم الضريبي: "+esc(st.taxNo)+"</div>":"";
+  const sellerCr=st.unifiedNo?"<div>السجل التجاري: "+esc(st.unifiedNo)+"</div>":"";
+  const html='<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>'
+    +esc(inv.no)+'</title><style>*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:Tahoma,Arial,sans-serif;padding:26px;font-size:12pt;color:#111}'
+    +'h1{color:#166534;font-size:17pt;margin-bottom:2px}.mu{color:#666;font-size:10pt}'
+    +'.bx{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0}'
+    +'.bx>div{flex:1;min-width:230px;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:10.5pt}'
+    +'.bx b{color:#166534;display:block;margin-bottom:4px}'
+    +'table{width:100%;border-collapse:collapse;margin-top:8px}'
+    +'th{background:#166534;color:#fff;padding:7px 9px;text-align:right;font-size:11pt}'
+    +'td{padding:6px 9px;border-bottom:1px solid #eee}.l{text-align:left;white-space:nowrap}'
+    +'tfoot td{font-weight:700;border-top:2px solid #166534}'
+    +'.tot{font-size:14pt;color:#166534}.ft{margin-top:24px;font-size:9.5pt;color:#666;border-top:1px solid #eee;padding-top:10px}'
+    +'@media print{button{display:none}}</style></head><body>'
+    +'<h1>'+(taxed?"فاتورة ضريبية":"فاتورة")+'</h1>'
+    +'<div class="mu">رقم الفاتورة: <b>'+esc(inv.no)+'</b> · التاريخ: '+esc(inv.date)+'</div>'
+    +'<div class="bx"><div><b>المُصدِر</b>'+esc(ksCoName())+sellerTax+sellerCr
+    +(st.phone?"<div>الجوال: "+esc(st.phone)+"</div>":"")+'</div>'
+    +'<div><b>العميل</b>'+esc(inv.farmName||inv.email||inv.farmId)
+    +(inv.crNo?"<div>السجل التجاري: "+esc(inv.crNo)+"</div>":"")
+    +(inv.taxNo?"<div>الرقم الضريبي: "+esc(inv.taxNo)+"</div>":"")
+    +(inv.city?"<div>المدينة: "+esc(inv.city)+"</div>":"")
+    +(inv.phone?"<div>الجوال: "+esc(inv.phone)+"</div>":"")+'</div></div>'
+    +'<div class="mu">فترة الاشتراك: '+esc(inv.from||"—")+' ← '+esc(inv.to||"—")+'</div>'
+    +'<table><thead><tr><th>البيان</th><th class="l">المبلغ (⃁)</th></tr></thead><tbody>'+rows+'</tbody>'
+    +'<tfoot><tr><td>الإجمالي قبل الضريبة</td><td class="l">'+fmt(inv.net)+'</td></tr>'
+    +(taxed?'<tr><td>ضريبة القيمة المضافة ('+inv.vatRate+'%)</td><td class="l">'+fmt(inv.vat)+'</td></tr>':'')
+    +'<tr><td class="tot">الإجمالي المستحق</td><td class="l tot">'+fmt(inv.total)+' ⃁</td></tr></tfoot></table>'
+    +(inv.note?'<p class="mu" style="margin-top:12px">ملاحظة: '+esc(inv.note)+'</p>':'')
+    +(taxed?'':'<p class="mu" style="margin-top:12px">منشأة غير مسجّلة في ضريبة القيمة المضافة.</p>')
+    +'<div class="ft">شكراً لثقتكم — '+esc(ksCoName())+'</div></body></html>';
+  const w=window.open("","_blank","width=900,height=760");
+  if(w){ w.document.write(html); w.document.close(); setTimeout(()=>{ try{ w.print(); }catch(e){} },400); }
+  else toast("⚠️ اسمح بالنوافذ المنبثقة للطباعة");
+}
+function subInvDel(id){
+  if(!planIsProvider()) return;
+  const inv=subInvList().find(x=>x.id===id); if(!inv) return;
+  if(!confirm("حذف فاتورة الاشتراك "+inv.no+"؟")) return;
+  DB.subInvoices=subInvList().filter(x=>x.id!==id); save();
+  try{ logEdit("🗑️ حذف فاتورة اشتراك", inv.no); }catch(e){}
+  renderSubInv();
+}
+function renderSubInv(){
+  const el=document.getElementById("tblSubInv"); if(!el) return;
+  const list=subInvList().slice().reverse();
+  const tot=list.reduce((s,x)=>s+(+x.total||0),0);
+  el.innerHTML='<tr><th>الرقم</th><th>التاريخ</th><th>المزرعة</th><th>الفترة</th><th>الإجمالي</th><th></th></tr>'
+    +(list.length?list.map(x=>'<tr><td><b>'+ksTxt(x.no)+'</b></td><td>'+ksTxt(x.date)+'</td>'
+      +'<td>'+ksNm(x.farmName||x.email||x.farmId)+'</td>'
+      +'<td style="font-size:.7rem">'+ksTxt(x.from||"—")+' ← '+ksTxt(x.to||"—")+'</td>'
+      +'<td>'+fmtSR(x.total)+'</td>'
+      +'<td><button class="edt" title="طباعة" onclick="subInvPrint(\''+x.id+'\')">🖨️</button>'
+      +'<button class="del" onclick="subInvDel(\''+x.id+'\')">🗑️</button></td></tr>').join("")
+      :'<tr><td colspan="6" class="muted">🧾 لا فواتير اشتراك بعد — أصدرها من زر 🧾 أمام المزرعة</td></tr>')
+    +(list.length?'<tr style="font-weight:800"><th colspan="4">الإجمالي ('+fmt(list.length)+' فاتورة)</th><th>'+fmtSR(tot)+'</th><th></th></tr>':'');
 }
 
 function cloudStatusUI(msg){

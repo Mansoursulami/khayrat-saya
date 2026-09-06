@@ -4347,7 +4347,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.31-A";
+const KS_VER="v12.32-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -5232,7 +5232,14 @@ async function provYear(fid){
   const row=(window.__provRows||[]).find(x=>x.farm_id===fid);
   const exp=__provPlus(row&&row.status==="active"?row.expires_at:null,365);
   if(!confirm("تفعيل/تمديد اشتراك سنة حتى "+exp+"؟")) return;
-  if(await provPatch(fid,{status:"active",expires_at:exp})){ toast("✅ اشتراك نشط حتى "+exp); providerRender(); }
+  if(await provPatch(fid,{status:"active",expires_at:exp})){
+    toast("✅ اشتراك نشط حتى "+exp); providerRender();
+    /* الفوترة والتفعيل منفصلان عمداً — لكن النسيان هو الخطر اليومي، فنسأل ونعبّي الفترة الفعلية */
+    const start=__provPlus(row&&row.status==="active"?row.expires_at:null,0);
+    setTimeout(()=>{ try{
+      if(confirm("✅ فُعّل الاشتراك حتى "+exp+"\n\nتصدر مستند الاشتراك الآن؟")) provInvoice(fid,{from:start,to:exp});
+    }catch(e){} },300);
+  }
 }
 async function provSusp(fid,on){
   if(!confirm(on?"إيقاف اشتراك هذه المزرعة فوراً؟":"استئناف الاشتراك؟")) return;
@@ -5433,55 +5440,84 @@ function ksExportReadable(){
   }catch(e){ toast("❌ تعذر التصدير: "+(e&&e.message||"")); }
 }
 
-/* ═══════════ v12.31-A — فاتورة الاشتراك من لوحة المزود ═══════════
-   كانت بيانات السجل التجاري والرقم الضريبي تُجمع «لإصدار فاتورة الاشتراك» ولا يوجد ما يصدرها. */
+/* ═══════════ v12.32-A — مستندات الاشتراك: فاتورة أو عرض سعر ═══════════
+   القاعدة الضريبية: الضريبة تستحق بأسبق ثلاثة — التوريد أو **إصدار الفاتورة** أو استلام المبلغ.
+   فإرسال فاتورة ضريبية كطلب دفع يُحمّل المزوّد ضريبة قبل أن يقبض. لذلك: من يطلب مستنداً
+   قبل التحويل يُعطى **عرض سعر** (بترقيم مستقل وبلا أثر ضريبي)، ويُحوَّل لفاتورة بعد السداد. */
+const SUBQ_DAYS=14;   /* صلاحية عرض سعر الاشتراك — قرار المالك */
 /* القراءة لا تُعدّل الحالة أبداً — الرسم يجب ألا يخلق مصفوفة فيبدو أن البيانات تغيّرت
    (كشفه اختبار العزل ⑩: فتح لوحة المزود كان «يغيّر» بيانات المزود بلا سبب). */
 function subInvList(){ return Array.isArray(DB.subInvoices)?DB.subInvoices:[]; }
 function subInvEnsure(){ if(!Array.isArray(DB.subInvoices)) DB.subInvoices=[]; return DB.subInvoices; }
-function subInvNextNo(){
-  const mx=subInvList().reduce((m,x)=>{ const n=parseInt(String(x.no||"").replace(/\D/g,""),10); return isFinite(n)&&n>m?n:m; },0);
-  return "SUB-"+String(mx+1).padStart(4,"0");
+function subIsQuote(x){ return !!(x && x.kind==="quote"); }
+function subInvNextNo(kind){
+  const pre=(kind==="quote")?"QSUB-":"SUB-";
+  const mx=subInvList().filter(x=>(x.kind==="quote")===(kind==="quote"))
+    .reduce((m,x)=>{ const n=parseInt(String(x.no||"").replace(/\D/g,""),10); return isFinite(n)&&n>m?n:m; },0);
+  return pre+String(mx+1).padStart(4,"0");
 }
-function provInvoice(farmId){
+function provInvoice(farmId, pre){
   if(!planIsProvider()){ toast("⚠️ لوحة المزود فقط"); return; }
   const p=(window.__provRows||[]).find(x=>x.farm_id===farmId);
   if(!p){ toast("⚠️ لم يُعثر على بيانات المزرعة"); return; }
   const t=today();
-  const yr=(function(){ const d=new Date(t+"T00:00:00"); d.setFullYear(d.getFullYear()+1); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); })();
-  qa2Open({ title:"🧾 فاتورة اشتراك — "+(p.name||p.email||farmId),
-    note:"تُحفظ في بياناتك وتُطبع، ويمكن إعادة طباعتها لاحقاً من جدول فواتير الاشتراك.",
+  const addD=(ds,n)=>{ const d=new Date((ds||t)+"T00:00:00"); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
+  const from=(pre&&pre.from)||t;
+  const to=(pre&&pre.to)||addD(from,364);
+  qa2Open({ title:"🧾 مستند اشتراك — "+(p.name||p.email||farmId),
+    note:(pre&&pre.from)?"الفترة معبّأة من الاشتراك الذي فُعّل للتو."
+      :"«عرض سعر» لمن يطلب مستنداً قبل التحويل — بلا ترقيم ضريبي وبلا أثر ضريبي، ويُحوَّل لفاتورة بعد السداد.",
     fields:[
+      {id:"kind",label:"نوع المستند",opts:[["inv","🧾 فاتورة (بعد السداد)"],["quote","📄 عرض سعر (قبل السداد)"]],val:"inv"},
       {id:"base",label:"قيمة الاشتراك الأساسي (⃁)",req:1,type:"number"},
       {id:"mods",label:"قيمة المديولات الإضافية (⃁)",type:"number",val:"0"},
-      {id:"from",label:"من تاريخ",type:"date",val:t},
-      {id:"to",label:"إلى تاريخ",type:"date",val:yr},
+      {id:"from",label:"من تاريخ",type:"date",val:from},
+      {id:"to",label:"إلى تاريخ",type:"date",val:to},
       {id:"vat",label:"نسبة الضريبة % (صفر إن كنت غير مسجَّل)",type:"number",val:"15"},
       {id:"note",label:"ملاحظة (اختياري)"}
     ],
     onSave:v=>{
-      const base=+v.base||0, mods=+v.mods||0, rate=Math.max(0,+v.vat||0);
+      const base=+v.base||0, mods=+v.mods||0, rate=Math.max(0,+v.vat||0), quote=(v.kind==="quote");
       if(!(base+mods>0)){ toast("⚠️ أدخل قيمة الاشتراك"); return false; }
       if(v.from&&v.to&&v.to<v.from){ toast("⛔ تاريخ النهاية قبل البداية"); return false; }
       const net=+(base+mods).toFixed(2), vat=+(net*rate/100).toFixed(2), tot=+(net+vat).toFixed(2);
       const items=[{desc:"اشتراك سنوي في سستم تشغيل المزرعة",amount:base}];
       if(mods>0) items.push({desc:"مديولات إضافية",amount:mods});
-      const inv={ id:uid(), no:subInvNextNo(), date:t,
+      const rec={ id:uid(), kind:quote?"quote":"inv", no:subInvNextNo(quote?"quote":"inv"), date:t,
         farmId:farmId, farmName:p.name||"", email:p.email||"", phone:p.phone||"", city:p.city||"",
         crNo:p.cr_no||"", taxNo:p.tax_no||"", from:v.from||"", to:v.to||"",
         items:items, net:net, vatRate:rate, vat:vat, total:tot, note:v.note||"" };
-      subInvEnsure().push(inv); save();
-      try{ logEdit("🧾 إصدار فاتورة اشتراك", inv.no+" — "+(p.name||farmId)+" — "+fmt(tot)+" ⃁"); }catch(e){}
+      if(quote) rec.validTill=addD(t,SUBQ_DAYS);
+      subInvEnsure().push(rec); save();
+      try{ logEdit(quote?"📄 إصدار عرض سعر اشتراك":"🧾 إصدار فاتورة اشتراك",
+        rec.no+" — "+(p.name||farmId)+" — "+fmt(tot)+" ⃁"); }catch(e){}
       try{ renderSubInv(); }catch(e){}
-      subInvPrint(inv.id);
-      toast("✅ صدرت الفاتورة "+inv.no);
+      subInvPrint(rec.id);
+      toast(quote?("📄 صدر عرض السعر "+rec.no+" — صالح حتى "+rec.validTill):("✅ صدرت الفاتورة "+rec.no));
     }});
 }
+function subInvToInvoice(id){
+  if(!planIsProvider()) return;
+  const q=subInvList().find(x=>x.id===id);
+  if(!q||!subIsQuote(q)){ toast("⚠️ هذا ليس عرض سعر"); return; }
+  if(q.converted){ toast("✔️ حُوّل هذا العرض إلى فاتورة مسبقاً"); return; }
+  if(!confirm("تحويل عرض السعر "+q.no+" إلى فاتورة بنفس أرقامه؟")) return;
+  const inv=Object.assign({},q,{ id:uid(), kind:"inv", no:subInvNextNo("inv"), date:today(),
+    fromQuote:q.id, fromQuoteNo:q.no });
+  delete inv.validTill; delete inv.converted;
+  subInvEnsure().push(inv);
+  q.converted=true; q.invNo=inv.no;
+  save();
+  try{ logEdit("🔄 تحويل عرض سعر اشتراك لفاتورة", q.no+" ← "+inv.no+" — "+fmt(inv.total)+" ⃁"); }catch(e){}
+  renderSubInv(); subInvPrint(inv.id);
+  toast("✅ صدرت الفاتورة "+inv.no);
+}
 function subInvPrint(id){
-  const inv=subInvList().find(x=>x.id===id); if(!inv){ toast("⚠️ الفاتورة غير موجودة"); return; }
+  const inv=subInvList().find(x=>x.id===id); if(!inv){ toast("⚠️ المستند غير موجود"); return; }
   if(typeof ksOutAllowed==="function" && !ksOutAllowed()){ toast("⛔ الطباعة معطّلة"); return; }
   const st=DB.settings||{}, esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  const taxed=(+inv.vatRate||0)>0;
+  const quote=subIsQuote(inv), taxed=(+inv.vatRate||0)>0;
+  const head=quote?"عرض سعر اشتراك":(taxed?"فاتورة ضريبية":"فاتورة");
   const rows=(inv.items||[]).map(it=>"<tr><td>"+esc(it.desc)+"</td><td class='l'>"+fmt(it.amount)+"</td></tr>").join("");
   const sellerTax=st.taxNo?"<div>الرقم الضريبي: "+esc(st.taxNo)+"</div>":"";
   const sellerCr=st.unifiedNo?"<div>السجل التجاري: "+esc(st.unifiedNo)+"</div>":"";
@@ -5497,10 +5533,13 @@ function subInvPrint(id){
     +'td{padding:6px 9px;border-bottom:1px solid #eee}.l{text-align:left;white-space:nowrap}'
     +'tfoot td{font-weight:700;border-top:2px solid #166534}'
     +'.tot{font-size:14pt;color:#166534}.ft{margin-top:24px;font-size:9.5pt;color:#666;border-top:1px solid #eee;padding-top:10px}'
+    +'.wn{background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:9px 12px;margin-top:14px;font-size:10pt;color:#854d0e}'
     +'@media print{button{display:none}}</style></head><body>'
-    +'<h1>'+(taxed?"فاتورة ضريبية":"فاتورة")+'</h1>'
-    +'<div class="mu">رقم الفاتورة: <b>'+esc(inv.no)+'</b> · التاريخ: '+esc(inv.date)+'</div>'
-    +'<div class="bx"><div><b>المُصدِر</b>'+esc(ksCoName())+sellerTax+sellerCr
+    +'<h1>'+head+'</h1>'
+    +'<div class="mu">'+(quote?"رقم العرض":"رقم الفاتورة")+': <b>'+esc(inv.no)+'</b> · التاريخ: '+esc(inv.date)
+    +(quote&&inv.validTill?' · صالح حتى: <b>'+esc(inv.validTill)+'</b>':'')
+    +(inv.fromQuoteNo?' · بناءً على عرض السعر '+esc(inv.fromQuoteNo):'')+'</div>'
+    +'<div class="bx"><div><b>'+(quote?"مُقدِّم العرض":"المُصدِر")+'</b>'+esc(ksCoName())+sellerTax+sellerCr
     +(st.phone?"<div>الجوال: "+esc(st.phone)+"</div>":"")+'</div>'
     +'<div><b>العميل</b>'+esc(inv.farmName||inv.email||inv.farmId)
     +(inv.crNo?"<div>السجل التجاري: "+esc(inv.crNo)+"</div>":"")
@@ -5510,10 +5549,11 @@ function subInvPrint(id){
     +'<div class="mu">فترة الاشتراك: '+esc(inv.from||"—")+' ← '+esc(inv.to||"—")+'</div>'
     +'<table><thead><tr><th>البيان</th><th class="l">المبلغ (⃁)</th></tr></thead><tbody>'+rows+'</tbody>'
     +'<tfoot><tr><td>الإجمالي قبل الضريبة</td><td class="l">'+fmt(inv.net)+'</td></tr>'
-    +(taxed?'<tr><td>ضريبة القيمة المضافة ('+inv.vatRate+'%)</td><td class="l">'+fmt(inv.vat)+'</td></tr>':'')
-    +'<tr><td class="tot">الإجمالي المستحق</td><td class="l tot">'+fmt(inv.total)+' ⃁</td></tr></tfoot></table>'
+    +(taxed?'<tr><td>ضريبة القيمة المضافة ('+inv.vatRate+'%)'+(quote?' — تقديرية':'')+'</td><td class="l">'+fmt(inv.vat)+'</td></tr>':'')
+    +'<tr><td class="tot">'+(quote?"الإجمالي التقديري":"الإجمالي المستحق")+'</td><td class="l tot">'+fmt(inv.total)+' ⃁</td></tr></tfoot></table>'
     +(inv.note?'<p class="mu" style="margin-top:12px">ملاحظة: '+esc(inv.note)+'</p>':'')
-    +(taxed?'':'<p class="mu" style="margin-top:12px">منشأة غير مسجّلة في ضريبة القيمة المضافة.</p>')
+    +(quote?'<div class="wn">📄 هذا المستند <b>عرض سعر</b> وليس فاتورة ضريبية، ولا يُعتد به مستنداً ضريبياً. تُصدر الفاتورة الضريبية بعد سداد قيمة الاشتراك.</div>':'')
+    +((!quote&&!taxed)?'<p class="mu" style="margin-top:12px">منشأة غير مسجّلة في ضريبة القيمة المضافة.</p>':'')
     +'<div class="ft">شكراً لثقتكم — '+esc(ksCoName())+'</div></body></html>';
   const w=window.open("","_blank","width=900,height=760");
   if(w){ w.document.write(html); w.document.close(); setTimeout(()=>{ try{ w.print(); }catch(e){} },400); }
@@ -5522,24 +5562,35 @@ function subInvPrint(id){
 function subInvDel(id){
   if(!planIsProvider()) return;
   const inv=subInvList().find(x=>x.id===id); if(!inv) return;
-  if(!confirm("حذف فاتورة الاشتراك "+inv.no+"؟")) return;
+  if(!confirm("حذف "+(subIsQuote(inv)?"عرض السعر ":"فاتورة الاشتراك ")+inv.no+"؟")) return;
   DB.subInvoices=subInvList().filter(x=>x.id!==id); save();
-  try{ logEdit("🗑️ حذف فاتورة اشتراك", inv.no); }catch(e){}
+  try{ logEdit("🗑️ حذف مستند اشتراك", inv.no); }catch(e){}
   renderSubInv();
 }
 function renderSubInv(){
   const el=document.getElementById("tblSubInv"); if(!el) return;
   const list=subInvList().slice().reverse();
-  const tot=list.reduce((s,x)=>s+(+x.total||0),0);
-  el.innerHTML='<tr><th>الرقم</th><th>التاريخ</th><th>المزرعة</th><th>الفترة</th><th>الإجمالي</th><th></th></tr>'
-    +(list.length?list.map(x=>'<tr><td><b>'+ksTxt(x.no)+'</b></td><td>'+ksTxt(x.date)+'</td>'
-      +'<td>'+ksNm(x.farmName||x.email||x.farmId)+'</td>'
-      +'<td style="font-size:.7rem">'+ksTxt(x.from||"—")+' ← '+ksTxt(x.to||"—")+'</td>'
-      +'<td>'+fmtSR(x.total)+'</td>'
-      +'<td><button class="edt" title="طباعة" onclick="subInvPrint(\''+x.id+'\')">🖨️</button>'
-      +'<button class="del" onclick="subInvDel(\''+x.id+'\')">🗑️</button></td></tr>').join("")
-      :'<tr><td colspan="6" class="muted">🧾 لا فواتير اشتراك بعد — أصدرها من زر 🧾 أمام المزرعة</td></tr>')
-    +(list.length?'<tr style="font-weight:800"><th colspan="4">الإجمالي ('+fmt(list.length)+' فاتورة)</th><th>'+fmtSR(tot)+'</th><th></th></tr>':'');
+  const t0=today();
+  const tot=list.filter(x=>!subIsQuote(x)).reduce((s,x)=>s+(+x.total||0),0);
+  const nInv=list.filter(x=>!subIsQuote(x)).length;
+  el.innerHTML='<tr><th>النوع</th><th>الرقم</th><th>التاريخ</th><th>المزرعة</th><th>الفترة</th><th>الإجمالي</th><th></th></tr>'
+    +(list.length?list.map(x=>{
+      const q=subIsQuote(x);
+      const badge=q?(x.converted?'<span class="badge active">📄 عرض · حُوّل '+ksTxt(x.invNo)+'</span>'
+          :((x.validTill&&x.validTill<t0)?'<span class="badge danger">📄 عرض · منتهٍ '+ksTxt(x.validTill)+'</span>'
+            :'<span class="badge warn">📄 عرض · حتى '+ksTxt(x.validTill)+'</span>'))
+        :'<span class="badge ok">🧾 فاتورة</span>';
+      const conv=(q&&!x.converted)?'<button class="btn small secondary" onclick="subInvToInvoice(\''+x.id+'\')">🧾 تحويل لفاتورة</button> ':'';
+      return '<tr><td>'+badge+'</td><td><b>'+ksTxt(x.no)+'</b></td><td>'+ksTxt(x.date)+'</td>'
+        +'<td>'+ksNm(x.farmName||x.email||x.farmId)+'</td>'
+        +'<td style="font-size:.7rem">'+ksTxt(x.from||"—")+' ← '+ksTxt(x.to||"—")+'</td>'
+        +'<td>'+fmtSR(x.total)+'</td>'
+        +'<td style="white-space:nowrap">'+conv
+        +'<button class="edt" title="طباعة" onclick="subInvPrint(\''+x.id+'\')">🖨️</button>'
+        +'<button class="del" onclick="subInvDel(\''+x.id+'\')">🗑️</button></td></tr>';
+    }).join("")
+    :'<tr><td colspan="7" class="muted">🧾 لا مستندات بعد — أصدرها من زر 🧾 أمام المزرعة</td></tr>')
+    +(nInv?'<tr style="font-weight:800"><th colspan="5">إجمالي الفواتير ('+fmt(nInv)+' فاتورة — العروض غير محتسبة)</th><th>'+fmtSR(tot)+'</th><th></th></tr>':'');
 }
 
 function cloudStatusUI(msg){
@@ -17179,7 +17230,10 @@ function qa2Open(cfg){
   __qa2Cfg=cfg;
   document.getElementById("qa2Title").textContent=cfg.title;
   document.getElementById("qa2Fields").innerHTML=(cfg.note?`<p class="muted" style="font-size:.75rem;margin:0">${cfg.note}</p>`:"")
-    +cfg.fields.map(fd=>`<div><label>${fd.label}${fd.req?" *":""}</label><input id="qa2_${fd.id}" type="${fd.type||"text"}" placeholder="${fd.ph||""}" value="${fd.val||""}"></div>`).join("");
+    +cfg.fields.map(fd=> fd.opts
+      ? `<div><label>${fd.label}${fd.req?" *":""}</label><select id="qa2_${fd.id}">`
+        +fd.opts.map(o=>`<option value="${o[0]}"${(fd.val===o[0])?" selected":""}>${o[1]}</option>`).join("")+`</select></div>`
+      : `<div><label>${fd.label}${fd.req?" *":""}</label><input id="qa2_${fd.id}" type="${fd.type||"text"}" placeholder="${fd.ph||""}" value="${fd.val||""}"></div>`).join("");
   document.getElementById("quickAddModal2").style.display="flex";
   setTimeout(()=>{ try{ document.getElementById("qa2_"+cfg.fields[0].id).focus(); }catch(e){} },50);
 }

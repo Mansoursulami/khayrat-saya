@@ -3153,6 +3153,26 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       </table>
     </div>
   </div>
+
+  <div class="card" id="zkCard">
+    <div class="invHead"><span class="invHeadIco">🧾</span><div><h3 style="margin:0">الفوترة الإلكترونية — المرحلة الثانية</h3><div class="muted" style="font-size:.72rem;margin-top:2px">حالة تسجيل منشأتك لدى هيئة الزكاة والضريبة</div></div></div>
+    <div id="zkStatusBox"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn secondary" onclick="zkShowChain()">🔗 فحص سلسلة الفواتير</button>
+      <button class="btn secondary" onclick="zkShowQueue()">📤 طابور الإبلاغ</button>
+    </div>
+    <div id="zkDetail" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <div class="invHead"><span class="invHeadIco">🔁</span><div><h3 style="margin:0">الفواتير المتكررة</h3><div class="muted" style="font-size:.72rem;margin-top:2px">عقود التوريد الشهرية — تُولَّد <b>كمسودات</b> وأنت تعتمدها</div></div></div>
+    <p class="muted" style="font-size:.75rem;margin:0 0 10px">سجّل العقد مرة واحدة من فاتورة قائمة (زر <b>🔁 متكررة</b> في جدول الفواتير أعلاه)، وكل شهر اضغط «توليد». <b>لا تُصدر تلقائياً بلا موافقتك</b> — لأن إصدار الفاتورة ينشئ التزاماً ضريبياً بتاريخه حتى لو لم يُورَّد شيء.</p>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+      <button class="btn" onclick="genRecInv()">⚙️ توليد مسودات شهر <span id="recInvMonthLbl"></span></button>
+      <span class="muted" style="font-size:.72rem">تُنشأ كمسودة بلا رقم — الرقم الضريبي يُعطى عند الاعتماد</span>
+    </div>
+    <div style="overflow-x:auto"><table class="tbl" id="tblRecInv"></table></div>
+  </div>
 </div>
 
 <!-- ============ المدفوعات الآجلة ============ -->
@@ -4347,7 +4367,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.32-A";
+const KS_VER="v12.35-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -11309,6 +11329,11 @@ function getAlerts(){
   const curM = today().slice(0,7), curD = +today().slice(8,10);
   const recDue = (DB.recurring||[]).filter(r=>r.lastGen!==curM && curD>=r.day);
   if(recDue.length) items.push(`🔁 ${recDue.length} مصروف متكرر مستحق لشهر ${curM} لم يولد بعد — من تبويب المصاريف اضغط "توليد"`);
+  const recInvDue=(Array.isArray(DB.recurInv)?DB.recurInv:[]).filter(r=>r.active!==false && r.lastGen!==curM && curD>=r.day && !(r.months>0&&r.done>=r.months));
+  if(recInvDue.length) items.push(`🧾 ${recInvDue.length} عقد توريد متكرر مستحق لشهر ${curM} — من تبويب الفواتير اضغط "توليد"`);
+  try{ const _zq=zkQueue(), _lt=_zq.filter(x=>x.late).length, _sn=_zq.filter(x=>!x.late&&x.hrsLeft<6).length;
+    if(_lt) items.push(`🔴 ${_lt} فاتورة تجاوزت مهلة الإبلاغ (24 ساعة) — راجع طابور الإبلاغ في تبويب الفواتير`);
+    else if(_sn) items.push(`⏳ ${_sn} فاتورة يتبقّى لإبلاغها أقل من 6 ساعات`); }catch(e){}
   const d60 = new Date(Date.now()+60*864e5).toISOString().slice(0,10);
   DB.employees.filter(e=>e.idExp).forEach(e=>{
     if(e.idExp < today()) items.push(`🪪 هوية/إقامة <b>${ksNm(e.name)}</b> منتهية منذ ${e.idExp} — جددها فوراً`);
@@ -17003,10 +17028,13 @@ function renderInvoices(){
         ${r.status!=='paid'&&r.type!=='credit'&&r.type!=='debit'?`<button onclick="markInvoicePaid('${r.id}')" style="background:#047857;color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">💵 سداد</button>`:''}
         <button onclick="printInvoice('${r.id}')" style="background:var(--green);color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">🖨️ طباعة</button>
         <button onclick="exportInvoiceXml('${r.id}')" style="background:var(--blue,#3498db);color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">📄 XML</button>
-        <button onclick="waInvoice('${r.id}')" style="background:#25D366;color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">📱 واتساب</button>`}
+        <button onclick="waInvoice('${r.id}')" style="background:#25D366;color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">📱 واتساب</button>
+        ${(r.type!=='credit'&&r.type!=='debit'&&r.custId)?`<button onclick="recInvFrom('${r.id}')" style="background:var(--purple,#7c5cbf);color:#fff;border:none;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">🔁 متكررة</button>`:''}`}
       </td>
     </tr>`;
   }).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted)">لا توجد فواتير</td></tr>';
+  try{ renderRecInv(); }catch(e){}
+  try{ zkRender(); }catch(e){}
 }
 function invFillItems(items){
   const tb=document.getElementById('invItemsTbody'); if(!tb) return;
@@ -17202,6 +17230,7 @@ function approveInvoice(id){
   if(!confirm('اعتماد الفاتورة وإصدارها نهائياً؟ بعدها لا تُعدَّل ولا تُحذف — تصحيحها بإشعار\nسيُسجَّل البيع تلقائياً في سجل المبيعات')) return;
   if(!r.no) r.no=invNextNo();
   r.status=r.payState||'sent'; r.approvedAt=new Date().toISOString();
+  try{ zkStamp(r); }catch(e){}   /* 🧾 وسم زاتكا: UUID + ICV + PIH — مرة واحدة ولا يُعاد */
   if(r.type==='credit') invPostCredit(r); else invPostSales(r);
   if(r.refOrder){ const __o=DB.orders.find(x=>x.id===r.refOrder); if(__o){ __o.status="تم التسليم"; __o.invoiced=true; try{renderOrders();}catch(e){} } }
   save(); saveNow(); renderInvoices(); toast('✅ اعتُمدت برقم '+r.no+' وسُجل البيع في السجل');
@@ -17912,26 +17941,399 @@ function printInvoice(id){
 function exportInvoiceXml(id){
   /* 🛑 لا يخرج ملف من هذا الجهاز بهوية مزرعة أخرى (أو من نافذة مجمّدة) */
   if(typeof ksOutAllowed==="function" && !ksOutAllowed()){ try{ toast("⛔ بيانات هذا الجهاز تخص مزرعة أخرى — التصدير معطّل"); }catch(e){} return; }
-  const _r=(DB.invoices||[]).find(x=>x.id===id);
-  if(_r&&_r.status==='draft'){ toast('⚠️ اعتمد الفاتورة أولاً — لا XML للمسودات'); return; }
-  const inv=DB.invoices.find(x=>x.id===id); if(!inv) return;
-  const total=inv.items.reduce((s,i)=>s+invLineTotal(i),0);
-  const taxT=inv.items.reduce((s,i)=>s+invLineTax(i),0);
-  const xml=`<?xml version="1.0" encoding="UTF-8"?>
-<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
-  <ID>${escH(inv.no)}</ID>
-  <IssueDate>${ksTxt(inv.date)}</IssueDate>
-  <InvoiceTypeCode>${inv.type==='credit'?'381':inv.type==='debit'?'383':'388'}</InvoiceTypeCode>
-  <TaxTotal><TaxAmount currencyID="SAR">${taxT.toFixed(2)}</TaxAmount></TaxTotal>
-  <LegalMonetaryTotal>
-    <TaxExclusiveAmount currencyID="SAR">${(total-taxT).toFixed(2)}</TaxExclusiveAmount>
-    <TaxInclusiveAmount currencyID="SAR">${total.toFixed(2)}</TaxInclusiveAmount>
-  </LegalMonetaryTotal>
-  ${inv.items.map((i,n)=>`<InvoiceLine><ID>${n+1}</ID><InvoicedQuantity>${ksTxt(i.qty)}</InvoicedQuantity><LineExtensionAmount currencyID="SAR">${invLineNet(i).toFixed(2)}</LineExtensionAmount><Item><Name>${escH(i.name)}</Name></Item><Price><PriceAmount currencyID="SAR">${i.price.toFixed(2)}</PriceAmount></Price></InvoiceLine>`).join('\n  ')}
-</Invoice>`;
+  const inv=(DB.invoices||[]).find(x=>x.id===id); if(!inv) return;
+  if(inv.status==='draft'){ toast('⚠️ اعتمد الفاتورة أولاً — لا XML للمسودات'); return; }
+  if(!inv.zkUuid || !inv.zkIcv){ toast('⚠️ الفاتورة غير موسومة — اعتُمدت قبل تفعيل زاتكا. صدّرها بعد وسمها.'); return; }
+  const xml=zkBuildXml(inv);
   const a=document.createElement('a');
   a.href='data:text/xml;charset=utf-8,'+encodeURIComponent(xml);
   a.download=`invoice_${inv.no}.xml`; a.click();
+  toast('📄 صُدّرت '+(inv.zkSimplified?'مبسّطة':'قياسية')+' — ICV '+inv.zkIcv);
+}
+
+/* ====================================================
+   🧾 ZATCA PHASE-2 READINESS — الجزء الخاص بمزوّد الحل
+   ما نبنيه هنا: الفاتورة الكاملة + المعرّف الفريد + العدّاد التسلسلي
+   + سلسلة التجزئة + التمييز آلياً بين القياسية والمبسّطة.
+   ما لا يُبنى هنا (ويحتاج شهادة المزرعة وخادماً): التوقيع والإرسال.
+   ⚠️ الشهادة تخصّ المزرعة لا المزوّد — ولذلك لا يوجد هنا أي مفتاح.
+====================================================*/
+function zkState(){
+  if(!DB.zatca || typeof DB.zatca!=="object") return {icv:0,pih:"",cert:"none"};
+  return DB.zatca;                                   /* قراءة فقط — لا تُنشئ */
+}
+function zkEnsure(){
+  if(!DB.zatca || typeof DB.zatca!=="object") DB.zatca={icv:0,pih:"",cert:"none"};
+  if(!(DB.zatca.icv>=0)) DB.zatca.icv=0;
+  if(typeof DB.zatca.pih!=="string") DB.zatca.pih="";
+  if(!DB.zatca.cert) DB.zatca.cert="none";
+  return DB.zatca;
+}
+/* تجزئة الفاتورة الأولى في السلسلة — القيمة التي تنصّ عليها الهيئة لبداية السلسلة */
+const ZK_PIH0="NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==";
+
+function zkIsSimplified(inv){
+  /* قياسية = المشتري منشأة برقم ضريبي · مبسّطة = مستهلك بلا رقم */
+  try{ return !String((inv&&inv.custVat)||"").trim(); }catch(e){ return true; }
+}
+function zkTypeName(inv){ return zkIsSimplified(inv)?"0200000":"0100000"; }
+function zkTypeCode(inv){ const t=(inv&&inv.type)||"standard"; return t==='credit'?'381':t==='debit'?'383':'388'; }
+
+function zkUuid(){
+  try{ if(crypto&&crypto.randomUUID) return crypto.randomUUID(); }catch(e){}
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{
+    const r=Math.random()*16|0, v=c==='x'?r:((r&0x3)|0x8); return v.toString(16); });
+}
+
+/* ── ⚠️ نقطة التحقّق الوحيدة: الترميز القانوني قبل التجزئة ──────────────────
+   قاعدة الهيئة: احذف ثلاثة عناصر (UBLExtensions · Signature · مرجع رمز QR)
+   ثم طبّق الترميز القانوني (C14N) ثم SHA-256 ثم Base64.
+   حُصر كل الغموض في هذه الدالة وحدها — يُتحقق منها مقابل أداة الهيئة
+   (Fatoora SDK: `fatoora -generateHash -invoice x.xml`)، فإن اختلفت
+   تُصحَّح **هنا فقط** ولا يُمسّ شيء آخر في النظام.
+   الحالة: ZK_CANON_VERIFIED=false ⇒ النظام يعلن صراحةً أنها غير مُتحقَّق منها. */
+const ZK_CANON_VERIFIED=false;
+function zkCanon(xml){
+  let x=String(xml||"");
+  /* ① حذف العناصر الثلاثة */
+  x=x.replace(/<ext:UBLExtensions[\s\S]*?<\/ext:UBLExtensions>/g,"");
+  x=x.replace(/<cac:Signature[\s\S]*?<\/cac:Signature>/g,"");
+  x=x.replace(/<cac:AdditionalDocumentReference>(?:(?!<\/cac:AdditionalDocumentReference>)[\s\S])*?<cbc:ID>QR<\/cbc:ID>[\s\S]*?<\/cac:AdditionalDocumentReference>/g,"");
+  /* ② تطبيع مبدئي: سطور موحّدة وبلا فراغ زائد بين الوسوم */
+  x=x.replace(/\r\n?/g,"\n").replace(/>\s+</g,"><").trim();
+  return x;
+}
+function zkCanonState(){ return {verified:ZK_CANON_VERIFIED, note:"يُتحقق بأداة الهيئة قبل الإنتاج"}; }
+
+async function zkSha256B64(txt){
+  try{
+    const buf=new TextEncoder().encode(String(txt));
+    const h=await crypto.subtle.digest("SHA-256",buf);
+    let bin=""; new Uint8Array(h).forEach(b=>bin+=String.fromCharCode(b));
+    return btoa(bin);
+  }catch(e){ return ""; }
+}
+
+/* ── الوسم: يقع مرة واحدة عند الاعتماد، ولا يُعاد أبداً ──
+   UUID و ICV لا يُعاد استخدامهما ولا تخصيصهما — قاعدة صريحة من الهيئة. */
+async function zkStamp(inv){
+  if(!inv) return;
+  if(inv.zkUuid && inv.zkIcv){ return; }            /* موسومة سلفاً — لا تُمسّ */
+  const z=zkEnsure();
+  inv.zkUuid = inv.zkUuid || zkUuid();
+  if(!inv.zkIcv){ z.icv=(+z.icv||0)+1; inv.zkIcv=z.icv; }
+  inv.zkPih = z.pih || ZK_PIH0;                     /* تجزئة السابقة */
+  inv.zkSimplified = zkIsSimplified(inv);
+  const xml = zkBuildXml(inv);
+  inv.zkHash = await zkSha256B64(zkCanon(xml));     /* تجزئة هذه الفاتورة — بعد الترميز القانوني */
+  inv.zkCanonV = ZK_CANON_VERIFIED;                 /* ختم: هل كان الترميز مُتحقَّقاً وقت الوسم؟ */
+  if(inv.zkHash) z.pih = inv.zkHash;                /* تصير «السابقة» للتالية */
+  inv.zkStampedAt = new Date().toISOString();
+  inv.zkSent = false;                                /* لم تُرسل للهيئة — الطابور */
+  try{ save(); }catch(e){}
+}
+
+/* ── فحص سلامة السلسلة: كل فاتورة تحمل تجزئة سابقتها ── */
+function zkChainCheck(){
+  const list=(DB.invoices||[]).filter(i=>i.zkIcv).sort((a,b)=>a.zkIcv-b.zkIcv);
+  const out={total:list.length, ok:true, breaks:[], gaps:[], dupes:[]};
+  const seenU=new Set(), seenI=new Set();
+  let prev="";
+  list.forEach((i,n)=>{
+    if(seenU.has(i.zkUuid)) out.dupes.push({no:i.no,why:"UUID مكرّر"});
+    if(seenI.has(i.zkIcv))  out.dupes.push({no:i.no,why:"ICV مكرّر"});
+    seenU.add(i.zkUuid); seenI.add(i.zkIcv);
+    if(n>0 && i.zkIcv!==list[n-1].zkIcv+1) out.gaps.push({no:i.no, icv:i.zkIcv});
+    const expect = n===0 ? (list[0].zkPih||ZK_PIH0) : prev;
+    if(n>0 && i.zkPih!==expect) out.breaks.push({no:i.no, icv:i.zkIcv});
+    prev = i.zkHash||"";
+  });
+  out.ok = !out.breaks.length && !out.gaps.length && !out.dupes.length;
+  return out;
+}
+
+/* ── بناء XML كامل بصيغة UBL 2.1 ── */
+function zkEsc(v){ return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function zkParty(tag, o){
+  return `  <cac:${tag}>
+    <cac:Party>
+      <cac:PartyIdentification><cbc:ID schemeID="CRN">${zkEsc(o.crn||"")}</cbc:ID></cac:PartyIdentification>
+      <cac:PostalAddress>
+        <cbc:StreetName>${zkEsc(o.street||"")}</cbc:StreetName>
+        <cbc:BuildingNumber>${zkEsc(o.bldg||"")}</cbc:BuildingNumber>
+        <cbc:PlotIdentification>${zkEsc(o.addl||"")}</cbc:PlotIdentification>
+        <cbc:CitySubdivisionName>${zkEsc(o.region||"")}</cbc:CitySubdivisionName>
+        <cbc:CityName>${zkEsc(o.city||"")}</cbc:CityName>
+        <cbc:PostalZone>${zkEsc(o.zip||"")}</cbc:PostalZone>
+        <cac:Country><cbc:IdentificationCode>SA</cbc:IdentificationCode></cac:Country>
+      </cac:PostalAddress>
+      <cac:PartyTaxScheme>
+        <cbc:CompanyID>${zkEsc(o.vat||"")}</cbc:CompanyID>
+        <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
+      </cac:PartyTaxScheme>
+      <cac:PartyLegalEntity><cbc:RegistrationName>${zkEsc(o.name||"")}</cbc:RegistrationName></cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:${tag}>`;
+}
+function zkBuildXml(inv){
+  const st=DB.settings||{};
+  const net=(inv.items||[]).reduce((a,i)=>a+invLineNet(i),0);
+  const tax=(inv.items||[]).reduce((a,i)=>a+invLineTax(i),0);
+  const tot=net+tax;
+  const rate=(inv.items||[]).length?(+(inv.items[0].tax)||0):0;
+  const supplier={name:st.companyName,vat:st.taxNo,crn:st.unifiedNo,street:st.coStreet,bldg:st.coBldg,
+                  addl:st.coAddl,city:st.coCity,region:st.coRegion,zip:st.coZip};
+  const buyer={name:inv.custName,vat:inv.custVat,crn:"",street:"",bldg:"",addl:"",city:"",region:"",zip:""};
+  const lines=(inv.items||[]).map((i,n)=>{
+    const ln=invLineNet(i), lt=invLineTax(i), r=(+i.tax||0);
+    return `  <cac:InvoiceLine>
+    <cbc:ID>${n+1}</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="${zkEsc(i.unit||"PCE")}">${zkEsc(i.qty)}</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="SAR">${ln.toFixed(2)}</cbc:LineExtensionAmount>
+    <cac:TaxTotal><cbc:TaxAmount currencyID="SAR">${lt.toFixed(2)}</cbc:TaxAmount>
+      <cbc:RoundingAmount currencyID="SAR">${(ln+lt).toFixed(2)}</cbc:RoundingAmount></cac:TaxTotal>
+    <cac:Item><cbc:Name>${zkEsc(i.name)}</cbc:Name>
+      <cac:ClassifiedTaxCategory><cbc:ID>${r>0?"S":"Z"}</cbc:ID><cbc:Percent>${r.toFixed(2)}</cbc:Percent>
+        <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory></cac:Item>
+    <cac:Price><cbc:PriceAmount currencyID="SAR">${(+i.price||0).toFixed(2)}</cbc:PriceAmount></cac:Price>
+  </cac:InvoiceLine>`;
+  }).join("\n");
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
+  <cbc:ID>${zkEsc(inv.no||"")}</cbc:ID>
+  <cbc:UUID>${zkEsc(inv.zkUuid||"")}</cbc:UUID>
+  <cbc:IssueDate>${zkEsc(inv.date||"")}</cbc:IssueDate>
+  <cbc:IssueTime>${zkEsc((inv.approvedAt||inv.createdAt||"").slice(11,19)||"00:00:00")}</cbc:IssueTime>
+  <cbc:InvoiceTypeCode name="${zkTypeName(inv)}">${zkTypeCode(inv)}</cbc:InvoiceTypeCode>
+  <cbc:DocumentCurrencyCode>SAR</cbc:DocumentCurrencyCode>
+  <cbc:TaxCurrencyCode>SAR</cbc:TaxCurrencyCode>
+  <cac:AdditionalDocumentReference><cbc:ID>ICV</cbc:ID><cbc:UUID>${zkEsc(inv.zkIcv||"")}</cbc:UUID></cac:AdditionalDocumentReference>
+  <cac:AdditionalDocumentReference><cbc:ID>PIH</cbc:ID>
+    <cac:Attachment><cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">${zkEsc(inv.zkPih||ZK_PIH0)}</cbc:EmbeddedDocumentBinaryObject></cac:Attachment></cac:AdditionalDocumentReference>
+${zkParty("AccountingSupplierParty",supplier)}
+${zkParty("AccountingCustomerParty",buyer)}
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="SAR">${tax.toFixed(2)}</cbc:TaxAmount>
+    <cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="SAR">${net.toFixed(2)}</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="SAR">${tax.toFixed(2)}</cbc:TaxAmount>
+      <cac:TaxCategory><cbc:ID>${rate>0?"S":"Z"}</cbc:ID><cbc:Percent>${rate.toFixed(2)}</cbc:Percent>
+        <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:TaxCategory>
+    </cac:TaxSubtotal>
+  </cac:TaxTotal>
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="SAR">${net.toFixed(2)}</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="SAR">${net.toFixed(2)}</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="SAR">${tot.toFixed(2)}</cbc:TaxInclusiveAmount>
+    <cbc:PayableAmount currencyID="SAR">${tot.toFixed(2)}</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+${lines}
+</Invoice>`;
+}
+
+/* ── شاشة الحالة: ما يراه صاحب المزرعة ── */
+function zkRender(){
+  const box=document.getElementById("zkStatusBox"); if(!box) return;
+  const z=zkState();
+  const st=(DB.settings||{});
+  const noVat=(typeof ksNoVat==="function")?ksNoVat():false;
+  const stamped=(DB.invoices||[]).filter(i=>i.zkIcv).length;
+  if(noVat){
+    box.innerHTML=`<div style="background:var(--green-light);border-radius:10px;padding:12px 14px">
+      <b>✅ منشأتك غير مسجَّلة في ضريبة القيمة المضافة</b>
+      <p class="muted" style="font-size:.75rem;margin:6px 0 0">فلا يلزمك التسجيل في المرحلة الثانية إطلاقاً. فواتيرك تُصدر بلا ضريبة، والنظام يجهّزها بالصيغة المعتمدة تحسّباً لتسجيلك مستقبلاً.</p></div>`;
+    return;
+  }
+  const badge = z.cert==="prod" ? '<span class="badge active">مسجَّلة — إنتاج</span>'
+              : z.cert==="test" ? '<span class="badge warn">شهادة اختبار</span>'
+              : '<span class="badge warn">غير مسجَّلة بعد</span>';
+  box.innerHTML=`
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+      ${badge}
+      <span class="muted" style="font-size:.75rem">العدّاد التسلسلي (ICV): <b>${z.icv||0}</b> · فواتير موسومة: <b>${stamped}</b></span>
+    </div>
+    <div style="background:var(--bg);border-radius:10px;padding:12px 14px">
+      <b>🧩 ما أنجزه النظام لك</b>
+      <ul class="muted" style="font-size:.75rem;margin:6px 18px 0;line-height:1.9">
+        <li>الفاتورة تُبنى بصيغة UBL المعتمدة ببيانات منشأتك والمشتري والتصنيف الضريبي</li>
+        <li>معرّف فريد وعدّاد تسلسلي لكل فاتورة — لا يُعاد استخدامهما</li>
+        <li>كل فاتورة تحمل تجزئة سابقتها فتصير سلسلة يكشف كسرُها أي حذف</li>
+        <li>التمييز آلياً: مشترٍ برقم ضريبي ⇒ <b>قياسية</b> · بلا رقم ⇒ <b>مبسّطة</b></li>
+      </ul>
+    </div>
+    <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-top:8px">
+      <b>🔑 ما يتبقّى عليك أنت — مرة واحدة</b>
+      <p class="muted" style="font-size:.75rem;margin:6px 0 0;line-height:1.9">
+        الشهادة تحمل <b>رقمك الضريبي أنت</b>، فلا يستطيع أحد استخراجها نيابةً عنك:<br>
+        ادخل بوابة <b>فاتورة</b> بحساب منشأتك ← اطلب رمز تحقّق (OTP) ← الصقه هنا.<br>
+        <b>مزوّد النظام لا يرى حسابك ولا بياناتك في أي خطوة.</b>
+      </p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center">
+        <input id="zkOtp" placeholder="رمز التحقّق من بوابة فاتورة" style="max-width:260px" ${z.cert==="prod"?"disabled":""}>
+        <button class="btn" onclick="zkOnboard()" ${z.cert==="prod"?"disabled":""}>🔗 تسجيل المنشأة</button>
+      </div>
+      <p class="muted" style="font-size:.7rem;margin:8px 0 0">⏳ زر التسجيل يُفعَّل بعد ربط النظام بخادم التوقيع — الشاشة جاهزة والمفتاح لا يُخزَّن في متصفحك أبداً.</p>
+    </div>
+    ${ZK_CANON_VERIFIED?"":`<div style="background:#FBF1DC;border:1px solid #E0C07A;border-radius:10px;padding:10px 14px;margin-top:8px">
+      <b style="font-size:.8rem;color:#8A6100">⚠️ الترميز القانوني للتجزئة لم يُتحقَّق منه بعد</b>
+      <p class="muted" style="font-size:.72rem;margin:5px 0 0;line-height:1.8">تُحسب التجزئة بقاعدة الهيئة (حذف العناصر الثلاثة ثم التطبيع ثم SHA-256)، ويبقى التطابق الحرفي بحاجة إلى فحص بأداة الهيئة الرسمية قبل الإصدار الفعلي. لا أثر لهذا على فواتيرك اليوم — الأثر يبدأ عند الإرسال للهيئة.</p>`}
+    </div>`;
+}
+function zkOnboard(){
+  const v=(document.getElementById("zkOtp")||{}).value||"";
+  if(!v.trim()){ toast("⚠️ الصق رمز التحقّق من بوابة فاتورة أولاً"); return; }
+  toast("⏳ خدمة التوقيع غير مفعّلة بعد — احفظ الرمز وأعد المحاولة بعد التفعيل (الرمز صالح لمدة محدودة)");
+}
+function zkShowChain(){
+  const d=document.getElementById("zkDetail"); if(!d) return;
+  const r=zkChainCheck();
+  if(!r.total){ d.innerHTML=`<p class="muted" style="font-size:.78rem">🔗 لا فواتير موسومة بعد — الوسم يقع عند اعتماد أول فاتورة.</p>`; return; }
+  const bad=[...r.breaks.map(x=>"سلسلة مكسورة عند "+x.no), ...r.gaps.map(x=>"فجوة في العدّاد عند "+x.no), ...r.dupes.map(x=>x.why+" في "+x.no)];
+  d.innerHTML = r.ok
+    ? `<div style="background:var(--green-light);border-radius:10px;padding:10px 14px;font-size:.8rem"><b>✅ السلسلة سليمة</b> — ${r.total} فاتورة مترابطة بلا فجوة ولا تكرار.</div>`
+    : `<div style="background:#FDF7F7;border:1px solid #F09595;border-radius:10px;padding:10px 14px;font-size:.8rem"><b style="color:#791F1F">⚠️ خلل في السلسلة (${bad.length})</b><ul style="margin:6px 18px 0">${bad.map(x=>"<li>"+ksTxt(x)+"</li>").join("")}</ul></div>`;
+}
+function zkShowQueue(){
+  const d=document.getElementById("zkDetail"); if(!d) return;
+  const q=zkQueue();
+  if(!q.length){ d.innerHTML=`<p class="muted" style="font-size:.78rem">📤 لا فواتير في الطابور.</p>`; return; }
+  const late=q.filter(x=>x.late).length;
+  const soon=q.filter(x=>!x.late&&x.hrsLeft<6).length;
+  d.innerHTML=`<div style="background:${late?'#FDF7F7':'var(--bg)'};border-radius:10px;padding:10px 14px;font-size:.8rem">
+    <b>${late?'🔴':'📤'} ${q.length} فاتورة لم تُبلَّغ بعد</b>
+    ${late?`<span style="color:#791F1F"> — منها <b>${late}</b> تجاوزت مهلة 24 ساعة</span>`:soon?`<span style="color:#8A6100"> — <b>${soon}</b> يتبقّى لها أقل من 6 ساعات</span>`:""}
+    <p class="muted" style="font-size:.72rem;margin:6px 0 0">النظام يعمل بلا إنترنت والفواتير تُحفظ موقّعة؛ تُرسَل تلقائياً بترتيبها عند عودة الاتصال وتفعيل الخدمة.</p>
+    <ul style="margin:8px 18px 0">${q.slice(0,8).map(x=>`<li>${ksTxt(x.no||"—")} — ${x.simplified?"مبسّطة":"قياسية"} — ${x.late?'<b style="color:#791F1F">متأخرة</b>':"يتبقّى "+x.hrsLeft+" ساعة"}</li>`).join("")}</ul>
+  </div>`;
+}
+
+/* ── الطابور: كم فاتورة لم تُبلَّغ، وكم بقي من مهلة الـ24 ساعة ── */
+function zkQueue(){
+  const now=Date.now();
+  return (DB.invoices||[]).filter(i=>i.zkIcv && i.zkSent!==true && i.status!=='draft').map(i=>{
+    const t=Date.parse(i.zkStampedAt||i.approvedAt||i.createdAt||"")||now;
+    const hrsLeft=+(24-((now-t)/36e5)).toFixed(1);
+    return {no:i.no, icv:i.zkIcv, simplified:!!i.zkSimplified, hrsLeft, late:hrsLeft<0};
+  });
+}
+
+/* ====================================================
+   🔁 RECURRING SALES INVOICES — الفواتير المتكررة
+   عقود التوريد الشهرية. مرآة DB.recurring على جانب الإيراد.
+   ⚠️ قاعدة ضريبية: تاريخ الاستحقاق = الأسبق من (التوريد · إصدار الفاتورة ·
+   استلام الدفعة). لذلك التوليد يُنشئ **مسودة بلا رقم** — والرقم الضريبي
+   لا يُعطى إلا عند اعتماد المالك، فلا نُقرّ بضريبة عن بيعة لم تحدث.
+====================================================*/
+function recInvList(){ return Array.isArray(DB.recurInv)?DB.recurInv:[]; }   /* قراءة فقط — دالة الرسم لا تُعدّل الحالة */
+function recInvEnsure(){ if(!Array.isArray(DB.recurInv)) DB.recurInv=[]; return DB.recurInv; }
+function recInvHasFish(items){ return (items||[]).some(i=>i&&(i.fishSale||i.tank||i.fishCount)); }
+
+/* إنشاء قالب من فاتورة قائمة — يعيد استخدام كل تحقّقات نموذج الفاتورة */
+function recInvFrom(invId){
+  const inv=(DB.invoices||[]).find(x=>x.id===invId);
+  if(!inv){ toast("⚠️ الفاتورة غير موجودة"); return; }
+  if(inv.type==='credit'||inv.type==='debit'){ toast("⛔ الإشعارات لا تتكرر — الإشعار يصحّح فاتورة بعينها"); return; }
+  if(!inv.custId){ toast("⛔ العقد المتكرر يحتاج عميلاً مسجّلاً لا «عميل نقدي»"); return; }
+  if(recInvHasFish(inv.items)){ toast("⛔ فاتورة فيها بند سمكي لا تتكرر — كل بيعة تخصم من حوض بعينه وتحتاج تحقّقاً مستقلاً"); return; }
+  if(!(inv.items||[]).length){ toast("⚠️ الفاتورة بلا بنود"); return; }
+  if(recInvList().some(r=>r.srcId===invId)){ toast("ℹ️ هذه الفاتورة مسجّلة كعقد متكرر مسبقاً"); return; }
+  qa2Open({title:"🔁 عقد توريد متكرر — من الفاتورة "+(inv.no||"مسودة"),
+    note:"العميل: "+(inv.custName||"")+" · الإجمالي: "+fmtSR((inv.items||[]).reduce((a,i)=>a+invLineTotal(i),0))+" — تُولَّد مسودة شهرياً بنفس البنود",
+    fields:[
+      {id:"desc",label:"وصف العقد (يظهر في ملاحظات الفاتورة)",req:1,val:"عقد توريد شهري — "+(inv.custName||"")},
+      {id:"day",label:"يوم الشهر (1–28)",req:1,type:"number",val:String(Math.min(28,Math.max(1,+((inv.date||"").slice(8,10))||1)))},
+      {id:"months",label:"عدد الأشهر المتبقية (0 = بلا نهاية)",type:"number",val:"0"}
+    ],
+    onSave:v=>{
+      const d=Math.min(28,Math.max(1,+v.day||1));
+      const mn=Math.max(0,+v.months||0);
+      if(!String(v.desc||"").trim()){ toast("⚠️ اكتب وصف العقد"); return false; }
+      recInvEnsure().push({id:uid(), srcId:invId, custId:inv.custId, custName:inv.custName||"",
+        custVat:inv.custVat||"", day:d, desc:String(v.desc).trim(),
+        items:JSON.parse(JSON.stringify(inv.items||[])), notes:inv.notes||"",
+        payState:inv.payState||"sent", termDays:(function(){ try{ return Math.max(0,Math.round((new Date(inv.dueDate)-new Date(inv.date))/864e5))||0; }catch(e){ return 0; } })(),
+        months:mn, done:0, active:true, lastGen:"", createdAt:new Date().toISOString()});
+      save(); try{ renderRecInv(); }catch(e){}
+      toast("✅ سُجّل العقد — يُولَّد يوم "+d+" من كل شهر"+(mn?" لمدة "+mn+" شهراً":""));
+    }});
+}
+
+function recInvToggle(id){
+  const r=recInvList().find(x=>x.id===id); if(!r) return;
+  r.active=!r.active; save(); renderRecInv();
+  toast(r.active?"▶️ استُؤنف العقد":"⏸️ أُوقف العقد — لن يولّد حتى تستأنفه");
+}
+
+function delRecInv(id){
+  if(typeof canDelete==="function" && !canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; }
+  const r=recInvList().find(x=>x.id===id); if(!r) return;
+  if(!confirm("حذف العقد المتكرر؟ (الفواتير المولَّدة سابقاً تبقى كما هي)")) return;
+  try{ trashIt("recurInv","عقد فاتورة متكررة",r.desc,r); }catch(e){}
+  DB.recurInv=recInvList().filter(x=>x.id!==id); save(); renderRecInv();
+}
+
+function genRecInv(){
+  const m=today().slice(0,7);
+  const all=recInvList();
+  const due=all.filter(r=>r.active!==false && r.lastGen!==m && !(r.months>0 && r.done>=r.months));
+  if(!all.length){ toast("🔁 لا عقود متكررة — سجّل عقداً من زر «متكررة» في جدول الفواتير"); return; }
+  if(!due.length){ toast("✅ مسودات شهر "+m+" مولَّدة كلها مسبقاً"); return; }
+  /* نفس حارس نموذج الفاتورة: لا فاتورة ببيانات شركة ناقصة */
+  try{ const _cm=__companyDataMissing(); if(_cm.length){ toast("⛔ أكمل بيانات الشركة أولاً: "+_cm.join("، ")); showTab("settings"); stView("company"); return; } }catch(e){}
+  const tot=due.reduce((s,r)=>s+(r.items||[]).reduce((a,i)=>a+invLineTotal(i),0),0);
+  if(!confirm("توليد مسودات شهر "+m+"؟\n\n• "+due.length+" عقد\n• بإجمالي "+fmt(tot)+" ⃁\n\nتُنشأ كمسودات بلا أرقام — تراجعها وتعتمدها بنفسك.")) return;
+  let made=0, skipped=[];
+  due.forEach(r=>{
+    const dt=m+"-"+String(r.day).padStart(2,"0");
+    /* حارس السنة المُقفلة — نفس حارس saveInvoice */
+    try{ if(typeof ksDateAllowed==="function" && !ksDateAllowed(dt,"تاريخ الفاتورة المتكررة")){ skipped.push(r.desc); return; } }catch(e){}
+    let due2="";
+    try{ if(r.termDays>0){ const d=new Date(dt); d.setDate(d.getDate()+r.termDays); due2=d.toISOString().slice(0,10); } }catch(e){}
+    if(!DB.invoices) DB.invoices=[];
+    DB.invoices.push({
+      id:uid(), no:"", date:dt, type:"standard",
+      custId:r.custId, custName:r.custName, custVat:r.custVat||"",
+      dueDate:due2, refId:"", refNo:"",
+      payState:r.payState||"sent",
+      employee:(CURRENT_USER?CURRENT_USER.name:""),
+      items:JSON.parse(JSON.stringify(r.items||[])),
+      notes:("[متكرر] "+r.desc+(r.notes?" — "+r.notes:"")),
+      status:"draft", recurId:r.id, createdAt:new Date().toISOString()
+    });
+    r.lastGen=m; r.done=(+r.done||0)+1; made++;
+  });
+  save(); try{ renderInvoices(); }catch(e){} renderRecInv();
+  if(made) toast("📝 وُلّدت "+made+" مسودة فاتورة — راجعها واعتمدها من الجدول أعلاه");
+  if(skipped.length) toast("⚠️ تُخطّي "+skipped.length+" عقد (تاريخ داخل سنة مقفلة)");
+}
+
+function renderRecInv(){
+  const el=document.getElementById("tblRecInv"); if(!el) return;
+  const lbl=document.getElementById("recInvMonthLbl"); const m=today().slice(0,7);
+  if(lbl) lbl.textContent=m;
+  const list=recInvList();
+  const rows=list.map(r=>{
+    const t=(r.items||[]).reduce((a,i)=>a+invLineTotal(i),0);
+    const ended=(r.months>0 && r.done>=r.months);
+    const st = ended ? '<span class="badge">انتهى العقد</span>'
+             : (r.active===false ? '<span class="badge warn">موقوف</span>'
+             : (r.lastGen===m ? '<span class="badge active">مولَّد ✓</span>' : '<span class="badge warn">لم يولَّد</span>'));
+    return `<tr>
+      <td><b>${ksTxt(r.desc)}</b><br><span class="muted" style="font-size:.68rem">${(r.items||[]).length} بند${r.termDays>0?` · أجل ${r.termDays} يوم`:""}</span></td>
+      <td>${ksNm(r.custName||"")}</td>
+      <td>${fmtSR(t)}</td>
+      <td>${r.day}</td>
+      <td>${r.months>0?`${r.done||0} / ${r.months}`:`<span class="muted">مستمر</span>`}</td>
+      <td>${st}</td>
+      <td>${ended?"":`<button class="btn small secondary" onclick="recInvToggle('${r.id}')">${r.active===false?"▶️ استئناف":"⏸️ إيقاف"}</button>`}
+          ${(typeof isOwner==="function"&&isOwner())?`<button class="del" onclick="delRecInv('${r.id}')">🗑️</button>`:""}</td></tr>`;
+  }).join("");
+  const monthly=list.filter(r=>r.active!==false && !(r.months>0&&r.done>=r.months))
+                    .reduce((s,r)=>s+(r.items||[]).reduce((a,i)=>a+invLineTotal(i),0),0);
+  el.innerHTML=`<tr><th>العقد</th><th>العميل</th><th>الإجمالي</th><th>اليوم</th><th>التقدّم</th><th>شهر ${m}</th><th></th></tr>`
+    +(rows||`<tr><td colspan="7" class="muted">🔁 لا عقود متكررة — من جدول الفواتير أعلاه اضغط «🔁 متكررة» على فاتورة قائمة لتصير عقداً شهرياً</td></tr>`)
+    +(list.length?`<tr style="font-weight:800"><th colspan="2">الإيراد الشهري المتعاقَد عليه</th><th>${fmtSR(monthly)}</th><th colspan="4"></th></tr>`:"");
 }
 
 /* ====================================================

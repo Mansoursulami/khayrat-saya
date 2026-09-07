@@ -1,0 +1,17 @@
+{
+  "name": "سستم تشغيل المزرعة",
+  "short_name": "المزرعة",
+  "description": "إدارة المزرعة: القطيع والحقول والأحواض والمحاسبة والرواتب — يعمل بلا إنترنت",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f0fdf4",
+  "theme_color": "#065f46",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

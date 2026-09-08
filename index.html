@@ -4386,7 +4386,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.38-A";
+const KS_VER="v12.39-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -18304,14 +18304,19 @@ function zkUuid(){
     const r=Math.random()*16|0, v=c==='x'?r:((r&0x3)|0x8); return v.toString(16); });
 }
 
-/* ── ⚠️ نقطة التحقّق الوحيدة: الترميز القانوني قبل التجزئة ──────────────────
-   قاعدة الهيئة: احذف ثلاثة عناصر (UBLExtensions · Signature · مرجع رمز QR)
-   ثم طبّق الترميز القانوني (C14N) ثم SHA-256 ثم Base64.
-   حُصر كل الغموض في هذه الدالة وحدها — يُتحقق منها مقابل أداة الهيئة
-   (Fatoora SDK: `fatoora -generateHash -invoice x.xml`)، فإن اختلفت
-   تُصحَّح **هنا فقط** ولا يُمسّ شيء آخر في النظام.
-   الحالة: ZK_CANON_VERIFIED=false ⇒ النظام يعلن صراحةً أنها غير مُتحقَّق منها. */
-const ZK_CANON_VERIFIED=false;
+/* ── 🧪 نتيجة فحص فعلي بأداة الهيئة (SDK 3.0.8) — 2026-09-08 ──────────────────
+   شُغّلت `fatoora -generateHash` على فاتورة مولَّدة من هذا النظام، وقُورنت
+   بأربع عشرة خوارزمية مرشّحة (XSLT وحدها · C14N 1.0 · C14N حصري · حذف
+   الأسطر والمسافات · CRLF · BOM · UTF-16 …). **لم تطابق أيٌّ منها.**
+   السبب المؤكَّد: الأداة تُدخل عناصر (UBLExtensions · QR · Signature) بواسطة
+   ثلاث تحويلات XSL ثم تحذفها ثم تُقنّن — فالناتج يعتمد على تفاصيل تنفيذ
+   داخلية في مكتبة الهيئة نفسها، وتتغيّر مع تغيّر إصدارها.
+
+   ⛔ القرار المعماري: **لا نُعيد تنفيذ تجزئة زاتكا في المتصفح.**
+   تُحسب التجزئة الرسمية عند التوقيع — على الخادم أو لدى مزوّد الامتثال —
+   بمكتبة الهيئة نفسها. وما نحسبه هنا (`zkHash`) هو **سلسلة تحقّق داخلية**
+   لكشف الحذف أو الإدراج في دفاترنا، لا التجزئة الرسمية. لا تخلط بينهما. */
+const ZK_CANON_VERIFIED=false;   /* يبقى false دائماً — التجزئة الرسمية ليست من عمل المتصفح */
 function zkCanon(xml){
   let x=String(xml||"");
   /* ① حذف العناصر الثلاثة */
@@ -18344,8 +18349,8 @@ async function zkStamp(inv){
   inv.zkPih = z.pih || ZK_PIH0;                     /* تجزئة السابقة */
   inv.zkSimplified = zkIsSimplified(inv);
   const xml = zkBuildXml(inv);
-  inv.zkHash = await zkSha256B64(zkCanon(xml));     /* تجزئة هذه الفاتورة — بعد الترميز القانوني */
-  inv.zkCanonV = ZK_CANON_VERIFIED;                 /* ختم: هل كان الترميز مُتحقَّقاً وقت الوسم؟ */
+  inv.zkHash = await zkSha256B64(zkCanon(xml));     /* سلسلة تحقّق داخلية — ليست تجزئة زاتكا الرسمية */
+  inv.zkCanonV = ZK_CANON_VERIFIED;
   if(inv.zkHash) z.pih = inv.zkHash;                /* تصير «السابقة» للتالية */
   inv.zkStampedAt = new Date().toISOString();
   inv.zkSent = false;                                /* لم تُرسل للهيئة — الطابور */
@@ -18494,9 +18499,11 @@ function zkRender(){
       </div>
       <p class="muted" style="font-size:.7rem;margin:8px 0 0">⏳ زر التسجيل يُفعَّل بعد ربط النظام بخادم التوقيع — الشاشة جاهزة والمفتاح لا يُخزَّن في متصفحك أبداً.</p>
     </div>
-    ${ZK_CANON_VERIFIED?"":`<div style="background:#FBF1DC;border:1px solid #E0C07A;border-radius:10px;padding:10px 14px;margin-top:8px">
-      <b style="font-size:.8rem;color:#8A6100">⚠️ الترميز القانوني للتجزئة لم يُتحقَّق منه بعد</b>
-      <p class="muted" style="font-size:.72rem;margin:5px 0 0;line-height:1.8">تُحسب التجزئة بقاعدة الهيئة (حذف العناصر الثلاثة ثم التطبيع ثم SHA-256)، ويبقى التطابق الحرفي بحاجة إلى فحص بأداة الهيئة الرسمية قبل الإصدار الفعلي. لا أثر لهذا على فواتيرك اليوم — الأثر يبدأ عند الإرسال للهيئة.</p>`}
+    <div style="background:var(--bg);border-radius:10px;padding:10px 14px;margin-top:8px">
+      <b style="font-size:.8rem">🔗 سلسلة التحقّق الداخلية</b>
+      <p class="muted" style="font-size:.72rem;margin:5px 0 0;line-height:1.8">كل فاتورة تحمل بصمة الفاتورة التي قبلها، فتصير فواتيرك <b>سلسلة مترابطة</b> يكشف كسرُها أي حذف أو إدراج. هذه حماية <b>داخلية لدفاترك</b>.<br>
+      أما <b>البصمة الرسمية والتوقيع</b> اللذان تستقبلهما الهيئة فيُحسبان عند التوقيع — على الخادم أو لدى مزوّد الامتثال — <b>بمكتبة الهيئة نفسها</b>، لا في متصفحك. وهذا هو الصحيح: إعادة تنفيذها هنا تنكسر مع كل تحديث لمكتبة الهيئة.</p>
+    </div>
     </div>`;
 }
 function zkOnboard(){

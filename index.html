@@ -1867,7 +1867,9 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <div><label>السداد *</label><select id="puPaid"><option value="1">مدفوع</option><option value="0">آجل (مستحق للمورد)</option></select></div>
       </div>
       <div class="row">
-        <div><label>المبلغ بدون ضريبة (⃁) *</label><input type="number" id="puNet" min="0" step="0.01" required oninput="puCalc()"></div>
+        <div><label>العملة</label><select id="puCur" onchange="fxCurChange()"></select></div>
+        <div id="puRateWrap" style="display:none"><label>سعر الصرف (كم ريالاً للوحدة) *</label><input type="number" id="puRate" min="0.0001" step="0.0001" oninput="puCalc()" placeholder="مثال: 3.75"></div>
+        <div><label id="puNetLbl">المبلغ بدون ضريبة (⃁) *</label><input type="number" id="puNet" min="0" step="0.01" required oninput="puCalc()"></div>
         <div><label>خصم مكتسب (⃁)</label><input type="number" id="puDiscE" min="0" step="0.01" placeholder="0" oninput="puCalc()"></div>
         <div><label>الضريبة (⃁) *</label><input type="number" id="puVatAmt" required min="0" step="0.01" oninput="this.dataset.manual='1';puCalc()"></div>
         <div><label>المبلغ مع الضريبة *</label><input id="puGross" readonly required style="background:var(--green-light);font-weight:700"></div>
@@ -4384,7 +4386,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.37-A";
+const KS_VER="v12.38-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -6954,6 +6956,7 @@ function natQa2(sel){
     }});
 }
 function fillSelects(){
+  try{ fxFill("puCur"); fxCurChange(); }catch(e){}     /* 💱 قائمة العملات */
   /* 🔽 قائمة «الوحدة *» في نموذج صنف المخزون كانت تُملأ من `renderProducts` وحدها:
      من يدخل المخزون مباشرة يجد القائمة **فارغة تماماً** فلا يستطيع إضافة صنف إطلاقاً،
      و`editInvItem` يفقد وحدة الصنف عند التعديل. تُملأ الآن مع كل تعبئة للقوائم. */
@@ -10932,6 +10935,57 @@ function delSupplier(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️
   if(DB.purchases.some(p=>p.supplierId===id)){ toast("⚠️ المورد مرتبط بفواتير مسجلة"); return; }
   if(confirm("حذف المورد؟")){ const _s=DB.suppliers.find(x=>x.id===id); DB.suppliers=DB.suppliers.filter(x=>x.id!==id); logEdit("🗑️ حذف مورد",_s?_s.name:""); save(); fillSelects(); renderSuppliers(); }
 }
+
+/* ====================================================
+   💱 FOREIGN CURRENCY — العملات الأجنبية على فواتير الشراء
+   قرار معماري: **الدفاتر تبقى بالريال دائماً**. تُدخل الفاتورة بعملتها وسعر
+   صرف يومها، ويُخزَّن المبلغ **محوَّلاً للريال** في نفس الحقول القديمة — فلا
+   يتغيّر شيء في المحاسبة ولا المخزون ولا الذمم ولا التقارير. وتُحفظ الأرقام
+   الأصلية في `fx` للعرض والتدقيق فقط. (البيع يبقى بالريال — وهو ما تفترضه
+   الفاتورة الضريبية السعودية أصلاً.)
+====================================================*/
+const FX_LIST=[["SAR","ريال سعودي","⃁",1],["USD","دولار أمريكي","$",3.75],["EUR","يورو","€",4.1],
+               ["AED","درهم إماراتي","د.إ",1.02],["EGP","جنيه مصري","ج.م",0.077],
+               ["GBP","جنيه إسترليني","£",4.8],["INR","روبية هندية","₹",0.045],["PKR","روبية باكستانية","₨",0.013]];
+function fxDef(code){ return FX_LIST.find(c=>c[0]===String(code||"SAR").toUpperCase()) || FX_LIST[0]; }
+function fxRates(){ try{ return (DB.settings&&DB.settings.fxRates)||{}; }catch(e){ return {}; } }
+function fxLastRate(code){
+  code=String(code||"SAR").toUpperCase();
+  if(code==="SAR") return 1;
+  const r=fxRates()[code];
+  return (r>0)? r : fxDef(code)[3];
+}
+function fxRateSane(r){ const n=+r; return isFinite(n) && n>0.0001 && n<10000; }
+function fxToSar(amt, rate){ return +(((+amt)||0)*((+rate)||1)).toFixed(2); }
+function fxSym(code){ return fxDef(code)[2]; }
+function fxFill(id){
+  const el=document.getElementById(id); if(!el) return;
+  const cur=el.value||"SAR";
+  el.innerHTML=FX_LIST.map(c=>`<option value="${c[0]}">${c[0]} — ${c[1]}</option>`).join("");
+  el.value=cur||"SAR";
+}
+function fxCurChange(){
+  const sel=document.getElementById("puCur"); if(!sel) return;
+  const code=sel.value||"SAR";
+  const wrap=document.getElementById("puRateWrap"), rate=document.getElementById("puRate");
+  const lbl=document.getElementById("puNetLbl");
+  if(code==="SAR"){
+    if(wrap) wrap.style.display="none";
+    if(rate) rate.value="";
+    if(lbl) lbl.textContent="المبلغ بدون ضريبة (⃁) *";
+  }else{
+    if(wrap) wrap.style.display="";
+    if(rate && !(+rate.value>0)) rate.value=fxLastRate(code);
+    if(lbl) lbl.textContent="المبلغ بدون ضريبة ("+fxSym(code)+") *";
+  }
+  try{ puCalc(); }catch(e){}
+}
+function fxBadge(p){
+  const f=p&&p.fx;
+  if(!f || !f.cur || f.cur==="SAR") return "";
+  return `<br><span class="badge" style="font-size:.62rem" title="المبلغ الأصلي وسعر الصرف يوم الفاتورة">💱 ${ksTxt(f.cur)} ${fmt(f.total)} @ ${ksTxt(f.rate)}</span>`;
+}
+
 function puCalc(){
   const net=+(document.getElementById("puNet")?.value)||0;
   const disc=+(document.getElementById("puDiscE")?.value)||0;
@@ -10939,7 +10993,14 @@ function puCalc(){
   const v=document.getElementById("puVatAmt");
   if(v && v.dataset.manual!=="1"){ const rate=+(DB.settings.vatRate??15); v.value=base?(base*rate/100).toFixed(2):""; }
   const g=document.getElementById("puGross");
-  if(g) g.value=(base+(+v?.value||0)).toFixed(2)+" ⃁";
+  const cur=(document.getElementById("puCur")||{}).value||"SAR";
+  const rate=+(document.getElementById("puRate")||{}).value||0;
+  const grossDoc=base+(+v?.value||0);
+  if(g){
+    if(cur==="SAR") g.value=grossDoc.toFixed(2)+" ⃁";
+    else if(fxRateSane(rate)) g.value=grossDoc.toFixed(2)+" "+fxSym(cur)+"  =  "+fxToSar(grossDoc,rate).toFixed(2)+" ⃁";
+    else g.value=grossDoc.toFixed(2)+" "+fxSym(cur)+"  —  أدخل سعر صرف صحيحاً";
+  }
 }
 function addPurchase(e){
   e.preventDefault();
@@ -10962,11 +11023,24 @@ function addPurchase(e){
   if(!ksNeed([[puDate.value,"تاريخ الفاتورة"],[+puNet.value,"المبلغ قبل الضريبة"]])) return;
   if(!ksSane(puNet.value, puDate.value, "مبلغ الفاتورة")) return;
   if(!ksDateAllowed(puDate.value,"تاريخ الفاتورة")) return;
+  /* 💱 عملة أجنبية: نتحقّق من السعر ثم نحوّل — والدفاتر تستقبل ريالاً كما كانت دائماً */
+  const __cur=((document.getElementById("puCur")||{}).value||"SAR").toUpperCase();
+  const __rateRaw=(document.getElementById("puRate")||{}).value;
+  let __rate=1;
+  if(__cur!=="SAR"){
+    if(!fxRateSane(__rateRaw)){ toast("⚠️ أدخل سعر صرف صحيحاً للعملة "+__cur+" (كم ريالاً للوحدة)"); return; }
+    __rate=+__rateRaw;
+  }
+  const __k=v=>(__cur==="SAR")?(+v||0):fxToSar(v,__rate);
+  const __docNet=+puNet.value||0, __docDisc=+puDiscE.value||0, __docVat=+puVatAmt.value||0;
+  const __docTotal=Math.max(0,__docNet-__docDisc)+__docVat;
+  if(__cur!=="SAR"){ DB.settings.fxRates=DB.settings.fxRates||{}; DB.settings.fxRates[__cur]=+__rate; }
   const rec = {date:puDate.value, supplierId:puSupplier.value, cat:puCat.value, desc:puDesc.value,
     itemId:puItem.value||"", unit:document.getElementById("puUnit")?.value||"", qty:puQty.value===""?0:+puQty.value,
-    net:+puNet.value||0, discEarned:+puDiscE.value||0, vat:+puVatAmt.value||0,
-    amount:Math.max(0,(+puNet.value||0)-(+puDiscE.value||0)),
-    total:Math.max(0,(+puNet.value||0)-(+puDiscE.value||0))+(+puVatAmt.value||0),
+    net:__k(__docNet), discEarned:__k(__docDisc), vat:__k(__docVat),
+    amount:Math.max(0,__k(__docNet)-__k(__docDisc)),
+    total:Math.max(0,__k(__docNet)-__k(__docDisc))+__k(__docVat),
+    fx:(__cur==="SAR")?null:{cur:__cur, rate:+__rate, net:+__docNet.toFixed(2), disc:+__docDisc.toFixed(2), vat:+__docVat.toFixed(2), total:+__docTotal.toFixed(2)},
     paid:puPaid.value==="1",
     /* يحفظ منشئ الفاتورة الأصلي عند التعديل (كان يُعاد إسنادها للمعدِّل فيفقد صاحبها صلاحية تعديلها) */
     employee:((document.getElementById("puEmp")||{}).value||"").trim()||(CURRENT_USER?CURRENT_USER.name:'المالك'),
@@ -11082,7 +11156,7 @@ function markPurchasePaid(id){
 }
 function renderPurchases(){
   const rows = DB.purchases.slice().reverse().map(p=>
-    `<tr><td>${ksTxt(p.date)}</td><td><b>${supName(p.supplierId)}</b></td><td>${ksTxt(p.cat)}</td><td>${p.desc||"—"}</td>
+    `<tr><td>${ksTxt(p.date)}</td><td><b>${supName(p.supplierId)}</b></td><td>${ksTxt(p.cat)}</td><td>${p.desc||"—"}${fxBadge(p)}</td>
      <td class="neg">${fmtSR(p.amount)}</td>
      <td>${apvBadge('pur',p)}${p.paid?'<span class="badge active">مدفوع</span>':'<span class="badge danger">آجل</span> <button class="btn small secondary" onclick="markPurchasePaid(\''+p.id+'\')">سداد</button>'}</td>
      <td>${p.employee||""}</td>

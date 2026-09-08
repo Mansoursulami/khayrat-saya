@@ -1,7 +1,7 @@
 /* عامل الخدمة — يجعل النظام يفتح فعلاً بلا إنترنت.
    القاعدة: نخزّن الصفحة وملفات المكتبات فقط. لا نلمس أي نداء بيانات (Supabase)
    ولا أي طلب غير GET — البيانات تُدار في السستم نفسه لا هنا. */
-const CACHE = "ks-shell-v1";
+const CACHE = "ks-shell-v2";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 const CDN = [
   "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js",
@@ -38,11 +38,14 @@ self.addEventListener("fetch", e=>{
   const isCdn = CDN.some(u=>req.url.startsWith(u.split("?")[0]));
   if(!sameOrigin && !isCdn) return;
 
-  /* التنقّل: الشبكة أولاً ثم الكاش — فيصل التحديث، ويفتح بلا إنترنت */
+  /* التنقّل: الشبكة أولاً ثم الكاش — فيصل التحديث، ويفتح بلا إنترنت.
+     ⚠️ `fetch(req)` وحده كان يُخدَم من كاش المتصفح (GitHub Pages يضع مهلة)،
+     فتظل النسخة القديمة تظهر رغم النشر. `cache:"no-cache"` يجبر التحقّق من
+     الخادم بطلب شرطي — رخيص عند عدم التغيير (304) وطازج عند التغيير. */
   if(req.mode === "navigate"){
     e.respondWith((async()=>{
       try{
-        const fresh = await fetch(req);
+        const fresh = await fetch(req, {cache:"no-cache"});
         const c = await caches.open(CACHE); c.put("./index.html", fresh.clone());
         return fresh;
       }catch(err){
@@ -58,7 +61,7 @@ self.addEventListener("fetch", e=>{
   e.respondWith((async()=>{
     const c = await caches.open(CACHE);
     const hit = await c.match(req);
-    const net = fetch(req).then(r=>{ if(r&&r.ok) c.put(req, r.clone()); return r; }).catch(()=>null);
+    const net = fetch(req, {cache:"no-cache"}).then(r=>{ if(r&&r.ok) c.put(req, r.clone()); return r; }).catch(()=>null);
     return hit || (await net) || new Response("", {status:504});
   })());
 });

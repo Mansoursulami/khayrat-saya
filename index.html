@@ -3027,6 +3027,19 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <div style="display:flex;align-items:end"><button class="btn" type="button" onclick="saveRecon()">💾 حفظ المطابقة</button></div>
       </div>
       <div id="rcLive" class="muted" style="margin-top:10px;font-size:.85rem"></div>
+
+      <div style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:14px">
+        <div style="font-weight:700;margin-bottom:4px">🏦 مطابقة كشف البنك سطراً بسطر</div>
+        <p class="muted" style="font-size:.75rem;margin:0 0 10px;line-height:1.8">حمّل كشف حسابك من البنك بصيغة CSV، والنظام يطابقه مع حركات حساب <b>1102 — البنك</b> في دفاترك ويكشف الفروق.
+        <b>لا يُقيَّد شيء في الدفاتر من الملف</b> — الكشف تحليل فقط، وأنت تسجّل ما ينقص بنفسك.</p>
+        <div class="row" style="flex-wrap:wrap;gap:10px;align-items:end">
+          <div style="min-width:200px"><label>ملف الكشف (CSV)</label><input type="file" id="bkFile" accept=".csv,text/csv" onchange="bkLoad(this)"></div>
+          <div style="min-width:130px"><label>سماح الأيام</label><input type="number" id="bkTol" value="3" min="0" max="15" step="1" onchange="bkRender()"></div>
+          <div><button class="btn secondary" type="button" onclick="bkClear()">🧹 مسح</button></div>
+        </div>
+        <p class="muted" style="font-size:.7rem;margin:8px 0 0">الأعمدة المقبولة: <b>التاريخ</b> · <b>البيان</b> · و(<b>مدين</b> و<b>دائن</b>) أو عمود <b>المبلغ</b> بإشارة. تُقبل العناوين بالإنجليزية أيضاً (date · description · debit · credit · amount).</p>
+        <div id="bkOut" style="margin-top:12px"></div>
+      </div>
       <h3 style="margin-top:14px">سجل المطابقات</h3>
       <div class="card table-wrap"><table id="tblRecon"></table></div>
     </div>
@@ -4371,7 +4384,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.36-A";
+const KS_VER="v12.37-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -12561,6 +12574,178 @@ function csvAudit(){
   exportCSV(["التاريخ","الإجراء","النوع","السجل","مَن نفّذه","مُسجِّل السجل","السبب"],
     rows.map(r=>[r.date,r.actTxt,r.kind,r.desc,r.who,r.by||"",r.reason||""]),"سجل_التدقيق");
 }
+
+/* ====================================================
+   🏦 BANK RECONCILIATION — مطابقة كشف البنك سطراً بسطر
+   قاعدة صارمة: الملف المستورد **لا يكتب في الدفاتر أبداً**. تحليل ومقارنة فقط،
+   وما ينقص يسجّله المالك بنفسه من شاشاته المعتادة — فلا يدخل قيدٌ من ملف خارجي.
+   ولا يُخزَّن الكشف في قاعدة البيانات (سقف متصفح ~5 ميجا) — يبقى في الذاكرة،
+   ويُحفظ في سجل المطابقات ملخّصه فقط.
+====================================================*/
+function bkNum(v){
+  if(v==null) return 0;
+  let t=String(v).replace(/[٫]/g,".").replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x0660));
+  t=t.replace(/[^\d.\-()]/g,"");                 /* يزيل الفواصل والعملة والمسافات */
+  let neg=/\(/.test(t); t=t.replace(/[()]/g,"");
+  const n=parseFloat(t);
+  if(!isFinite(n)) return 0;
+  return +( (neg? -n : n).toFixed(2) );
+}
+function bkDate(v){
+  const t=String(v||"").trim();
+  let m=/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/.exec(t);
+  if(m) return m[1]+"-"+String(+m[2]).padStart(2,"0")+"-"+String(+m[3]).padStart(2,"0");
+  m=/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/.exec(t);          /* يوم/شهر/سنة — الشائع محلياً */
+  if(m) return m[3]+"-"+String(+m[2]).padStart(2,"0")+"-"+String(+m[1]).padStart(2,"0");
+  return "";
+}
+function bkSplit(line){
+  const out=[]; let cur="", q=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){ if(q && line[i+1]==='"'){ cur+='"'; i++; } else q=!q; }
+    else if((c===","||c===";"||c==="\t") && !q){ out.push(cur); cur=""; }
+    else cur+=c;
+  }
+  out.push(cur);
+  return out.map(x=>x.trim().replace(/^"|"$/g,""));
+}
+function bkParse(text){
+  const lines=String(text||"").replace(/^﻿/,"").split(/\r\n?|\n/).filter(l=>l.trim()!=="");
+  if(!lines.length) return {rows:[], err:"الملف فارغ"};
+  const head=bkSplit(lines[0]).map(h=>h.toLowerCase());
+  const find=(...keys)=>head.findIndex(h=>keys.some(k=>h.includes(k)));
+  const iDate=find("تاريخ","date");
+  const iDesc=find("بيان","وصف","تفاصيل","desc","narrat","detail","statement");
+  const iDeb =find("مدين","إيداع","ايداع","debit","deposit","credit in","in");
+  const iCrd =find("دائن","سحب","مسحوب","credit","withdraw","out");
+  const iAmt =find("مبلغ","قيمة","amount","value");
+  if(iDate<0) return {rows:[], err:"لم أجد عمود التاريخ في العناوين"};
+  if(iDeb<0 && iCrd<0 && iAmt<0) return {rows:[], err:"لم أجد أعمدة المبالغ (مدين/دائن أو مبلغ)"};
+  const rows=[];
+  for(let n=1;n<lines.length;n++){
+    const c=bkSplit(lines[n]);
+    const d=bkDate(c[iDate]); if(!d) continue;
+    let amt=0;
+    if(iDeb>=0 || iCrd>=0) amt = bkNum(c[iDeb]) - bkNum(c[iCrd]);   /* + إيداع · − سحب */
+    else amt = bkNum(c[iAmt]);
+    if(Math.abs(amt)<0.005) continue;
+    rows.push({i:rows.length, date:d, desc:(iDesc>=0?String(c[iDesc]||""):"").slice(0,120), amt:+amt.toFixed(2), m:null});
+  }
+  if(!rows.length) return {rows:[], err:"لم أقرأ أي سطر صالح — تحقّق من صيغة التاريخ والمبالغ"};
+  return {rows, err:""};
+}
+/* حركات حساب البنك من الدفاتر — مشتقّة حيّة، لا مخزَّنة */
+function bkBookLines(from,to){
+  const out=[];
+  try{
+    autoEntries(from,to).forEach(e=>(e.lines||[]).forEach(l=>{
+      if(l.a!=="1102") return;
+      const amt=+((+l.d||0)-(+l.c||0)).toFixed(2);
+      if(Math.abs(amt)<0.005) return;
+      out.push({i:out.length, date:e.date, desc:String(e.desc||"").slice(0,120), amt, m:null});
+    }));
+  }catch(err){}
+  return out;
+}
+function bkDaysApart(a,b){ return Math.abs((Date.parse(a)-Date.parse(b))/864e5); }
+/* المطابقة: تمريرة على التاريخ نفسه ثم تمريرة بالسماح — حتمية ولا تُطابق سطراً مرتين */
+function bkMatch(book, stmt, tolDays){
+  book.forEach(b=>b.m=null); stmt.forEach(s=>s.m=null);
+  const near=(b,s,tol)=>Math.abs(b.amt-s.amt)<0.011 && bkDaysApart(b.date,s.date)<=tol;
+  [0, Math.max(0,+tolDays||0)].forEach(tol=>{
+    book.forEach(b=>{
+      if(b.m!==null) return;
+      let best=null, bestD=1e9;
+      stmt.forEach(sx=>{
+        if(sx.m!==null) return;
+        if(!near(b,sx,tol)) return;
+        const d=bkDaysApart(b.date,sx.date);
+        if(d<bestD){ bestD=d; best=sx; }
+      });
+      if(best){ b.m=best.i; best.m=b.i; }
+    });
+  });
+  return {
+    matched: book.filter(b=>b.m!==null).length,
+    bookOnly: book.filter(b=>b.m===null),
+    stmtOnly: stmt.filter(s=>s.m===null)
+  };
+}
+function bkLoad(input){
+  const f=input && input.files && input.files[0];
+  if(!f){ return; }
+  if(f.size>3*1024*1024){ toast("⚠️ الملف كبير (أكثر من 3 ميجا) — صدّر فترة أقصر من البنك"); input.value=""; return; }
+  const r=new FileReader();
+  r.onload=()=>{
+    const res=bkParse(r.result);
+    if(res.err){ window.__bkStmt=null; toast("⛔ "+res.err); bkRender(); return; }
+    window.__bkStmt={rows:res.rows, name:f.name};
+    toast("📥 قُرئ الكشف: "+res.rows.length+" حركة");
+    bkRender();
+  };
+  r.onerror=()=>{ toast("⛔ تعذّرت قراءة الملف"); };
+  r.readAsText(f, "utf-8");
+}
+function bkClear(){ window.__bkStmt=null; const f=document.getElementById("bkFile"); if(f) f.value=""; bkRender(); }
+function bkRender(){
+  const out=document.getElementById("bkOut"); if(!out) return;
+  const st=window.__bkStmt;
+  if(!st || !st.rows || !st.rows.length){ out.innerHTML=""; return; }
+  const from=(document.getElementById("acFrom")||{}).value||"";
+  const to=(document.getElementById("acTo")||{}).value||"";
+  const tol=+((document.getElementById("bkTol")||{}).value)||0;
+  const book=bkBookLines(from,to);
+  const stmt=st.rows.map(r=>({...r, m:null}));
+  const r=bkMatch(book, stmt, tol);
+
+  const sum=a=>+a.reduce((x,y)=>x+y.amt,0).toFixed(2);
+  const bookNet=sum(book), stmtNet=sum(stmt);
+  const inTransit=sum(r.bookOnly.filter(x=>x.amt>0));      /* سجّلناه ولم يظهر بالبنك */
+  const outCheck =sum(r.bookOnly.filter(x=>x.amt<0));
+  const bankOnlyIn =sum(r.stmtOnly.filter(x=>x.amt>0));    /* بالبنك ولم يُسجَّل */
+  const bankOnlyOut=sum(r.stmtOnly.filter(x=>x.amt<0));
+  const gap=+(stmtNet-bookNet).toFixed(2);
+  const explained=+((bankOnlyIn+bankOnlyOut)-(inTransit+outCheck)).toFixed(2);
+  const resid=+(gap-explained).toFixed(2);
+
+  const box=(l,v,col)=>`<div class="card kpi" style="padding:10px"><div class="label" style="font-size:.72rem">${l}</div><div class="value" style="font-size:1rem;color:${col||"inherit"}">${v}</div></div>`;
+  const tbl=(title,rows,hint)=>`<h4 style="margin:14px 0 6px">${title} <span class="muted" style="font-weight:400;font-size:.75rem">(${rows.length})</span></h4>`
+    +(hint?`<p class="muted" style="font-size:.72rem;margin:0 0 6px">${hint}</p>`:"")
+    +`<div class="table-wrap"><table class="tbl"><tr><th>التاريخ</th><th>البيان</th><th>المبلغ</th></tr>`
+    +(rows.length?rows.slice(0,60).map(x=>`<tr><td>${ksTxt(x.date)}</td><td>${ksTxt(x.desc||"—")}</td><td class="${x.amt>=0?'pos':'neg'}">${fmtSR(x.amt)}</td></tr>`).join("")
+      :`<tr><td colspan="3" class="muted">لا شيء 👍</td></tr>`)
+    +(rows.length>60?`<tr><td colspan="3" class="muted">معروض 60 من ${rows.length}</td></tr>`:"")
+    +`</table></div>`;
+
+  out.innerHTML =
+    `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px">
+      ${box("حركات الكشف", fmt(stmt.length))}
+      ${box("حركات الدفاتر", fmt(book.length))}
+      ${box("مطابَق", fmt(r.matched), "var(--green)")}
+      ${box("في البنك فقط", fmt(r.stmtOnly.length), r.stmtOnly.length?"var(--amber)":"inherit")}
+      ${box("في الدفاتر فقط", fmt(r.bookOnly.length), r.bookOnly.length?"var(--amber)":"inherit")}
+      ${box("الفرق غير المفسَّر", fmtSR(resid), Math.abs(resid)<0.01?"var(--green)":"var(--red)")}
+    </div>`
+    + (Math.abs(resid)<0.01
+        ? `<div style="background:var(--green-light);border-radius:10px;padding:10px 14px;margin-top:10px;font-size:.82rem"><b>✅ الكشف مطابق</b> — كل فرق بين البنك والدفاتر مفسَّر بحركات معلّقة أدناه.</div>`
+        : `<div style="background:#FDF7F7;border:1px solid #F09595;border-radius:10px;padding:10px 14px;margin-top:10px;font-size:.82rem"><b style="color:#791F1F">⚠️ فرق غير مفسَّر: ${fmtSR(resid)}</b> — قد يكون فترة غير متطابقة بين الكشف والتقرير، أو حركة بمبلغ مختلف، أو خطأ إدخال. راجع القائمتين أدناه.</div>`)
+    + tbl("🏦 في البنك ولم يُسجَّل في دفاترك", r.stmtOnly, "رسوم بنكية · فوائد · تحويلات واردة. <b>سجّلها بنفسك</b> من شاشة المصروفات أو القيود — النظام لا يقيّدها من الملف.")
+    + tbl("📘 في دفاترك ولم يظهر بالبنك", r.bookOnly, "إيداعات في الطريق أو شيكات لم تُصرف بعد. طبيعية إن كانت قريبة التاريخ.")
+    + `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn" type="button" onclick="bkUseBalance(${stmtNet})">📥 اعتمد رصيد الكشف في نموذج المطابقة</button>
+        <span class="muted" style="font-size:.72rem">صافي حركة الكشف في الفترة: <b>${fmtSR(stmtNet)}</b> · الدفاتر: <b>${fmtSR(bookNet)}</b></span>
+      </div>`;
+}
+function bkUseBalance(v){
+  const el=document.getElementById("rcBank"); if(!el){ return; }
+  const opening=(()=>{ try{ const pv=__prevISO((document.getElementById("acFrom")||{}).value||""); if(!pv) return 0;
+    const ob=acctBalances("",pv)["1102"]||{d:0,c:0}; return +(ob.d-ob.c).toFixed(2); }catch(e){ return 0; } })();
+  el.value=(+(opening+v).toFixed(2));
+  try{ renderRecon(); }catch(e){}
+  toast("📥 عُبّئ رصيد البنك = افتتاحي "+fmt(opening)+" + حركة الكشف "+fmt(v));
+}
+
 function renderRecon(){
   const live=document.getElementById("rcLive");
   if(live){
@@ -12572,6 +12757,7 @@ function renderRecon(){
       +((ac||ab)?("<br>🔎 الفرق — صندوق: <b style='color:"+(Math.abs(dc)<0.01?"#166534":"#b91c1c")+"'>"+fmtSR(dc)+"</b>"
         +" · بنك: <b style='color:"+(Math.abs(db2)<0.01?"#166534":"#b91c1c")+"'>"+fmtSR(db2)+"</b>"):"");
   }
+  try{ bkRender(); }catch(e){}
   const t=document.getElementById("tblRecon"); if(!t) return;
   const rows=(DB.recons||[]).slice().reverse();
   t.innerHTML=`<tr><th>التاريخ</th><th>صندوق دفتري</th><th>صندوق فعلي</th><th>فرق</th><th>بنك دفتري</th><th>بنك كشف</th><th>فرق</th><th>بواسطة</th><th>ملاحظات</th></tr>`

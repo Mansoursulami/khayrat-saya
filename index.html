@@ -4386,7 +4386,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.39-A";
+const KS_VER="v12.40-B";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -5257,10 +5257,10 @@ async function provModTgl(fid,mod,el){
   if(await provPatch(fid,{modules:m})){ row.modules=m; el.classList.toggle("on",m[mod]===true); toast(m[mod]?"✅ فُعّل المديول":"⏹️ أُوقف المديول"); }
 }
 function __provPlus(base,days){
-  let t=base?new Date(base):new Date();
-  const now=new Date(); if(!(t>now)) t=now;
+  let t=base?new Date(String(base).slice(0,10)+"T00:00:00"):new Date();
+  const now=new Date(); if(isNaN(t)||!(t>now)) t=now;
   t.setDate(t.getDate()+days);
-  return t.toISOString().slice(0,10);
+  return ksISO(t);
 }
 async function provTrial(fid){
   if(!confirm("تفعيل فترة تجريبية ٧ أيام لهذه المزرعة (بالمديولات المفعلة بأزرارها)؟")) return;
@@ -5500,7 +5500,7 @@ function provInvoice(farmId, pre){
   const p=(window.__provRows||[]).find(x=>x.farm_id===farmId);
   if(!p){ toast("⚠️ لم يُعثر على بيانات المزرعة"); return; }
   const t=today();
-  const addD=(ds,n)=>{ const d=new Date((ds||t)+"T00:00:00"); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
+  const addD=(ds,n)=>{ const d=new Date((ds||t)+"T00:00:00"); d.setDate(d.getDate()+n); return ksISO(d); };
   const from=(pre&&pre.from)||t;
   const to=(pre&&pre.to)||addD(from,364);
   qa2Open({ title:"🧾 مستند اشتراك — "+(p.name||p.email||farmId),
@@ -5802,6 +5802,10 @@ function __ksSanDeep(o,depth){ if(depth>8||o==null) return o;
   return o; }
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.style.display="block"; setTimeout(()=>t.style.display="none",2200); }
 function today(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+/* ksISO: تاريخ Date كنص YYYY-MM-DD **بالتوقيت المحلي** — نفس أساس today().
+   كان السستم يطبع تواريخ محلية بـ toISOString (تاريخ UTC) فيرجع يوماً للخلف في السعودية
+   لكل تاريخ مبني على منتصف الليل المحلي، وبين 00:00 و03:00 لكل تاريخ مبني على «الآن». */
+function ksISO(d){ if(!(d instanceof Date)||isNaN(d)) return ""; return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function prodName(id){ const p=DB.products.find(x=>x.id===id); return p?ksNm(p.name):"— منتج محذوف —"; }
 function hProdName(h){
   /* اسم صنف البيع: «؟» كانت تظهر لكل بيع بلا دورة (مواشي/أسماك/فواتير) وتجمعها كلها تحت بند واحد بلا معنى في التقارير */
@@ -6359,7 +6363,7 @@ function renderCompare(){
 }
 
 /* ===== Financial Position Card (أُعيد بناؤها) ===== */
-function __prevISO(d){ if(!d) return ""; const t=new Date(d+"T00:00:00"); if(isNaN(t)) return ""; t.setDate(t.getDate()-1); return t.toISOString().slice(0,10); }
+function __prevISO(d){ if(!d) return ""; const t=new Date(d+"T00:00:00"); if(isNaN(t)) return ""; t.setDate(t.getDate()-1); return ksISO(t); }
 function faDepInfo(a, atISO){
   /* مصدر واحد لحساب الإهلاك في كل السستم (كانت ثلاث صيغ مختلفة تعطي ثلاثة أرقام لنفس الأصل) */
   const cost=+a.cost||0, salv=+a.salvage||0, life=+a.life||5;
@@ -7806,7 +7810,7 @@ function classifyTank(t, a, ws){
     const rate = days>0 ? (p2.w-p1.w)/days : 0;
     if(rate>0){
       const left = Math.ceil((target-lw)/rate);
-      const eta = new Date(Date.now()+left*864e5).toISOString().slice(0,10);
+      const eta = ksISO(new Date(Date.now()+left*864e5));
       return left<=60 ? {st:"soon", eta, left} : {st:"prod", eta};
     }
   }
@@ -8314,7 +8318,7 @@ function renderFeedPlan(){
     if(!kg){ try{ kg=q*(invUnitKg(u)||0); }catch(e){} }
     return s + (kg||0);   /* وحدة غير قابلة للتحويل (كيس/عبوة) لا تُجمع بدل أن تُجمع خطأً */
   },0);
-  const since = new Date(Date.now()-14*864e5).toISOString().slice(0,10);
+  const since = ksISO(new Date(Date.now()-14*864e5));
   const used14 = DB.fishLogs.filter(f=>f.date>=since).reduce((s,f)=>s+(f.feed||0),0);
   const usage = used14>0 ? used14/14 : total;
   const days = usage>0 ? stock/usage : null;
@@ -8536,7 +8540,7 @@ function renderSecView(){
 /* شاشة المواشي داخل المتابعة */
 function printLvReport(){
   const lv=getLivestock(); const t=today();
-  const m30=new Date(Date.now()-30*864e5).toISOString().slice(0,10);
+  const m30=ksISO(new Date(Date.now()-30*864e5));
   const base=(lv.animals||[]).reduce((s,a)=>s+(+a.count||0),0);
   const births=(lv.birthDeathLogs||[]).filter(x=>x.type==="مولود").reduce((s,x)=>s+(+x.count||1),0);
   const deaths=(lv.birthDeathLogs||[]).filter(x=>x.type==="نفوق").reduce((s,x)=>s+(+x.count||1),0);
@@ -8546,7 +8550,7 @@ function printLvReport(){
   const feed30=(lv.feedLogs||[]).filter(r=>r.date>=m30).reduce((s,r)=>s+(+r.qty||0),0);
   const rev=(DB.harvests||[]).filter(h=>h.livestockSale).reduce((s,h)=>s+(+h.total||0),0);
   const rows=(lv.animals||[]).map(a=>`<tr><td>${ksTxt(a.type)}</td><td>${ksTxt(a.count)}</td><td>${a.gender||"—"}</td><td>${a.barn||"—"}</td></tr>`).join("")||`<tr><td colspan="4">لا يوجد</td></tr>`;
-  const _s30r=new Date(Date.now()+30*864e5).toISOString().slice(0,10);
+  const _s30r=ksISO(new Date(Date.now()+30*864e5));
   const vacRows=(lv.vaccines||[]).filter(v=>v.next&&v.next<=_s30r).sort((a,b)=>a.next.localeCompare(b.next))
     .map(v=>`<tr><td>${v.next}${v.next<t?" ⚠️":""}</td><td>${ksNm(v.name)}</td><td>${v.animal||"—"}</td></tr>`).join("")||`<tr><td colspan="3">لا جرعات مستحقة خلال 30 يوم</td></tr>`;
   const _lastW={};
@@ -8577,7 +8581,7 @@ function printLvReport(){
 function renderLivestockSecView(fs, cost){
   const lv = DB.livestock || {dailyReports:[],animals:[],milkLogs:[],birthDeathLogs:[],healthLogs:[]};
   const t = today();
-  const m30 = new Date(Date.now()-30*864e5).toISOString().slice(0,10);
+  const m30 = ksISO(new Date(Date.now()-30*864e5));
 
   // إجمالي الحيوانات
   const totalAnimals = (lv.animals||[]).reduce((s,a)=>s+(+a.count||0),0)
@@ -8669,7 +8673,7 @@ function renderLivestockSecView(fs, cost){
   if(secClimateTitle) secClimateTitle.textContent = "📌 متابعات قادمة (صحة / تطعيم / ولادة / فطام / صيدلية)";
   const tblSecClimate = document.getElementById("tblSecClimate");
   if(tblSecClimate){
-    const _s30=new Date(Date.now()+30*864e5).toISOString().slice(0,10);
+    const _s30=ksISO(new Date(Date.now()+30*864e5));
     const ups=[];
     pendingHealth.forEach(h=>ups.push({d:h.followUp, t:"🩺 متابعة صحية", det:(h.animal||"—")+" — "+(h.issue||"")}));
     (lv.vaccines||[]).forEach(v=>{ if(v.next && v.next<=_s30) ups.push({d:v.next, t:"💉 جرعة تطعيم", det:v.name+(v.animal?" — "+v.animal:"")}); });
@@ -8710,7 +8714,7 @@ function renderFishSecView(fs, cost){
   const t = today();
   const agg = tankAgg();
   const totalFish = DB.tanks.reduce((s,tk)=>s+tankCurrent(tk, agg[tk.name]), 0);
-  const m30 = new Date(Date.now()-30*864e5).toISOString().slice(0,10);
+  const m30 = ksISO(new Date(Date.now()-30*864e5));
   const dead30 = DB.fishLogs.filter(f=>f.date>=m30).reduce((s,f)=>s+(f.dead||0),0);
   const feed30 = DB.fishLogs.filter(f=>f.date>=m30).reduce((s,f)=>s+(f.feed||0),0);
   secKpis.innerHTML = `
@@ -9512,7 +9516,7 @@ function addInvMove(e){
 function invValue(){ return DB.inventory.reduce((s,i)=>s+(i.qty*(i.cost||0)),0); }
 function renderInv(){
   try{ prUnitFill(); }catch(e){}   /* ضمان امتلاء «الوحدة *» متى فُتحت شاشة المخزون */
-  const exp30 = new Date(Date.now()+30*864e5).toISOString().slice(0,10);
+  const exp30 = ksISO(new Date(Date.now()+30*864e5));
   const rows = DB.inventory.map(i=>{
     /* 🔁 قاعدة واحدة للنقص في كل السستم: كمية ≤ حد أدنى مُحدَّد (>0).
        كانت هنا i.qty<=i.min بلا حارس ⇒ صنف حده 0 يظهر «ناقص» والبطاقة والجرس لا يريانه،
@@ -9575,7 +9579,7 @@ function maintDone(id){
 }
 function renderEquip(){
   const t = today();
-  const soon = new Date(Date.now()+7*864e5).toISOString().slice(0,10);
+  const soon = ksISO(new Date(Date.now()+7*864e5));
   const rows = DB.equipment.map(eq=>{
     const next = eqNext(eq);
     const st = next<=t ? `<span class="badge danger">⚠️ صيانة مستحقة</span>`
@@ -10596,7 +10600,7 @@ function delEmployee(id){
 function renderEmployees(){
   const rows = DB.employees.map(em=>{
     const last = DB.salaryPays.filter(s=>s.empId===em.id).map(s=>s.month).sort().pop();
-    const d60 = new Date(Date.now()+60*864e5).toISOString().slice(0,10);
+    const d60 = ksISO(new Date(Date.now()+60*864e5));
     const idBadge = !em.idExp ? "" : em.idExp<today() ? ' <span class="badge danger">منتهية</span>' : em.idExp<=d60 ? ' <span class="badge warn">تنتهي قريباً</span>' : "";
     return `<tr><td><b>${em.empNo||"—"}</b></td><td><b style="cursor:pointer;color:var(--green-dark);text-decoration:underline" title="فتح ملف الموظف" onclick="empProfile('${em.id}')">${ksNm(em.name)}</b></td><td>${em.role||"—"}${em.section?`<br><span class="muted" style="font-size:.7rem">🏡 ${ksTxt(em.section)}</span>`:""}</td><td>${em.nationality||"—"}</td><td>${em.idNo||"—"}${idBadge}</td><td>${fmtSR(em.salary)}</td><td>${em.phone||"—"}${em.email?`<br><span class="muted" style="font-size:.78rem">✉️ ${em.email}</span>`:""}</td>
       <td>${last?`<span class="badge active">آخر راتب: ${last}</span>`:'<span class="badge warn">لم يصرف بعد</span>'}</td>
@@ -11425,7 +11429,7 @@ function getAlerts(){
   try{ const _zq=zkQueue(), _lt=_zq.filter(x=>x.late).length, _sn=_zq.filter(x=>!x.late&&x.hrsLeft<6).length;
     if(_lt) items.push(`🔴 ${_lt} فاتورة تجاوزت مهلة الإبلاغ (24 ساعة) — راجع طابور الإبلاغ في تبويب الفواتير`);
     else if(_sn) items.push(`⏳ ${_sn} فاتورة يتبقّى لإبلاغها أقل من 6 ساعات`); }catch(e){}
-  const d60 = new Date(Date.now()+60*864e5).toISOString().slice(0,10);
+  const d60 = ksISO(new Date(Date.now()+60*864e5));
   DB.employees.filter(e=>e.idExp).forEach(e=>{
     if(e.idExp < today()) items.push(`🪪 هوية/إقامة <b>${ksNm(e.name)}</b> منتهية منذ ${e.idExp} — جددها فوراً`);
     else if(e.idExp <= d60) items.push(`🪪 هوية/إقامة <b>${ksNm(e.name)}</b> تنتهي في ${e.idExp} — باقي أقل من 60 يوم`);
@@ -11435,7 +11439,7 @@ function getAlerts(){
   Object.values(tanks).forEach(w=>{ if(waterBad(w)) items.push(`🐟 آخر قياس مياه في <b>${ksTxt(w.tank)}</b> (${w.date}) خارج المعدل الآمن للبلطي`); });
   if(DB.waterLogs.length && !DB.waterLogs.some(w=>w.date===today()))
     items.push(`🐟 لم يُسجل قياس مياه اليوم`);
-  const last3 = DB.fishLogs.filter(f=>f.date>=new Date(Date.now()-3*864e5).toISOString().slice(0,10));
+  const last3 = DB.fishLogs.filter(f=>f.date>=ksISO(new Date(Date.now()-3*864e5)));
   const dead3 = last3.reduce((s,f)=>s+(f.dead||0),0);
   if(dead3>=20) items.push(`🐟 نافق مرتفع آخر 3 أيام: <b>${fmt(dead3)} سمكة</b> — افحص جودة المياه`);
   const agg = tankAgg();
@@ -11451,7 +11455,7 @@ function getAlerts(){
       items.push(`🐟 <b>${ksNm(t.name)}</b> جاهز للبيع — متوسط الوزن ${fmt(a2.lastW)} جم (${fmt(tankCurrent(t,a2))} سمكة)`);
   });
   const feedStock = DB.inventory.filter(i=>i.cat==="أعلاف").reduce((s,i)=>s+i.qty,0);
-  const since14 = new Date(Date.now()-14*864e5).toISOString().slice(0,10);
+  const since14 = ksISO(new Date(Date.now()-14*864e5));
   const used14 = DB.fishLogs.filter(f=>f.date>=since14).reduce((s,f)=>s+(f.feed||0),0);
   if(feedStock>0 && used14>0){
     const fdays = feedStock/(used14/14);
@@ -11459,15 +11463,15 @@ function getAlerts(){
   }
   const supDebt = DB.purchases.reduce((s,p)=>s+pRemain(p),0);
   if(supDebt>0) items.push(`🚚 مستحقات موردين غير مسددة: <b>${fmtSR(supDebt)}</b>`);
-  const ord3 = new Date(Date.now()+3*864e5).toISOString().slice(0,10);
+  const ord3 = ksISO(new Date(Date.now()+3*864e5));
   DB.orders.filter(o=>o.status==="جديد"&&o.due<=ord3).forEach(o=>
     items.push(`🛒 طلب ${o.due<today()?"<b>متأخر</b>":"قريب"}: <b>${custName(o.customerId)}</b> — ${prodName(o.productId)} ${fmt(o.qty)} ${o.unit||"كجم"} (${o.due})`));
   DB.sprays.filter(s=>sprayEnd(s)>=today()).forEach(s=>
     items.push(`🧪 فترة أمان رش سارية في <b>${ksTxt(s.section)}</b> حتى ${sprayEnd(s)} (${s.name}) — لا تحصد قبلها`));
-  const con30 = new Date(Date.now()+30*864e5).toISOString().slice(0,10);
+  const con30 = ksISO(new Date(Date.now()+30*864e5));
   DB.contracts.filter(c=>c.end && c.end>=today() && c.end<=con30).forEach(c=>
     items.push(`📜 عقد <b>${empName2(c.empId)}</b> ينتهي في ${c.end} — جدد أو سوّي نهاية الخدمة`));
-  const soonD = new Date(Date.now()+7*864e5).toISOString().slice(0,10);
+  const soonD = ksISO(new Date(Date.now()+7*864e5));
   DB.equipment.forEach(eq=>{
     const next = eqNext(eq);
     if(next<=today()) items.push(`🔧 صيانة مستحقة: <b>${ksNm(eq.name)}</b> (${ksTxt(eq.section)}) — كانت في ${next}`);
@@ -11475,7 +11479,7 @@ function getAlerts(){
   });
   const lateA = DB.assigns.filter(a=>a.status==="معلقة" && a.due<today());
   if(lateA.length) items.push(`📌 مهام مسندة متأخرة: <b>${lateA.length}</b> — ${lateA.slice(0,3).map(a=>a.desc+" ("+empName2(a.empId)+")").join("، ")}`);
-  const exp30b = new Date(Date.now()+30*864e5).toISOString().slice(0,10);
+  const exp30b = ksISO(new Date(Date.now()+30*864e5));
   DB.inventory.filter(i=>i.exp).forEach(i=>{
     if(i.exp<today()) items.push(`⏰ <b>${ksNm(i.name)}</b> منتهي الصلاحية منذ ${i.exp} — لا تستخدمه`);
     else if(i.exp<=exp30b) items.push(`⏰ <b>${ksNm(i.name)}</b> تنتهي صلاحيته ${i.exp}`);
@@ -11531,7 +11535,7 @@ function getAlerts(){
   });
   // 💉 مواشي: جرعات تطعيم وولادات متوقّعة
   if(DB.livestock){
-    const _soon=new Date(Date.now()+14*864e5).toISOString().slice(0,10);
+    const _soon=ksISO(new Date(Date.now()+14*864e5));
     (DB.livestock.vaccines||[]).forEach(v=>{
       if(v.next && v.next<today()) items.push(`💉 <b>فات</b> موعد جرعة تطعيم (${v.name}) — كان ${v.next}`);
       else if(v.next && v.next<=_soon) items.push(`💉 جرعة تطعيم قادمة (${v.name}) للمواشي في ${v.next}`);
@@ -11914,7 +11918,7 @@ function copyOps(){
 function renderReady(){
   const t = today();
   const limit = new Date(); limit.setMonth(limit.getMonth()+6);
-  const limitStr = limit.toISOString().slice(0,10);
+  const limitStr = ksISO(limit);
   const active = DB.cycles.filter(c=>c.status==="نشطة" && c.harvestDate);
   const dayDiff = d => Math.round((new Date(d)-new Date(t))/864e5);
 
@@ -12186,13 +12190,13 @@ function printIncome(){
 /* ====== تقويم المواعيد ====== */
 function renderCalendar(){
   const t = today();
-  const horizon = new Date(Date.now()+60*864e5).toISOString().slice(0,10);
+  const horizon = ksISO(new Date(Date.now()+60*864e5));
   const events = [];
   DB.cycles.filter(c=>c.status==="نشطة"&&c.harvestDate&&c.harvestDate<=horizon).forEach(c=>
     events.push({date:c.harvestDate, type:"🌱 بداية محصول", desc:prodName(c.productId)+" — "+c.section}));
   const m = t.slice(0,7);
   const monthEnd = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0);
-  const monthEndStr = monthEnd.toISOString().slice(0,10);
+  const monthEndStr = ksISO(monthEnd);
   DB.employees.filter(em=>!DB.salaryPays.some(s=>s.empId===em.id&&s.month===m)).forEach(em=>
     events.push({date:monthEndStr, type:"💵 راتب مستحق", desc:em.name+" — "+fmtSR(em.salary)}));
   DB.orders.filter(o=>o.status==="جديد"&&o.due<=horizon).forEach(o=>
@@ -12973,12 +12977,12 @@ function renderCashFc(){
   /* «توقع التدفق النقدي (60 يوم)» كان عنواناً وشرحاً فوق جدول فارغ لا يملؤه أي كود */
   const el=document.getElementById("tblCashFc"); if(!el) return;
   const t=today();
-  const end=(function(){ const d=new Date(t+"T00:00:00"); d.setDate(d.getDate()+60); return d.toISOString().slice(0,10); })();
+  const end=(function(){ const d=new Date(t+"T00:00:00"); d.setDate(d.getDate()+60); return ksISO(d); })();
   const wk=[];
   for(let i=0;i<9;i++){
     const a=new Date(t+"T00:00:00"); a.setDate(a.getDate()+i*7);
     const b=new Date(t+"T00:00:00"); b.setDate(b.getDate()+i*7+6);
-    wk.push({f:a.toISOString().slice(0,10), t:b.toISOString().slice(0,10), in:0, out:0});
+    wk.push({f:ksISO(a), t:ksISO(b), in:0, out:0});
   }
   const put=(iso,amt,dir)=>{ const w=wk.find(x=>iso>=x.f&&iso<=x.t); if(w) w[dir]+=amt; };
   let unsched=0;
@@ -12998,7 +13002,7 @@ function renderCashFc(){
   if(sal>0){
     for(let k=0;k<3;k++){
       const d=new Date(t+"T00:00:00"); d.setMonth(d.getMonth()+k+1); d.setDate(0);
-      const iso=d.toISOString().slice(0,10);
+      const iso=ksISO(d);
       if(iso>=t&&iso<=end) put(iso,sal,"out");
     }
   }
@@ -15916,7 +15920,7 @@ function renderLivestock(){
   const hlMed=document.getElementById("lskHlMed");
   if(hlMed){ const cur2=hlMed.value; const meds2=(lv.medicines||[]).filter(m=>m.qty>0); hlMed.innerHTML=`<option value="">— بدون —</option>`+meds2.map(m=>`<option value="${m.id}">${m.name} (${fmt(m.qty)} ${m.unit||""})</option>`).join(""); if(cur2) hlMed.value=cur2; }
   const tblMd=document.getElementById("tblLvMeds"); if(tblMd){
-    const t0=today(); const exp30=new Date(Date.now()+30*864e5).toISOString().slice(0,10);
+    const t0=today(); const exp30=ksISO(new Date(Date.now()+30*864e5));
     const meds=lv.medicines||[];
     tblMd.innerHTML=`<tr><th>الدواء</th><th>الكمية</th><th>الصلاحية</th><th>الحالة</th><th>ملاحظات</th><th></th></tr>`
       +(meds.length?meds.map(m=>{
@@ -15957,7 +15961,7 @@ function renderLivestock(){
 
   // جدول التطعيمات
   const tblV=document.getElementById("tblLvVaccine"); if(tblV){
-    const logs=[...(lv.vaccines||[])].reverse(); const t0=today(); const soon=new Date(Date.now()+14*864e5).toISOString().slice(0,10);
+    const logs=[...(lv.vaccines||[])].reverse(); const t0=today(); const soon=ksISO(new Date(Date.now()+14*864e5));
     tblV.innerHTML=`<tr><th>التاريخ</th><th>الحيوان</th><th>الحظيرة</th><th>التطعيم</th><th>العدد</th><th>المنفّذ</th><th>الجرعة القادمة</th><th>ملاحظات</th><th></th></tr>`
       +(logs.length?logs.map(l=>{
         const due=l.next?(l.next<t0?`<span class="badge danger">فات ${l.next}</span>`:(l.next<=soon?`<span class="badge warn">${l.next}</span>`:l.next)):"—";
@@ -15966,7 +15970,7 @@ function renderLivestock(){
   }
   // جدول التلقيح والتكاثر
   const tblBr=document.getElementById("tblLvBreeding"); if(tblBr){
-    const logs=[...(lv.breeding||[])].reverse(); const soon=new Date(Date.now()+14*864e5).toISOString().slice(0,10);
+    const logs=[...(lv.breeding||[])].reverse(); const soon=ksISO(new Date(Date.now()+14*864e5));
     tblBr.innerHTML=`<tr><th>تاريخ التلقيح</th><th>الحيوان/الأم</th><th>الحظيرة</th><th>النوع</th><th>المرحلة</th><th>الولادة المتوقّعة</th><th>الحالة</th><th>ملاحظات</th><th></th></tr>`
       +(logs.length?logs.map(l=>{
         const active=l.status!=="ولدت"&&l.status!=="فشل";
@@ -16826,7 +16830,7 @@ function renderShiftWeek(){
   emps.forEach(emp=>{
     html+=`<tr><td style="font-weight:600">${ksNm(emp.name)}</td>`;
     days.forEach(day=>{
-      const ds=day.toISOString().slice(0,10);
+      const ds=ksISO(day);
       const sh=(DB.shifts||[]).filter(s=>s.empId===emp.id&&s.from<=ds&&s.to>=ds);
       html+=`<td style="text-align:center;font-size:.8rem">${sh.map(s=>`<div style="background:var(--green-light);border-radius:4px;padding:2px 4px;margin:1px;color:var(--green-dark)">${ksTxt(s.type)}</div>`).join("")||"—"}</td>`;
     });
@@ -17547,6 +17551,11 @@ function approveInvoice(id){
   if(!isOwner() && !(typeof canTab==="function" && canTab("invoices"))){
     toast("⚠️ اعتماد الفواتير يحتاج صلاحية التجارة — راجع صاحب المزرعة"); return; }
   if(!confirm('اعتماد الفاتورة وإصدارها نهائياً؟ بعدها لا تُعدَّل ولا تُحذف — تصحيحها بإشعار\nسيُسجَّل البيع تلقائياً في سجل المبيعات')) return;
+  /* 🧾 الفاتورة الضريبية (مشترٍ له رقم ضريبي) تمرّ على «الإجازة» عند الهيئة قبل تسليمها.
+     ناقصُ عنوان المشتري يعني رفضاً مؤكداً — والتنبيه هنا قبل استهلاك رقم الفاتورة. */
+  { const g=zkBuyerGaps(r);
+    if(g.length && !confirm("⚠️ عنوان المشتري ناقص، والهيئة ترفض الفاتورة الضريبية بدونه:\n\n• "
+        +g.join("\n• ")+"\n\nأكملها من شاشة العملاء ثم اعتمد.\nمتابعة الاعتماد رغم ذلك؟")) return; }
   if(!r.no) r.no=invNextNo();
   r.status=r.payState||'sent'; r.approvedAt=new Date().toISOString();
   try{ zkStamp(r); }catch(e){}   /* 🧾 وسم زاتكا: UUID + ICV + PIH — مرة واحدة ولا يُعاد */
@@ -18348,6 +18357,13 @@ async function zkStamp(inv){
   if(!inv.zkIcv){ z.icv=(+z.icv||0)+1; inv.zkIcv=z.icv; }
   inv.zkPih = z.pih || ZK_PIH0;                     /* تجزئة السابقة */
   inv.zkSimplified = zkIsSimplified(inv);
+  /* لقطة عنوان المشتري وقت الاعتماد — الفاتورة الموقّعة لا يجوز أن تتغيّر
+     لاحقاً بتعديل سجل العميل. */
+  if(!inv.zkBuyer){
+    const c=(DB.customers||[]).find(x=>x.id===inv.custId);
+    if(c) inv.zkBuyer={crn:c.unifiedNo||"", street:c.street||"", bldg:c.bldg||"", addl:c.addl||"",
+                       city:c.city||"", region:c.region||"", zip:c.zip||"", country:c.country||""};
+  }
   const xml = zkBuildXml(inv);
   inv.zkHash = await zkSha256B64(zkCanon(xml));     /* سلسلة تحقّق داخلية — ليست تجزئة زاتكا الرسمية */
   inv.zkCanonV = ZK_CANON_VERIFIED;
@@ -18378,7 +18394,63 @@ function zkChainCheck(){
 
 /* ── بناء XML كامل بصيغة UBL 2.1 ── */
 function zkEsc(v){ return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+/* رمز الدولة بمعيار ISO — الهيئة تفحصه، والاسم المكتوب لا يكفي.
+   BR-KSA-67 يشترط رمزاً بريدياً من خمسة أرقام حين تكون الدولة SA. */
+const ZK_CC={"السعودية":"SA","المملكة العربية السعودية":"SA","saudi arabia":"SA","ksa":"SA",
+             "الامارات":"AE","الإمارات":"AE","uae":"AE","الكويت":"KW","kuwait":"KW",
+             "البحرين":"BH","bahrain":"BH","قطر":"QA","qatar":"QA","عمان":"OM","عُمان":"OM","oman":"OM",
+             "مصر":"EG","egypt":"EG","الاردن":"JO","الأردن":"JO","jordan":"JO","اليمن":"YE","yemen":"YE"};
+function zkCountryCode(v){
+  const s=String(v||"").trim();
+  if(!s) return "SA";
+  if(/^[A-Za-z]{2}$/.test(s)) return s.toUpperCase();
+  return ZK_CC[s.toLowerCase()] || ZK_CC[s] || "SA";
+}
+/* الرمز البريدي السعودي خمسة أرقام. نُرسل ما هو صالح فقط — لا نخترع رقماً. */
+function zkZip(v, cc){
+  const d=String(v||"").replace(/[^\d]/g,"");
+  if(cc==="SA") return /^\d{5}$/.test(d) ? d : "";
+  return d || String(v||"").trim();
+}
+/* ما ينقص عنوان المشتري في فاتورة ضريبية — BR-KSA-10 و BR-KSA-67.
+   القاعدتان لا تنطبقان على الفاتورة المبسّطة، فنُرجع قائمة فارغة لها. */
+function zkBuyerGaps(inv){
+  if(!inv || zkIsSimplified(inv)) return [];
+  const c=(DB.customers||[]).find(x=>x.id===inv.custId)||{};
+  const b=(inv.zkBuyer)||{};
+  const v=(k,alt)=> String((b[k]!==undefined&&b[k]!=="") ? b[k] : (c[alt||k]||"")).trim();
+  const cc=zkCountryCode(b.country||c.country);
+  const out=[];
+  if(!v("street")) out.push("الشارع");
+  if(!v("city"))   out.push("المدينة");
+  if(!zkZip(v("zip"),cc)) out.push(cc==="SA" ? "الرمز البريدي (خمسة أرقام)" : "الرمز البريدي");
+  /* الهيئة تشترط المنطقة والحي أيضاً — ورسالة الخطأ الرسمية لا تذكرهما،
+     فحرصنا على تسميتهما هنا حتى لا يبحث المالك عن سبب رفض مبهم. */
+  if(!v("dist") && !v("region")) out.push("المنطقة أو الحي");
+  if(!cc) out.push("الدولة");
+  return out;
+}
+
+/* وسيلة الدفع — BR-KSA-16 يقبل هذي القيم فقط.
+   ١ = غير محدّدة · ١٠ = نقداً · ٣٠ = حوالة · ٤٢ = إيداع بنكي · ٤٨ = بطاقة */
+const ZK_PAY=["1","10","30","42","48"];
+function zkPayCode(inv){
+  const v=String((inv&&inv.payMeans)||"").trim();
+  return ZK_PAY.includes(v) ? v : "1";
+}
 function zkParty(tag, o){
+  const cc=zkCountryCode(o.cc||o.country);
+  /* المشتري النقدي في الفاتورة المبسّطة بلا عنوان أصلاً. وإخراج عنوان فارغ برمز دولة SA
+     يُفعّل BR-KSA-67 (رمز بريدي من خمسة أرقام) على مشترٍ لا وجود له — فنُسقط كتلة العنوان
+     كاملة حين لا يوجد ما يُكتب فيها، ونُبقي اسمه وحده (BT-44). */
+  const hasAddr = !!(String(o.street||"").trim() || String(o.city||"").trim() || zkZip(o.zip,cc));
+  if(!hasAddr && !String(o.vat||"").trim()){
+    return `  <cac:${tag}>
+    <cac:Party>
+      <cac:PartyLegalEntity><cbc:RegistrationName>${zkEsc(o.name||"")}</cbc:RegistrationName></cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:${tag}>`;
+  }
   return `  <cac:${tag}>
     <cac:Party>
       <cac:PartyIdentification><cbc:ID schemeID="CRN">${zkEsc(o.crn||"")}</cbc:ID></cac:PartyIdentification>
@@ -18386,10 +18458,11 @@ function zkParty(tag, o){
         <cbc:StreetName>${zkEsc(o.street||"")}</cbc:StreetName>
         <cbc:BuildingNumber>${zkEsc(o.bldg||"")}</cbc:BuildingNumber>
         <cbc:PlotIdentification>${zkEsc(o.addl||"")}</cbc:PlotIdentification>
-        <cbc:CitySubdivisionName>${zkEsc(o.region||"")}</cbc:CitySubdivisionName>
+        <cbc:CitySubdivisionName>${zkEsc(o.dist||o.region||"")}</cbc:CitySubdivisionName>
         <cbc:CityName>${zkEsc(o.city||"")}</cbc:CityName>
-        <cbc:PostalZone>${zkEsc(o.zip||"")}</cbc:PostalZone>
-        <cac:Country><cbc:IdentificationCode>SA</cbc:IdentificationCode></cac:Country>
+        <cbc:PostalZone>${zkEsc(zkZip(o.zip,cc))}</cbc:PostalZone>
+        <cbc:CountrySubentity>${zkEsc(o.region||o.dist||"")}</cbc:CountrySubentity>
+        <cac:Country><cbc:IdentificationCode>${zkEsc(cc)}</cbc:IdentificationCode></cac:Country>
       </cac:PostalAddress>
       <cac:PartyTaxScheme>
         <cbc:CompanyID>${zkEsc(o.vat||"")}</cbc:CompanyID>
@@ -18406,8 +18479,16 @@ function zkBuildXml(inv){
   const tot=net+tax;
   const rate=(inv.items||[]).length?(+(inv.items[0].tax)||0):0;
   const supplier={name:st.companyName,vat:st.taxNo,crn:st.unifiedNo,street:st.coStreet,bldg:st.coBldg,
-                  addl:st.coAddl,city:st.coCity,region:st.coRegion,zip:st.coZip};
-  const buyer={name:inv.custName,vat:inv.custVat,crn:"",street:"",bldg:"",addl:"",city:"",region:"",zip:""};
+                  addl:st.coAddl,city:st.coCity,region:st.coRegion,zip:st.coZip,cc:st.coCountry};
+  /* عنوان المشتري: اللقطة المحفوظة وقت الاعتماد أولاً — لأن الفاتورة الموقّعة لا تتغيّر
+     بتعديل سجل العميل لاحقاً. وإن غابت اللقطة (فواتير قديمة) نقرأ السجل الحيّ. */
+  const cRec=(DB.customers||[]).find(c=>c.id===inv.custId)||{};
+  const b=inv.zkBuyer||{};
+  const pick=(k,alt)=> (b[k]!==undefined&&b[k]!=="") ? b[k] : (cRec[alt||k]||"");
+  const buyer={name:inv.custName, vat:inv.custVat, crn:pick("crn","unifiedNo"),
+               street:pick("street"), bldg:pick("bldg"), addl:pick("addl"),
+               city:pick("city"), region:pick("region"), zip:pick("zip"),
+               cc:zkCountryCode(b.country||cRec.country)};
   const lines=(inv.items||[]).map((i,n)=>{
     const ln=invLineNet(i), lt=invLineTax(i), r=(+i.tax||0);
     return `  <cac:InvoiceLine>
@@ -18423,7 +18504,7 @@ function zkBuildXml(inv){
   </cac:InvoiceLine>`;
   }).join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>
-<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2">
   <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
   <cbc:ID>${zkEsc(inv.no||"")}</cbc:ID>
   <cbc:UUID>${zkEsc(inv.zkUuid||"")}</cbc:UUID>
@@ -18437,6 +18518,15 @@ function zkBuildXml(inv){
     <cac:Attachment><cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">${zkEsc(inv.zkPih||ZK_PIH0)}</cbc:EmbeddedDocumentBinaryObject></cac:Attachment></cac:AdditionalDocumentReference>
 ${zkParty("AccountingSupplierParty",supplier)}
 ${zkParty("AccountingCustomerParty",buyer)}
+  <cac:Delivery>
+    <cbc:ActualDeliveryDate>${zkEsc(inv.supplyDate||inv.date||"")}</cbc:ActualDeliveryDate>
+  </cac:Delivery>
+  <cac:PaymentMeans>
+    <cbc:PaymentMeansCode>${zkEsc(zkPayCode(inv))}</cbc:PaymentMeansCode>
+  </cac:PaymentMeans>
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="SAR">${tax.toFixed(2)}</cbc:TaxAmount>
+  </cac:TaxTotal>
   <cac:TaxTotal>
     <cbc:TaxAmount currencyID="SAR">${tax.toFixed(2)}</cbc:TaxAmount>
     <cac:TaxSubtotal>

@@ -4386,7 +4386,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.40-B";
+const KS_VER="v12.41-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -6373,8 +6373,12 @@ function faDepInfo(a, atISO){
   if(!(cost>salv) || !(life>0)) return dep0;
   const st=String(a.date||"");
   if(!/^\d{4}-\d{2}-\d{2}$/.test(st) || !/^\d{4}-\d{2}-\d{2}$/.test(at)) return dep0;   /* تاريخ غير صالح ⇒ صفر لا NaN */
+  /* v12.41-A — الأشهر **المكتملة بعد شهر الشراء**: شهر الشراء لا يُهلَك، والشهر الجاري لا يُحسب إلا في آخر يوم منه.
+     (كانت تطابق يوم الشهر بيوم الشراء، فأصل مؤرَّخ 31 يُهلَك صفراً في أشهر الثلاثين يوماً وضِعفاً في التالية —
+     المجموع صحيح لكن قائمة الدخل الشهرية والربعية مشوّهة. الآن القسط الثابت ثابت فعلاً: نفس المبلغ كل شهر.) */
   let mo=(+at.slice(0,4)-+st.slice(0,4))*12 + (+at.slice(5,7)-+st.slice(5,7));
-  if(+at.slice(8,10) < +st.slice(8,10)) mo-=1;
+  const __lastD=new Date(+at.slice(0,4), +at.slice(5,7), 0).getDate();
+  if(+at.slice(8,10) < __lastD) mo-=1;
   if(mo<0) mo=0;
   if(mo>life*12) mo=life*12;
   const annDep=(cost-salv)/life;

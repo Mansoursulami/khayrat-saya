@@ -1367,8 +1367,10 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <div><label>العلف المستهلك (كجم)</label><input type="number" id="fsFeed" min="0" step="0.01"></div>
         <div><label>نوع العلف</label><select id="fsFeedType" onchange="updateFeedInvVisibility()"><option value="">—</option><option>بودرة</option><option value="1ملي">1 مم</option><option value="2ملي">2 مم</option><option value="3ملي">3 مم</option><option value="4ملي">4 مم</option></select></div>
         <div><label>عدد النافق</label><input type="number" id="fsDead" min="0" step="1"></div>
+        <div><label>سبب النفوق</label><select id="fsDeadCause"><option value="">—</option><option>جودة مياه</option><option>مرض</option><option>فرز/نقل</option><option>افتراس</option><option>مجهول</option></select></div>
         <div><label>🐟 عدد المباع / المحصود</label><input type="number" id="fsSold" min="0" step="1" placeholder="0" title="يُنشئ بيعاً بانتظار التسعير — يسعّره المسؤول لاحقاً">
           <span class="muted" style="font-size:.68rem">يُسجَّل بيعاً «بانتظار التسعير» يسعّره المسؤول</span></div>
+        <div><label>متوسط وزن المباع (جم)</label><input type="number" id="fsSoldW" min="0" step="1" placeholder="وزن عينة المباع" title="حصاد جزئي: الكبار أولاً — يُحسب منه كيلو البيع ومتوسط المتبقي"></div>
         <div><label>متوسط وزن السمكة (جم)</label><input type="number" id="fsAvgW" min="0" step="1"></div>
       </div>
       <div class="row">
@@ -1398,7 +1400,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
 
   <div class="card fpI" data-fp="water" id="cardWater" style="margin-top:12px">
     <h3>💧 قياسات مياه الأحواض</h3>
-    <p class="muted" style="margin-bottom:10px">المعدلات المناسبة للبلطي: حرارة 25–32°م، أكسجين أعلى من 4 ملجم/لتر، pH بين 6.5–8.5، أمونيا كلية أقل من 0.5 ملجم/لتر، نتريت أقل من 0.5 ملجم/لتر — أي قياس خارج المعدل يظهر بالأحمر</p>
+    <p class="muted" style="margin-bottom:10px">المعدلات المناسبة للبلطي: حرارة 25–32°م، أكسجين أعلى من 4 ملجم/لتر، pH بين 6.5–8.5، أمونيا كلية أقل من 0.5 ملجم/لتر، نتريت أقل من 0.5 ملجم/لتر، نترات أقل من 100، قلوية 50–300 — أي قياس خارج المعدل يظهر بالأحمر. سجّل قياس <b>الفجر</b> يومياً: الأكسجين عند الفجر هو الأخطر</p>
     <form onsubmit="addWater(event)">
       <div class="row">
         <div><label>التاريخ *</label><input type="date" id="wtDate" required></div>
@@ -1408,6 +1410,9 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <div><label>pH</label><input type="number" id="wtPh" step="0.1"></div>
         <div><label>الأمونيا الكلية (ملجم/لتر)</label><input type="number" id="wtAmm" step="0.01"></div>
         <div><label>النتريت (ملجم/لتر)</label><input type="number" id="wtNo2" step="0.01"></div>
+        <div><label>النترات (ملجم/لتر)</label><input type="number" id="wtNo3" step="1"></div>
+        <div><label>القلوية (ملجم/لتر كربونات)</label><input type="number" id="wtAlk" step="1"></div>
+        <div><label>وقت القياس</label><select id="wtSlot"><option value="">—</option><option>فجر</option><option>صباح</option><option>ظهر</option><option>مساء</option></select></div>
       </div>
       <div class="row">
         <input id="wtEmp" type="hidden">
@@ -1422,6 +1427,25 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
   
 
 
+
+  <div class="card fpI" data-fp="tanks" id="cardTreat" style="margin-top:12px">
+    <h3>💊 سجل علاج الأسماك وفترة السحب</h3>
+    <p class="muted" style="margin-bottom:10px">أي حوض تحت فترة سحب لا يُباع منه حتى انقضائها — الحارس يعمل على البيع من اليومية ومن الفاتورة</p>
+    <form onsubmit="addFishTreat(event)">
+      <div class="row">
+        <div><label>التاريخ *</label><input type="date" id="ftDate" required></div>
+        <div><label>الحوض *</label><select id="ftTank" required></select></div>
+        <div><label>الدواء / المادة *</label><input id="ftDrug" required placeholder="مثال: أوكسي تتراسيكلين"></div>
+        <div><label>الجرعة</label><input id="ftDose" placeholder="مثال: 80 ملجم/كجم علف × 7 أيام"></div>
+        <div><label>فترة السحب (يوم) *</label><input type="number" id="ftWd" min="0" step="1" required value="21"></div>
+        <input id="ftEmp" type="hidden">
+        <div><label>ملاحظات</label><input id="ftNotes"></div>
+      </div>
+      <button class="btn" id="ftBtn">حفظ العلاج</button>
+    </form>
+  </div>
+  <h2 class="fpI" data-fp="tanks">سجل العلاج <button class="btn small secondary no-print" onclick="csvFishTreat()">⬇️ CSV</button></h2>
+  <div class="card table-wrap fpI" data-fp="tanks"><table id="tblFishTreat"></table></div>
 
   <h2 class="fpI" data-fp="tanks">📋 سجل إدارة الأحواض (عدد السمك)</h2>
   <div class="card table-wrap fpI" data-fp="tanks"><table id="tblTankMgr"></table></div>
@@ -1460,6 +1484,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     </div>
     <div class="filters" style="margin-top:12px;margin-bottom:0">
       <div style="max-width:220px"><label>وزن البيع المستهدف (جم/سمكة)</label><input type="number" id="sellW" min="50" step="10" onchange="saveSellW()"></div>
+      <div style="max-width:200px"><label>الكثافة القصوى (كجم/م³)</label><input type="number" id="maxDens" min="1" step="1" onchange="DB.settings.fishMaxDensity=+this.value||40;save();renderFish();toast('✅ حُفظت الكثافة القصوى');"></div>
       <div style="max-width:230px"><label>🔀 دورة الفرز (يوم — 0 لإيقاف التنبيه)</label><input type="number" id="trCycleDays" min="0" step="1" onchange="DB.settings.gradeDays=+this.value||0;save();toast('✅ حُفظت دورة الفرز');"></div>
     </div>
     <p class="muted" id="fishStatNote" style="margin-top:8px"></p>
@@ -1478,6 +1503,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <div><label>تكلفة شراء الدفعة (⃁ — فارغة للتفريخ الداخلي)</label><input type="number" id="tnCost" min="0" step="0.01"></div>
         <div id="tnCountWrap"><label>عدد السمك عند الإنزال</label><input type="number" id="tnCount" min="0" step="1"></div>
         <div><label>متوسط وزن السمكة (جم)</label><input type="number" id="tnAvgW" min="0" step="1"></div>
+        <div><label>حجم الحوض (م³)</label><input type="number" id="tnVol" min="0" step="0.1" placeholder="للكثافة"></div>
         <div><label>عدد الوجبات اليومية *</label><input type="number" id="tnMeals" min="1" max="8" step="1" value="3" required></div>
         <div><label>تاريخ الإنزال</label><input type="date" id="tnDate"></div>
         <div><label>ملاحظات</label><input id="tnNotes"></div>
@@ -1497,7 +1523,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
 
   <div class="card" style="margin-top:12px">
     <h3 style="margin-bottom:4px">⏳ يجهز قريباً — التوقّع الشهري (12 شهر)</h3>
-    <p class="muted" style="margin-bottom:10px;font-size:.8rem">تقدير عدد السمك اللي يوصل وزن البيع في كل شهر خلال السنة القادمة، حسب معدل النمو بين آخر قياسي وزن لكل حوض — سجّل الوزن دورياً ليكون التقدير دقيقاً.</p>
+    <p class="muted" style="margin-bottom:10px;font-size:.8rem">تقدير عدد السمك اللي يوصل وزن البيع في كل شهر خلال السنة القادمة، حسب معدل النمو المحسوب من كل قياسات وزن الدفعة (انحدار خطي) — سجّل الوزن دورياً ليكون التقدير دقيقاً.</p>
     <div id="fishMonthlyGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px"></div>
   </div>
 
@@ -1505,6 +1531,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
   <div class="card table-wrap">
     <table id="tblFeedPlan"></table>
     <p class="muted" style="margin-top:8px" id="feedSuffLine"></p>
+    <table id="tblFeedPellet" style="margin-top:8px"></table>
     <p class="muted" id="kgCostLine"></p>
   </div>
 
@@ -4270,6 +4297,8 @@ Object.assign(I18N.en,{"— عميل محذوف —":"— deleted customer —",
 Object.assign(I18N.ur,{"— عميل محذوف —":"— حذف شدہ گاہک —","— موظف محذوف —":"— حذف شدہ ملازم —","المبيعات الإجمالية":"مجموعی فروخت"});
 /* i18n v12.12 — نصوص جولة الأرقام والفاعلية والقرارات الثلاثة */
 Object.assign(I18N.en,{"🏠 بدل السكن (⃁)":"🏠 Housing allowance (⃁)","🚗 بدل المواصلات (⃁)":"🚗 Transport allowance (⃁)","بدلات أخرى (⃁)":"Other allowances (⃁)","إجمالي البدلات الشهرية (⃁)":"Total monthly allowances (⃁)","السكن والمواصلات يدخلان في مكافأة نهاية الخدمة — «أخرى» لا تدخل":"Housing & transport count toward end-of-service; \"Other\" does not","خاضعة لضريبة القيمة المضافة":"Subject to VAT","نعم — فاتورة ضريبية من مورّد مسجَّل":"Yes — tax invoice from a registered supplier","لا — رسوم حكومية / تأمينات / مورّد غير مسجَّل":"No — government fees / insurance / unregistered supplier","🔍 مراجعة الضريبة الداخلة على المصروفات":"🔍 Input VAT review on expenses","↩️ مؤشر المردودات":"↩️ Returns indicator","عدد المصروفات":"Expenses count","الضريبة الداخلة المفترضة":"Assumed input VAT","التصنيف بالجملة":"Bulk classify","🚫 غير خاضعة":"🚫 Not subject","✅ خاضعة":"✅ Subject","✅ كلها خاضعة":"✅ All subject","مصروفات غير خاضعة (رسوم/تأمينات/مورّد غير مسجَّل)":"Non-taxable expenses (fees/insurance/unregistered supplier)","غير مستحق":"Not due","1–30 يوم":"1–30 days","31–60 يوم":"31–60 days","61–90 يوم":"61–90 days","أكثر من 90":"Over 90","الأسبوع":"Week","متوقع وارد":"Expected in","متوقع صادر":"Expected out","الرصيد المتوقع":"Projected balance","الرصيد الحالي":"Current balance","النقدية (صندوق + بنك)":"Cash (cash + bank)","عدد المبيعات":"Sales count","الدورات":"Cycles","الإيراد (صافي الضريبة)":"Revenue (net of VAT)","متوسط السعر":"Avg. price","متوسط الكمية للبيعة":"Avg. qty per sale","التغيّر":"Change","جديد":"New","المبيعات الإجمالية":"Gross sales","المردودات":"Returns","نسبة المردودات":"Returns rate","صافي المبيعات":"Net sales","النسبة":"Rate","رصيد افتتاحي":"Opening balance","قيمة المخزون بعده":"Stock value after","قيمة الفروقات":"Variance value","السبب":"Reason","الاسم المختصر (للتقارير)":"Short name (for reports)","مردود مبيعات":"Sales return","بيع مباشر":"Direct sale","— منتج محذوف —":"— deleted product —","— مورد محذوف —":"— deleted supplier —","— صنف محذوف —":"— deleted item —","— بلا مورد —":"— no supplier —","— موظف غير موجود —":"— employee not found —"});
+Object.assign(I18N.en,{"حجم الحوض (م³)":"Tank volume (m³)","الكثافة القصوى (كجم/م³)":"Max density (kg/m³)","الكثافة كجم/م³":"Density kg/m³","سبب النفوق":"Mortality cause","جودة مياه":"Water quality","مرض":"Disease","فرز/نقل":"Grading/transfer","افتراس":"Predation","مجهول":"Unknown","متوسط وزن المباع (جم)":"Avg. weight of sold (g)","النترات (ملجم/لتر)":"Nitrate (mg/L)","القلوية (ملجم/لتر كربونات)":"Alkalinity (mg/L CaCO₃)","وقت القياس":"Sampling time","فجر":"Dawn","صباح":"Morning","ظهر":"Noon","مساء":"Evening","نترات":"Nitrate","قلوية":"Alkalinity","الوقت":"Time","💊 سجل علاج الأسماك وفترة السحب":"💊 Fish treatment & withdrawal log","الدواء / المادة *":"Drug / substance *","الجرعة":"Dose","فترة السحب (يوم) *":"Withdrawal (days) *","حفظ العلاج":"Save treatment","سجل العلاج":"Treatment log","الدواء":"Drug","فترة السحب":"Withdrawal","البيع":"Sale","الحبيبة":"Pellet","أحواضها":"Tanks","المطلوب يومياً":"Daily need","الرصيد بالمخزون":"Stock","الاستهلاك":"Usage","يكفي":"Lasts","تقرير الدفعة الحالية":"Current batch report","إقفال الدفعة":"Close batch","بودرة":"Powder"});
+Object.assign(I18N.ur,{"حجم الحوض (م³)":"تالاب کا حجم (م³)","الكثافة القصوى (كجم/م³)":"زیادہ سے زیادہ کثافت (کلو/م³)","الكثافة كجم/م³":"کثافت کلو/م³","سبب النفوق":"اموات کی وجہ","جودة مياه":"پانی کا معیار","مرض":"بیماری","فرز/نقل":"چھانٹی/منتقلی","افتراس":"شکار","مجهول":"نامعلوم","متوسط وزن المباع (جم)":"فروخت شدہ کا اوسط وزن (گرام)","النترات (ملجم/لتر)":"نائٹریٹ (ملی گرام/لیٹر)","القلوية (ملجم/لتر كربونات)":"الکلینیٹی (ملی گرام/لیٹر)","وقت القياس":"پیمائش کا وقت","فجر":"فجر","صباح":"صبح","ظهر":"دوپہر","مساء":"شام","نترات":"نائٹریٹ","قلوية":"الکلینیٹی","الوقت":"وقت","💊 سجل علاج الأسماك وفترة السحب":"💊 مچھلی کے علاج اور واپسی مدت کا ریکارڈ","الدواء / المادة *":"دوا / مادہ *","الجرعة":"خوراک","فترة السحب (يوم) *":"واپسی مدت (دن) *","حفظ العلاج":"علاج محفوظ کریں","سجل العلاج":"علاج کا ریکارڈ","الدواء":"دوا","فترة السحب":"واپسی مدت","البيع":"فروخت","الحبيبة":"دانہ","أحواضها":"تالاب","المطلوب يومياً":"روزانہ ضرورت","الرصيد بالمخزون":"اسٹاک","الاستهلاك":"استعمال","يكفي":"کافی","تقرير الدفعة الحالية":"موجودہ بیچ رپورٹ","إقفال الدفعة":"بیچ بند کریں","بودرة":"پاؤڈر"});
 Object.assign(I18N.en,{"بيض ويرقات":"Eggs & larvae","زريعة":"Fry","إصبعيات":"Fingerlings","تسمين":"Grow-out","أمهات":"Broodstock","مرحلة السمك *":"Fish stage *","الأمونيا الكلية (ملجم/لتر)":"Total ammonia (mg/L)","النتريت (ملجم/لتر)":"Nitrite (mg/L)","نتريت":"Nitrite","النفوق / البقاء":"Mortality / survival","إقفال الدفعة":"Close batch","إنزال دفعة جديدة":"Restock","🔄 حفظ الإنزال الجديد":"🔄 Save new stocking","🧼 مقفل":"🧼 Closed","تفريخة جديدة":"New hatch","ترقية المرحلة":"Promote stage","1 مم":"1 mm","2 مم":"2 mm","3 مم":"3 mm","4 مم":"4 mm","المعدلات المناسبة للبلطي: حرارة 25–32°م، أكسجين أعلى من 4 ملجم/لتر، pH بين 6.5–8.5، أمونيا كلية أقل من 0.5 ملجم/لتر، نتريت أقل من 0.5 ملجم/لتر — أي قياس خارج المعدل يظهر بالأحمر":"Tilapia ranges: temperature 25–32°C, oxygen above 4 mg/L, pH 6.5–8.5, total ammonia below 0.5 mg/L, nitrite below 0.5 mg/L — any reading outside the range shows in red","تقدير عدد السمك اللي يوصل وزن البيع في كل شهر خلال السنة القادمة، حسب معدل النمو بين آخر قياسي وزن لكل حوض — سجّل الوزن دورياً ليكون التقدير دقيقاً.":"Estimated fish reaching sale weight each month over the coming year, from the growth rate between the last two weight samples per tank — record weights regularly for accuracy."});
 Object.assign(I18N.ur,{"بيض ويرقات":"انڈے اور لاروا","زريعة":"فرائی","إصبعيات":"فنگرلنگ","تسمين":"پروار","أمهات":"بروڈ اسٹاک","مرحلة السمك *":"مچھلی کا مرحلہ *","الأمونيا الكلية (ملجم/لتر)":"کل امونیا (ملی گرام/لیٹر)","النتريت (ملجم/لتر)":"نائٹرائٹ (ملی گرام/لیٹر)","نتريت":"نائٹرائٹ","النفوق / البقاء":"اموات / بقا","إقفال الدفعة":"بیچ بند کریں","إنزال دفعة جديدة":"نیا اسٹاک","🔄 حفظ الإنزال الجديد":"🔄 نیا اسٹاک محفوظ کریں","🧼 مقفل":"🧼 بند","تفريخة جديدة":"نئی ہیچ","ترقية المرحلة":"مرحلہ بڑھائیں","1 مم":"1 ملی میٹر","2 مم":"2 ملی میٹر","3 مم":"3 ملی میٹر","4 مم":"4 ملی میٹر","المعدلات المناسبة للبلطي: حرارة 25–32°م، أكسجين أعلى من 4 ملجم/لتر، pH بين 6.5–8.5، أمونيا كلية أقل من 0.5 ملجم/لتر، نتريت أقل من 0.5 ملجم/لتر — أي قياس خارج المعدل يظهر بالأحمر":"تلاپیا کی حدود: درجہ حرارت 25–32°C، آکسیجن 4 ملی گرام/لیٹر سے زیادہ، pH 6.5–8.5، کل امونیا 0.5 ملی گرام/لیٹر سے کم، نائٹرائٹ 0.5 ملی گرام/لیٹر سے کم — حد سے باہر کوئی بھی پیمائش سرخ دکھائی دیتی ہے","تقدير عدد السمك اللي يوصل وزن البيع في كل شهر خلال السنة القادمة، حسب معدل النمو بين آخر قياسي وزن لكل حوض — سجّل الوزن دورياً ليكون التقدير دقيقاً.":"آنے والے سال میں ہر ماہ فروخت کے وزن تک پہنچنے والی مچھلیوں کا تخمینہ، ہر تالاب کے آخری دو وزن ناپوں کے درمیان شرحِ نمو سے — درستگی کے لیے وزن باقاعدگی سے درج کریں۔"});
 Object.assign(I18N.ur,{"🏠 بدل السكن (⃁)":"🏠 رہائشی الاؤنس (⃁)","🚗 بدل المواصلات (⃁)":"🚗 ٹرانسپورٹ الاؤنس (⃁)","بدلات أخرى (⃁)":"دیگر الاؤنسز (⃁)","إجمالي البدلات الشهرية (⃁)":"کل ماہانہ الاؤنسز (⃁)","السكن والمواصلات يدخلان في مكافأة نهاية الخدمة — «أخرى» لا تدخل":"رہائش اور ٹرانسپورٹ اختتامِ خدمت میں شامل — «دیگر» شامل نہیں","خاضعة لضريبة القيمة المضافة":"ویٹ کے تابع","نعم — فاتورة ضريبية من مورّد مسجَّل":"ہاں — رجسٹرڈ سپلائر کا ٹیکس انوائس","لا — رسوم حكومية / تأمينات / مورّد غير مسجَّل":"نہیں — سرکاری فیس / انشورنس / غیر رجسٹرڈ سپلائر","🔍 مراجعة الضريبة الداخلة على المصروفات":"🔍 اخراجات پر ان پٹ ویٹ کا جائزہ","↩️ مؤشر المردودات":"↩️ واپسی کا اشاریہ","عدد المصروفات":"اخراجات کی تعداد","الضريبة الداخلة المفترضة":"فرض کردہ ان پٹ ویٹ","التصنيف بالجملة":"اجتماعی درجہ بندی","🚫 غير خاضعة":"🚫 تابع نہیں","✅ خاضعة":"✅ تابع","✅ كلها خاضعة":"✅ سب تابع","مصروفات غير خاضعة (رسوم/تأمينات/مورّد غير مسجَّل)":"غیر تابع اخراجات (فیس/انشورنس/غیر رجسٹرڈ سپلائر)","غير مستحق":"واجب الادا نہیں","1–30 يوم":"1–30 دن","31–60 يوم":"31–60 دن","61–90 يوم":"61–90 دن","أكثر من 90":"90 سے زائد","الأسبوع":"ہفتہ","متوقع وارد":"متوقع آمد","متوقع صادر":"متوقع اخراج","الرصيد المتوقع":"متوقع بیلنس","الرصيد الحالي":"موجودہ بیلنس","النقدية (صندوق + بنك)":"نقدی (کیش + بینک)","عدد المبيعات":"فروخت کی تعداد","الدورات":"سائیکلز","الإيراد (صافي الضريبة)":"آمدنی (ویٹ کے بغیر)","متوسط السعر":"اوسط قیمت","متوسط الكمية للبيعة":"فی فروخت اوسط مقدار","التغيّر":"تبدیلی","جديد":"نیا","المبيعات الإجمالية":"مجموعی فروخت","المردودات":"واپسیاں","نسبة المردودات":"واپسی کی شرح","صافي المبيعات":"خالص فروخت","النسبة":"شرح","رصيد افتتاحي":"ابتدائی بیلنس","قيمة المخزون بعده":"بعد از اسٹاک قیمت","قيمة الفروقات":"فرق کی قیمت","السبب":"وجہ","الاسم المختصر (للتقارير)":"مختصر نام (رپورٹس کے لیے)","مردود مبيعات":"فروخت واپسی","بيع مباشر":"براہِ راست فروخت","— منتج محذوف —":"— حذف شدہ پروڈکٹ —","— مورد محذوف —":"— حذف شدہ سپلائر —","— صنف محذوف —":"— حذف شدہ آئٹم —","— بلا مورد —":"— سپلائر نہیں —","— موظف غير موجود —":"— ملازم موجود نہیں —"});
@@ -4384,7 +4413,7 @@ const DEFAULT_PRODUCTS = [
   ["شمام","فواكه",6],["بطيخ","فواكه",3],["تين","فواكه",20],["رمان","فواكه",12],
   ["سمك بلطي","أسماك",18]
 ];
-const WLIM = {temp:[25,32], o2:[4,99], ph:[6.5,8.5], amm:[0,0.5], no2:[0,0.5]};   /* الأمونيا الكلية والنتريت بالملجم/لتر */
+const WLIM = {temp:[25,32], o2:[4,99], ph:[6.5,8.5], amm:[0,0.5], no2:[0,0.5], no3:[0,100], alk:[50,300]};   /* الأمونيا الكلية والنتريت بالملجم/لتر */
 /* 🐟 v12.42-A — قاموس واحد لمرحلة الحوض (كان قاموسان: النموذج «التفريخ/الزريعة/التحضين/التسمين»
    وسلّم الترقية «بيض سمك/زريعة سمك/إصبعيات/سمك تربية» فلا يعرف أحدهما الآخر). FISH_STAGES سلّم الترقية
    بالترتيب، و«أمهات» خارج السلّم. fishStage() تقرأ أي قيمة قديمة وترجع القيمة الموحّدة — فالكود كله
@@ -4400,11 +4429,41 @@ function fishStage(v){ v=String(v==null?"":v).trim(); return FISH_STAGE_MAP[v]||
 function fishIsBrood(t){ return fishStage(t&&t.type)===FISH_BROOD; }
 function fishIsGrowout(t){ return fishStage(t&&t.type)==="تسمين"; }
 function fishIsEarly(t){ const st=fishStage(t&&t.type); return st!=="تسمين"&&st!==FISH_BROOD; }
+/* 🐟 v12.43-A — عشر إضافات لقسم الأسماك (تقرير الدفعة · الكثافة · الحرارة · العلاج · سبب النفوق · المياه · النمو · الحصاد الجزئي · الحبيبة · التفريخ) */
+const FISH_MAX_DENSITY_DEF=40;   /* كجم/م³ — حد افتراضي للبلطي في الأحواض الأرضية/الخرسانية */
+const FISH_DEAD_CAUSES=["جودة مياه","مرض","فرز/نقل","افتراس","مجهول"];
+const FISH_PELLET_BY_STAGE={"بيض ويرقات":"بودرة","زريعة":"1ملي","إصبعيات":"2ملي","أمهات":"4ملي"};
+function fishPelletFor(t,lw){ const st=fishStage(t&&t.type); if(FISH_PELLET_BY_STAGE[st]) return FISH_PELLET_BY_STAGE[st]; return (+lw||0)<200?"3ملي":"4ملي"; }
+function fishPelletLabel(p){ return p==="بودرة"?"بودرة":String(p).replace("ملي"," مم"); }
+/* عامل الحرارة على نسبة التغذية (بلطي): تحت 16 توقف · 16–20 ⇒ 40% · 20–24 ⇒ 60% · 24–26 ⇒ 85% · 26–31 ⇒ 100% · فوق 31 ⇒ 80% */
+function feedTempFactor(temp){ if(temp==null||temp===""||isNaN(+temp)) return 1; const T=+temp; if(T<16) return 0; if(T<20) return .4; if(T<24) return .6; if(T<26) return .85; if(T<=31) return 1; return .8; }
+function tkLastTemp(name){ let w=null; (DB.waterLogs||[]).forEach(x=>{ if(x.tank===name&&x.temp!=null&&x.temp!==""&&tkIn(name,x.date)&&(!w||x.date>w.date)) w=x; }); return w?+w.temp:null; }
+/* معدل النمو (جم/يوم): انحدار خطي على كل قياسات الدفعة متى كانت ≥3، وإلا آخر قياسين */
+function fishGrowthRate(ser){
+  if(!ser||ser.length<2) return 0;
+  if(ser.length<3){ const p1=ser[ser.length-2],p2=ser[ser.length-1]; const d=(new Date(p2.d)-new Date(p1.d))/864e5; return d>0?(p2.w-p1.w)/d:0; }
+  const t0=new Date(ser[0].d).getTime(); const xs=ser.map(p=>(new Date(p.d).getTime()-t0)/864e5), ys=ser.map(p=>+p.w);
+  const N=xs.length, mx=xs.reduce((a,b)=>a+b,0)/N, my=ys.reduce((a,b)=>a+b,0)/N; let num=0,den=0;
+  for(let i=0;i<N;i++){ num+=(xs[i]-mx)*(ys[i]-my); den+=(xs[i]-mx)*(xs[i]-mx); }
+  return den>0?num/den:0;
+}
+/* انحراف النمو: آخر قياس أقل من المتوقع (بانحدار ما قبله) بأكثر من 15% */
+function fishGrowthDrift(ser){
+  if(!ser||ser.length<4) return null;
+  const prev=ser.slice(0,-1); const rate=fishGrowthRate(prev); if(rate<=0) return null;
+  const last=ser[ser.length-1], pl=prev[prev.length-1]; const days=(new Date(last.d)-new Date(pl.d))/864e5;
+  const exp=pl.w+rate*days; if(exp<=0) return null; const dev=(last.w-exp)/exp;
+  return dev<-0.15?{exp:Math.round(exp),act:last.w,pct:Math.round(-dev*100)}:null;
+}
+/* فترة السحب: آخر تاريخ يُمنع فيه بيع الحوض بسبب علاج (ضمن الدفعة الحالية) */
+function fishWithdrawalUntil(name){ let until=""; (DB.fishTreatments||[]).forEach(x=>{ if(x.tank!==name||!tkIn(name,x.date)) return; const d=new Date(x.date+"T00:00:00"); if(isNaN(d)) return; d.setDate(d.getDate()+(+x.withdrawal||0)); const u=ksISO(d); if(u>until) until=u; }); return until; }
+/* ✅ ترجع true حين يكون البيع **مسموحاً** (تُستدعى منفيةً) */
+function fishSaleAllowed(name){ const u=fishWithdrawalUntil(name); if(u && u>=today()){ toast("⛔ حوض «"+name+"» تحت فترة سحب دواء حتى "+u+" — لا يُباع قبلها"); return false; } return true; }
 const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.42-A";
+const KS_VER="v12.43-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -7020,6 +7079,7 @@ function fillSelects(){
   const _tnkNew='<option value="__new">➕ حوض جديد…</option>';
   wtTank.innerHTML = (tnkOpts||`<option value="">— لا أحواض بعد —</option>`)+_tnkNew;
   fsTank.innerHTML = (tnkOpts||`<option value="">— لا أحواض بعد —</option>`)+_tnkNew;
+  if(document.getElementById("ftTank")){ const _fv=ftTank.value; ftTank.innerHTML=(tnkOpts||`<option value="">— لا أحواض بعد —</option>`); if([...ftTank.options].some(o=>o.value===_fv)) ftTank.value=_fv; }
   if(document.getElementById("fshTank")) fshTank.innerHTML = (tnkOpts||`<option value="">— لا أحواض بعد —</option>`)+_tnkNew;
   qaHook(wtTank,el=>qaSelNew(el,"tank")); qaHook(fsTank,el=>qaSelNew(el,"tank"));
   qaHook(document.getElementById("fshTank"),el=>qaSelNew(el,"tank"));
@@ -7527,6 +7587,7 @@ function addWater(e){
   const rec = {date:wtDate.value, tank:wtTank.value.trim(),
     temp:wtTemp.value===""?null:+wtTemp.value, o2:wtO2.value===""?null:+wtO2.value,
     ph:wtPh.value===""?null:+wtPh.value, amm:wtAmm.value===""?null:+wtAmm.value, no2:wtNo2.value===""?null:+wtNo2.value,
+    no3:wtNo3.value===""?null:+wtNo3.value, alk:wtAlk.value===""?null:+wtAlk.value, slot:wtSlot.value||"",
     employee:(wtEmp.value.trim()||(CURRENT_USER?CURRENT_USER.name:'')), notes:wtNotes.value};
   if(EDIT.water){ Object.assign(DB.waterLogs.find(x=>x.id===EDIT.water), rec); EDIT.water=null; wtBtn.textContent="حفظ القياس"; markEditing("cardWater",false); }
   else DB.waterLogs.push({id:uid(), ...rec});
@@ -7535,7 +7596,7 @@ function addWater(e){
 function editWater(id){
   const w = DB.waterLogs.find(x=>x.id===id); if(!w) return;
   wtDate.value=w.date; wtTank.value=w.tank;
-  wtTemp.value=w.temp??""; wtO2.value=w.o2??""; wtPh.value=w.ph??""; wtAmm.value=w.amm??""; wtNo2.value=w.no2??"";
+  wtTemp.value=w.temp??""; wtO2.value=w.o2??""; wtPh.value=w.ph??""; wtAmm.value=w.amm??""; wtNo2.value=w.no2??""; wtNo3.value=w.no3??""; wtAlk.value=w.alk??""; wtSlot.value=w.slot||"";
   wtEmp.value=w.employee; wtNotes.value=w.notes||"";
   EDIT.water=id; wtBtn.textContent="💾 حفظ التعديل"; markEditing("cardWater",true);
 }
@@ -7545,18 +7606,20 @@ function waterBad(w){
     || (w.o2!==null&&w.o2<WLIM.o2[0])
     || (w.ph!==null&&(w.ph<WLIM.ph[0]||w.ph>WLIM.ph[1]))
     || (w.amm!==null&&w.amm>WLIM.amm[1])
-    || (w.no2!==null&&w.no2!==undefined&&w.no2>WLIM.no2[1]);
+    || (w.no2!==null&&w.no2!==undefined&&w.no2>WLIM.no2[1])
+    || (w.no3!==null&&w.no3!==undefined&&w.no3>WLIM.no3[1])
+    || (w.alk!==null&&w.alk!==undefined&&(w.alk<WLIM.alk[0]||w.alk>WLIM.alk[1]));
 }
 function renderWater(){
   const rows = DB.waterLogs.filter(w=> inRange(w.date,fWtFrom,fWtTo)
       && (!fWtTank.value||w.tank.includes(fWtTank.value.trim())))
     .slice().reverse().slice(0,200).map(w=>
     `<tr><td>${ksTxt(w.date)}</td><td><b>${ksTxt(w.tank)}</b></td>
-     <td>${wVal(w.temp,WLIM.temp)}</td><td>${wVal(w.o2,WLIM.o2)}</td><td>${wVal(w.ph,WLIM.ph)}</td><td>${wVal(w.amm,WLIM.amm)}</td><td>${wVal(w.no2==null?"":w.no2,WLIM.no2)}</td>
+     <td>${wVal(w.temp,WLIM.temp)}</td><td>${wVal(w.o2,WLIM.o2)}</td><td>${wVal(w.ph,WLIM.ph)}</td><td>${wVal(w.amm,WLIM.amm)}</td><td>${wVal(w.no2==null?"":w.no2,WLIM.no2)}</td><td>${wVal(w.no3==null?"":w.no3,WLIM.no3)}</td><td>${wVal(w.alk==null?"":w.alk,WLIM.alk)}</td><td>${w.slot||"—"}</td>
      <td>${ksTxt(w.employee)}</td><td>${w.notes||""}</td>
      <td>${canEdit(w.employee)?`<button class="edt" onclick="editWater('${w.id}')">✏️</button>`:""}${canDelete(w.employee)?`<button class="del" onclick="delWater('${w.id}')">🗑️</button>`:""}</td></tr>`).join("");
-  tblWater.innerHTML = `<tr><th>التاريخ</th><th>الحوض</th><th>حرارة °م</th><th>أكسجين</th><th>pH</th><th>أمونيا</th><th>نتريت</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
-    + (rows || `<tr><td colspan="10" class="muted">لا توجد قياسات مطابقة</td></tr>`);
+  tblWater.innerHTML = `<tr><th>التاريخ</th><th>الحوض</th><th>حرارة °م</th><th>أكسجين</th><th>pH</th><th>أمونيا</th><th>نتريت</th><th>نترات</th><th>قلوية</th><th>الوقت</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
+    + (rows || `<tr><td colspan="13" class="muted">لا توجد قياسات مطابقة</td></tr>`);
 }
 
 /* ====== سجل الرش وفترة الأمان ====== */
@@ -7582,6 +7645,7 @@ function askFishTank(prodLabel, defTank, defCount){
     if(!t){ toast("⚠️ رقم حوض غير صحيح — بدون خصم"); return null; }
     const n=parseFloat(lat(prompt("عدد الأسماك المباعة من «"+t.name+"»؟", defCount||"")));
     if(!n||n<=0){ toast("⚠️ عدد غير صحيح — بدون خصم"); return null; }
+    if(!fishSaleAllowed(t.name)) return null;
     const chk=__fishOverCheck(t.name, n);
     if(!chk.ok){ toast("⚠️ أُلغي — راجع العدد أو الحوض"); return null; }
     if(chk.reconcile) __fishReconcile(t.name, n, "");
@@ -7813,9 +7877,7 @@ function renderFishMonthly(){
     else {
       const ser=ws[t.name]||[];
       if(ser.length>=2){
-        const p1=ser[ser.length-2], p2=ser[ser.length-1];
-        const days=(new Date(p2.d)-new Date(p1.d))/864e5;
-        const rate=days>0?(p2.w-p1.w)/days:0;
+        const rate=fishGrowthRate(ser);
         if(rate>0){ const left=Math.ceil((target-lw)/rate); const d=new Date(Date.now()+left*864e5); etaKey=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); }
       }
     }
@@ -7840,9 +7902,7 @@ function classifyTank(t, a, ws){
   if(lw && lw>=target) return {st:"ready"};
   const ser = ws[t.name]||[];
   if(lw && ser.length>=2){
-    const p1 = ser[ser.length-2], p2 = ser[ser.length-1];
-    const days = (new Date(p2.d)-new Date(p1.d))/864e5;
-    const rate = days>0 ? (p2.w-p1.w)/days : 0;
+    const rate = fishGrowthRate(ser);   /* انحدار على كل قياسات الدفعة (كان آخر قياسين فقط — قياس شاذ يقلب التوقع) */
     if(rate>0){
       const left = Math.ceil((target-lw)/rate);
       const eta = ksISO(new Date(Date.now()+left*864e5));
@@ -7859,7 +7919,19 @@ function promoteTank(id){
   const idx = FISH_STAGES.indexOf(cur);
   if(idx===FISH_STAGES.length-1){ toast("✅ الحوض في آخر مرحلة (تسمين)"); return; }
   if(!confirm("ترقية "+t.name+" من «"+cur+"» إلى «"+FISH_STAGES[idx+1]+"»؟")) return;
-  (t.stageLog = t.stageLog||[]).push({date:today(), from:cur, to:FISH_STAGES[idx+1]});
+  /* 🥚 عند الخروج من «بيض ويرقات» أو «زريعة» يُسأل عن العدد الفعلي بعد الفقس/الفرز ⇒ نسبة فقس/بقاء موثّقة والعدد يُصحَّح */
+  const entry={date:today(), from:cur, to:FISH_STAGES[idx+1]};
+  if(idx<=1){
+    const a=(tankAgg()||{})[t.name]; const before=tankCurrent(t,a);
+    const lat=v=>String(v||"").replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d));
+    const ans=prompt("العدد الفعلي بعد "+(idx===0?"الفقس":"الفرز")+" في «"+t.name+"» (بالدفتر "+fmt(before)+"):", String(before));
+    if(ans===null) return;
+    const nn=parseInt(lat(ans)); if(!(nn>=0)){ toast("⚠️ عدد غير صحيح"); return; }
+    if(nn!==before){ t.initCount=(+t.initCount||0)+(nn-before); try{ logEdit("تسوية عدد عند الترقية", t.name+": "+fmt(before)+" ⇒ "+fmt(nn)); }catch(e){} }
+    entry.count=nn; const denom=idx===0?(+t.eggs||before):before;
+    if(denom>0) entry.rate=+(nn/denom).toFixed(4);
+  }
+  (t.stageLog = t.stageLog||[]).push(entry);
   t.type = FISH_STAGES[idx+1];
   save(); renderFish(); toast("⬆️ تمت الترقية إلى "+t.type);
 }
@@ -7963,6 +8035,80 @@ function __fishReconcile(tankName, n, ref){
   try{ logEdit("تسوية جرد حوض", t.name+": +"+fmt(diff)+" — بيع فعلي "+fmt(n)+" مقابل دفتر "+fmt(cur)+(ref?" ("+ref+")":"")); }catch(e){}
   toast("♻️ تمت تسوية رصيد حوض "+t.name+" (+"+fmt(diff)+")");
 }
+/* 📄 إحصاءات الدفعة (الحالية b=null أو مقفلة b) — أساس تقرير الربح والخسارة لكل دفعة.
+   التكاليف: تكلفة الإنزال (initCost الدورة) + العلف بمتوسط سعر كيلو علف القسم + المصروفات المربوطة بدورة الدفعة.
+   الرواتب والمصروفات المشتركة الموزعة على القسم **غير مشمولة** (تظهر في ربحية القسم لا الدفعة) — مصرَّح بها في المطبوعة. */
+function batchStats(t,b){
+  const name=t.name;
+  const from=b?(b.from||""):(tkBatchFrom(name)||""); const to=b?b.to:today();
+  const inRange=d=>{ d=String(d||""); return (!from||d>=from)&&(!b||d<=to); };
+  const logs=(DB.fishLogs||[]).filter(f=>f.tank===name&&inRange(f.date));
+  const cycleId=b?(b.cycleId||""):(t.cycleId||"");
+  const cy=cycleId?(DB.cycles||[]).find(c=>c.id===cycleId):null;
+  const init=b?(+b.initCount||0):(+t.initCount||0);
+  const dead=logs.reduce((s2,f)=>s2+(+f.dead||0),0), feed=logs.reduce((s2,f)=>s2+(+f.feed||0),0);
+  const causes={}; logs.forEach(f=>{ if(+f.dead>0){ const c=f.deadCause||"غير محدد"; causes[c]=(causes[c]||0)+(+f.dead); } });
+  const sales=(DB.harvests||[]).filter(h=>h.fishSale&&h.tank===name&&inRange(h.date)&&!h.returnOf);
+  const soldN=sales.reduce((s2,h)=>s2+(+h.fishCount||0),0);
+  const kgOf=h=>{ const u=h.unit||"كجم", q=+h.qty||0; if(u==="كجم") return q; if(u==="طن") return q*1000; if(u==="جم") return q/1000; const w=+h.avgWAtSale||tkWeightAt(name,h.date); return (w&&+h.fishCount>0)?h.fishCount*w/1000:0; };
+  const soldKg=sales.reduce((s2,h)=>s2+kgOf(h),0);
+  const rev=sales.reduce((s2,h)=>s2+(h.unpriced?0:hNet(h)),0);
+  const unpriced=sales.filter(h=>h.unpriced).length;
+  const trs=(DB.transfers||[]).filter(tr=>inRange(tr.date)&&(tr.from===name||tr.to===name));
+  const tin=trs.filter(x=>x.to===name).reduce((s2,x)=>s2+(+x.count||0),0), tout=trs.filter(x=>x.from===name).reduce((s2,x)=>s2+(+x.count||0),0);
+  const cur=b?0:tankCurrent(t,(tankAgg()||{})[name]);
+  const base=init+tin; const surv=base>0?Math.max(0,(base-dead)/base*100):null;
+  const feedPrice=__feedKgPrice(); const feedCost=feed*feedPrice;
+  const stockCost=cy?(+cy.initCost||0):0;
+  const exps=(DB.expenses||[]).filter(x=>cycleId&&x.cycleId===cycleId&&!x.voided);
+  const expCost=exps.reduce((s2,x)=>s2+(+x.amount||0),0);
+  const cost=stockCost+feedCost+expCost;
+  const w0=b?(+b.avgW0||0):(+t.avgW||0); const lastW=b?(b.lastW||null):(((tankAgg()||{})[name]||{}).lastW||null);
+  const bioNow=(cur&&lastW)?cur*lastW/1000:0;
+  const outKg=trs.filter(x=>x.from===name).reduce((s2,x)=>s2+(x.avgW>0?x.count*x.avgW/1000:0),0), inKg=trs.filter(x=>x.to===name).reduce((s2,x)=>s2+(x.avgW>0?x.count*x.avgW/1000:0),0);
+  const gain=bioNow+soldKg+outKg-(init*w0/1000)-inKg;
+  const fcr=(feed>0&&gain>0.5)?feed/gain:null;
+  const days=from?Math.max(0,Math.round((new Date(to+"T00:00:00")-new Date(from+"T00:00:00"))/864e5)):null;
+  const treats=(DB.fishTreatments||[]).filter(x=>x.tank===name&&inRange(x.date));
+  return {name,from,to,days,stage:b?b.stage:fishStage(t.type),init,dead,causes,soldN,soldKg,rev,unpriced,tin,tout,cur,lastW,surv,feed,feedPrice,feedCost,stockCost,expCost,exps,cost,profit:rev-cost,
+    costPerKg:soldKg>0?cost/soldKg:null,fcr,gain,treats,closed:!!b};
+}
+/* idx: -1 الدفعة الحالية · -2 آخر دفعة مقفلة (أو اختيار برقم عند التعدد) · n دفعة بعينها */
+function printBatchReport(tankId, idx){
+  const t=DB.tanks.find(x=>x.id===tankId); if(!t) return;
+  let b=null;
+  if(idx===-2){ const bs=t.batches||[]; if(!bs.length) return;
+    if(bs.length===1) b=bs[0];
+    else { const lat=v=>String(v||"").replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)); const pick=prompt("اختر رقم الدفعة:\n"+bs.map((x,i)=>(i+1)+") "+x.from+" → "+x.to).join("\n"), String(bs.length)); if(pick===null) return; b=bs[parseInt(lat(pick))-1]; if(!b){ toast("⚠️ رقم غير صحيح"); return; } } }
+  else if(idx>=0){ b=(t.batches||[])[idx]||null; if(!b) return; }
+  const st=batchStats(t,b);
+  const w=window.open("","_blank","width=780,height=900");
+  if(!w){ toast("⚠️ اسمح بالنوافذ المنبثقة"); return; }
+  const causeRows=Object.entries(st.causes).sort((a,b2)=>b2[1]-a[1]).map(([c,v])=>`<tr><td>${ksTxt(c)}</td><td>${fmt(v)}</td><td>${st.dead?fmt(Math.round(v/st.dead*100))+"%":"—"}</td></tr>`).join("")||`<tr><td colspan="3">لا نفوق مسجَّل</td></tr>`;
+  const expRows=st.exps.map(x=>`<tr><td>${ksTxt(x.date)}</td><td>${ksTxt(x.cat)}</td><td>${fmtSR(x.amount)}</td></tr>`).join("")||`<tr><td colspan="3">لا مصروفات مربوطة بدورة الدفعة</td></tr>`;
+  const pos=v=>`<span style="color:${v>=0?"#065f46":"#991b1b"}">${fmtSR(v)}</span>`;
+  w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>تقرير دفعة — ${ksNm(t.name)}</title>
+  <style>body{font-family:Tahoma,Arial;padding:24px;color:#1f2937}h1{color:#065f46;font-size:16pt}h2{color:#065f46;font-size:12pt;border-right:3px solid #065f46;padding-right:8px;margin:16px 0 8px}table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:10.5pt}th,td{border:1px solid #d1d5db;padding:6px 8px;text-align:right}th{background:#f2f8f4}.k{font-size:9.5pt;color:#555}.big{font-size:14pt;font-weight:800}@media print{button{display:none}}</style></head><body>
+  <h1>🐟 تقرير دفعة «${ksNm(t.name)}» — ${ksCoName()}</h1>
+  <div class="k">${st.closed?"دفعة مقفلة":"الدفعة الحالية"} · المرحلة: ${ksTxt(st.stage)} · من ${st.from||"—"} إلى ${st.to}${st.days!==null?" · "+fmt(st.days)+" يوماً":""} · طُبع ${today()}</div>
+  <h2>الأعداد</h2>
+  <table><tr><th>الإنزال</th><th>وارد بالنقل</th><th>صادر بالنقل</th><th>النافق</th><th>المباع (سمكة)</th><th>المتبقي</th><th>نسبة البقاء</th></tr>
+  <tr><td>${fmt(st.init)}</td><td>${fmt(st.tin)}</td><td>${fmt(st.tout)}</td><td>${fmt(st.dead)}</td><td>${fmt(st.soldN)}</td><td>${fmt(st.cur)}</td><td class="big">${st.surv===null?"—":fmt(Math.round(st.surv))+"%"}</td></tr></table>
+  <h2>أسباب النفوق</h2><table><tr><th>السبب</th><th>العدد</th><th>النسبة</th></tr>${causeRows}</table>
+  <h2>الإنتاج والعلف</h2>
+  <table><tr><th>المباع (كجم)</th><th>العلف (كجم)</th><th>نمو الكتلة (كجم)</th><th>معدل التحويل FCR</th><th>آخر متوسط وزن</th><th>علاجات مسجَّلة</th></tr>
+  <tr><td>${fmt(st.soldKg)}</td><td>${fmt(st.feed)}</td><td>${fmt(st.gain)}</td><td class="big">${st.fcr===null?"—":fmt(st.fcr)}</td><td>${st.lastW?fmt(st.lastW)+" جم":"—"}</td><td>${fmt(st.treats.length)}</td></tr></table>
+  <h2>التكاليف</h2>
+  <table><tr><th>تكلفة الإنزال (إصبعيات/بيض)</th><th>العلف (${fmt(st.feed)} كجم × ${fmt(st.feedPrice)} ⃁)</th><th>مصروفات مربوطة بالدورة</th><th>إجمالي التكلفة</th></tr>
+  <tr><td>${fmtSR(st.stockCost)}</td><td>${fmtSR(st.feedCost)}</td><td>${fmtSR(st.expCost)}</td><td class="big">${fmtSR(st.cost)}</td></tr></table>
+  <table><tr><th>التاريخ</th><th>البند</th><th>المبلغ</th></tr>${expRows}</table>
+  <h2>النتيجة</h2>
+  <table><tr><th>الإيراد (صافي الضريبة)</th><th>ربح / خسارة الدفعة</th><th>تكلفة الكيلو المنتج</th><th>سعر التعادل للكيلو</th></tr>
+  <tr><td>${fmtSR(st.rev)}${st.unpriced?" <span class=k>(+"+fmt(st.unpriced)+" بيع بانتظار التسعير)</span>":""}</td><td class="big">${pos(st.profit)}</td><td>${st.costPerKg===null?"—":fmt(st.costPerKg)+" ⃁"}</td><td>${st.costPerKg===null?"—":fmt(st.costPerKg)+" ⃁"}</td></tr></table>
+  <p class="k">⚠️ الرواتب والمصروفات المشتركة الموزعة على القسم غير مشمولة هنا — تظهر في ربحية قسم الاستزراع. سعر التعادل = التكلفة ÷ الكيلو المباع.</p>
+  <button onclick="window.print()">🖨️ طباعة</button></body></html>`);
+  w.document.close();
+}
 /* 🧼 إقفال الدفعة: تُنهى الدورة المالية، ويُحفظ ملخص الدفعة في t.batches، ويصير الحوض مقفلاً
    (صفر سمك · خارج القوائم والتنبيهات) حتى «🔄 إنزال جديد». السجلات القديمة تبقى في جداولها. */
 function closeBatch(id){
@@ -8002,7 +8148,7 @@ function addTank(e){
   const _pid=(typeof tnProd!=="undefined"&&tnProd)?tnProd.value:"";
   const _bc=+((typeof tnCost!=="undefined"&&tnCost)?tnCost.value:0)||0;
   if(!EDIT.tank && !_pid){ toast("⚠️ اختر منتج الدفعة"); return; }
-  const rec = {name:tnName.value.trim(), type:tnType.value, initCount:+tnCount.value||0, avgW:+tnAvgW.value||0, meals:+tnMeals.value||3, startDate:tnDate.value||"", notes:tnNotes.value};
+  const rec = {name:tnName.value.trim(), type:tnType.value, initCount:+tnCount.value||0, avgW:+tnAvgW.value||0, volume:+((document.getElementById("tnVol")||{}).value)||0, meals:+tnMeals.value||3, startDate:tnDate.value||"", notes:tnNotes.value};
   if(DB.tanks.some(t=>t.name===rec.name && t.id!==EDIT.tank)){ toast("⚠️ اسم الحوض مستخدم"); return; }
   if(EDIT.tank && window.__restockId===EDIT.tank){
     /* 🔄 إنزال دفعة جديدة في حوض مقفل: دورة مالية جديدة، وبداية الدفعة تعزل السجلات القديمة */
@@ -8065,7 +8211,7 @@ function editTank(id){
     if(typeof tnProd!=="undefined"&&tnProd) tnProd.value=_cy?(_cy.productId||""):"";
     if(typeof tnCost!=="undefined"&&tnCost) tnCost.value=_cy&&_cy.initCost?_cy.initCost:"";
   }catch(e){}
-  tnName.value=t.name; tnType.value=fishStage(t.type); tnCount.value=t.initCount; tnAvgW.value=t.avgW||""; tnMeals.value=t.meals||3; tnDate.value=t.startDate||""; tnNotes.value=t.notes||"";
+  tnName.value=t.name; tnType.value=fishStage(t.type); tnCount.value=t.initCount; tnAvgW.value=t.avgW||""; try{ tnVol.value=t.volume||""; }catch(e){} tnMeals.value=t.meals||3; tnDate.value=t.startDate||""; tnNotes.value=t.notes||"";
   EDIT.tank=id; tnBtn.textContent="💾 حفظ التعديل"; markEditing("cardTank",true);
 }
 function delTank(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما عندك صلاحية حذف"); return; } 
@@ -8137,7 +8283,8 @@ function addFish(e){
   e.preventDefault();
   if(!fsTank.value){ toast("⚠️ أضف حوض أولاً"); return; }
   const rec = {date:fsDate.value, tank:fsTank.value.trim(), meal:fsMeal.value?+fsMeal.value:null,
-    feed:fsFeed.value===""?0:+fsFeed.value, feedType:fsFeedType.value, dead:fsDead.value===""?0:+fsDead.value,
+    feed:fsFeed.value===""?0:+fsFeed.value, feedType:fsFeedType.value, dead:fsDead.value===""?0:+fsDead.value, deadCause:(document.getElementById("fsDeadCause")||{}).value||"",
+    soldW:+((document.getElementById("fsSoldW")||{}).value)||0,
     soldNew:(function(){ const el=document.getElementById("fsSold"); return el&&el.value!==""?+el.value:0; })(),
     avgW:fsAvgW.value===""?null:+fsAvgW.value, employee:(fsEmp.value.trim()||(CURRENT_USER?CURRENT_USER.name:'')), notes:fsNotes.value};
   /* 🛡️ نفوق أكبر من رصيد الحوض كان يُبتلع صامتاً (Math.max(0,…)) فتختل كل الأعداد لاحقاً */
@@ -8191,8 +8338,15 @@ function addFish(e){
       const __t=(DB.tanks||[]).find(x=>x.name===rec.tank);
       const __cur=__t?tankCurrent(__t,(tankAgg()||{})[rec.tank]):0;
       if(__sold>__cur){ toast("❌ المباع ("+fmt(__sold)+") أكبر من الموجود في «"+rec.tank+"» ("+fmt(__cur)+")"); return; }
+      if(!fishSaleAllowed(rec.tank)) return;   /* 💊 فترة سحب دواء */
       const __cy=__t&&__t.cycleId?__t.cycleId:"";
-      const __w=tkWeightAt(rec.tank, rec.date||today());   /* لقطة الوزن وقت البيع — لتحويل العدد إلى كيلو في FCR وتكلفة الكيلو */
+      const __lastW=tkWeightAt(rec.tank, rec.date||today());
+      /* 🐟 حصاد جزئي: الكبار أولاً — وزن العينة المباعة يُعطي كيلو البيع الحقيقي، ومتوسط المتبقي ينخفض تبعاً */
+      const __w=(+rec.soldW>0)?+rec.soldW:__lastW;
+      if(+rec.soldW>0 && !(rec.avgW>0) && __lastW>0 && __cur-__sold>0){
+        const __rem=(__cur*__lastW-__sold*rec.soldW)/(__cur-__sold);
+        if(__rem>0){ rec.avgW=Math.round(__rem); rec.notes=(rec.notes?rec.notes+" · ":"")+"⚖️ متوسط المتبقي بعد الحصاد الجزئي (آلي)"; }
+      }
       DB.harvests.push({id:uid(), date:rec.date||today(), cycleId:__cy, section:(typeof FISH_SECTION!=="undefined"?FISH_SECTION:""),
         productName:"🐟 "+(rec.tank||""), qty:__sold, unit:"سمكة", price:0, total:0,
         fishSale:true, tank:rec.tank, fishCount:__sold, avgWAtSale:__w||0, estKg:__w?+(__sold*__w/1000).toFixed(2):0, unpriced:true, paid:false,
@@ -8208,7 +8362,7 @@ function addFish(e){
 }
 function editFish(id){
   const f = DB.fishLogs.find(x=>x.id===id); if(!f) return;
-  fsDate.value=f.date; fsTank.value=f.tank; updateMealOpts(); fsMeal.value=f.meal||""; fsFeed.value=f.feed||""; fsDead.value=f.dead||""; fsAvgW.value=f.avgW??""; fsFeedType.value=f.feedType||"";
+  fsDate.value=f.date; fsTank.value=f.tank; updateMealOpts(); fsMeal.value=f.meal||""; fsFeed.value=f.feed||""; fsDead.value=f.dead||""; fsAvgW.value=f.avgW??""; fsFeedType.value=f.feedType||""; try{ fsDeadCause.value=f.deadCause||""; fsSoldW.value=f.soldW||""; }catch(e){}
   fsEmp.value=f.employee; fsNotes.value=f.notes||"";
   { const _fi=document.getElementById("fsInv"); if(_fi&&f.itemId&&[..._fi.options].some(o=>o.value===f.itemId)) _fi.value=f.itemId; }
   { const _fs=document.getElementById("fsSold");
@@ -8239,11 +8393,47 @@ function delFish(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ م�
       toast("↩️ حُذف معه البيع غير المسعّر ("+fmt(__gen[0].fishCount||0)+" سمكة)"); }
     trashIt("fishLogs","سجل أسماك",`${ksTxt(f.tank)} — ${f.date}`,f);
     DB.fishLogs=DB.fishLogs.filter(x=>x.id!==id); save(); renderFish(); try{ renderInv(); renderHarvests(); }catch(e){} } }
+/* 💊 العلاج: سجل بلا أثر مالي (التكلفة تُسجَّل مصروفاً من شاشة المصروفات مربوطاً بدورة الدفعة إن أراد المالك) */
+function addFishTreat(e){
+  e.preventDefault();
+  if(!ksNeed([[ftDate.value,"التاريخ"],[ftTank.value,"الحوض"],[ftDrug.value.trim(),"الدواء"]])) return;
+  const wd=+ftWd.value; if(!(wd>=0)){ toast("⚠️ فترة السحب بالأيام (0 إن لم توجد)"); return; }
+  const rec={date:ftDate.value, tank:ftTank.value, drug:ftDrug.value.trim(), dose:ftDose.value.trim(), withdrawal:wd,
+    employee:(ftEmp.value.trim()||(CURRENT_USER?CURRENT_USER.name:"")), notes:ftNotes.value};
+  DB.fishTreatments=Array.isArray(DB.fishTreatments)?DB.fishTreatments:[];
+  if(EDIT.fishTreat){ Object.assign(DB.fishTreatments.find(x=>x.id===EDIT.fishTreat)||{}, rec); EDIT.fishTreat=null; ftBtn.textContent="حفظ العلاج"; markEditing("cardTreat",false); }
+  else DB.fishTreatments.push({id:uid(), ...rec});
+  try{ logEdit("💊 علاج أسماك", rec.tank+" — "+rec.drug+" · سحب "+wd+" يوم"); }catch(e2){}
+  save(); e.target.reset(); ftDate.value=today(); ftWd.value="21"; renderFishTreat(); renderFish();
+  const u=fishWithdrawalUntil(rec.tank); toast("✅ سُجّل العلاج"+(u&&u>=today()?" — لا يُباع «"+rec.tank+"» حتى "+u:""));
+}
+function editFishTreat(id){ const x=(DB.fishTreatments||[]).find(r=>r.id===id); if(!x) return;
+  ftDate.value=x.date; ftTank.value=x.tank; ftDrug.value=x.drug||""; ftDose.value=x.dose||""; ftWd.value=x.withdrawal??""; ftEmp.value=x.employee||""; ftNotes.value=x.notes||"";
+  EDIT.fishTreat=id; ftBtn.textContent="💾 حفظ التعديل"; markEditing("cardTreat",true); }
+function delFishTreat(id){ const x=(DB.fishTreatments||[]).find(r=>r.id===id); if(!x) return;
+  if(!canDelete(x.employee)){ toast("⚠️ ما عندك صلاحية حذف هذا الإدخال"); return; }
+  if(!confirm("حذف سجل العلاج؟")) return;
+  DB.fishTreatments=DB.fishTreatments.filter(r=>r.id!==id); save(); renderFishTreat(); renderFish(); toast("تم الحذف"); }
+function renderFishTreat(){
+  const el=document.getElementById("tblFishTreat"); if(!el) return;
+  const t=today();
+  const rows=(DB.fishTreatments||[]).slice().reverse().slice(0,100).map(x=>{
+    const d=new Date(x.date+"T00:00:00"); d.setDate(d.getDate()+(+x.withdrawal||0)); const u=isNaN(d)?"":ksISO(d);
+    const active=u&&u>=t;
+    return `<tr><td>${ksTxt(x.date)}</td><td><b>${ksTxt(x.tank)}</b></td><td>${ksTxt(x.drug)}</td><td>${x.dose||"—"}</td><td>${fmt(x.withdrawal||0)} يوم</td>
+      <td>${u?`<span class="badge ${active?"danger":"active"}">${active?"⛔ ممنوع البيع حتى ":"✅ انقضت "}${u}</span>`:"—"}</td><td>${ksTxt(x.employee)}</td><td>${x.notes||""}</td>
+      <td>${canEdit(x.employee)?`<button class="edt" onclick="editFishTreat('${x.id}')">✏️</button>`:""}${canDelete(x.employee)?`<button class="del" onclick="delFishTreat('${x.id}')">🗑️</button>`:""}</td></tr>`; }).join("");
+  el.innerHTML=`<tr><th>التاريخ</th><th>الحوض</th><th>الدواء</th><th>الجرعة</th><th>فترة السحب</th><th>البيع</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
+    +(rows||`<tr><td colspan="9" class="muted">💊 لا علاجات مسجَّلة — سجّل أي دواء يُعطى لحوض مع فترة سحبه</td></tr>`);
+}
+function csvFishTreat(){ dlCSV([["التاريخ","الحوض","الدواء","الجرعة","فترة السحب (يوم)","الموظف","ملاحظات"],
+  ...(DB.fishTreatments||[]).map(x=>[x.date,x.tank||"",x.drug||"",x.dose||"",x.withdrawal||0,x.employee||"",x.notes||""])],"سجل_علاج_الأسماك"); }
 function renderFish(){
+  try{ renderFishTreat(); }catch(e){}
   const __logSold={}; (DB.harvests||[]).forEach(h=>{ if(h.fishLogId) __logSold[h.fishLogId]=(__logSold[h.fishLogId]||0)+(+h.fishCount||0); });
   const rows = DB.fishLogs.slice().reverse().slice(0,200).map(f=>
     `<tr><td>${ksTxt(f.date)}</td><td><b>${ksTxt(f.tank)}</b></td><td>${f.meal?`<span class="badge active">وجبة ${f.meal}</span>`:"—"}</td><td>${fmt(f.feed)} كجم</td>
-     <td class="${f.dead>0?"neg":""}">${fmt(f.dead)}</td><td>${(f.sold||__logSold[f.id])?fmt(f.sold||__logSold[f.id]):"—"}</td><td>${f.avgW?fmt(f.avgW)+" جم":"—"}</td>
+     <td class="${f.dead>0?"neg":""}">${fmt(f.dead)}${f.dead>0&&f.deadCause?` <span class="muted" style="font-size:.7rem">(${ksTxt(f.deadCause)})</span>`:""}</td><td>${(f.sold||__logSold[f.id])?fmt(f.sold||__logSold[f.id])+(f.soldW?` <span class="muted" style="font-size:.7rem">@${fmt(f.soldW)} جم</span>`:""):"—"}</td><td>${f.avgW?fmt(f.avgW)+" جم":"—"}</td>
      <td>${ksTxt(f.employee)}</td><td>${f.notes||""}</td>
      <td>${canEdit(f.employee)?`<button class="edt" onclick="editFish('${f.id}')">✏️</button>`:""}${canDelete(f.employee)?`<button class="del" onclick="delFish('${f.id}')">🗑️</button>`:""}</td></tr>`).join("");
   tblFish.innerHTML = `<tr><th>التاريخ</th><th>الحوض</th><th>الوجبة</th><th>العلف</th><th>النافق</th><th>المحصود</th><th>متوسط الوزن</th><th>الموظف</th><th>ملاحظات</th><th></th></tr>`
@@ -8288,6 +8478,14 @@ function renderFish(){
       }
     }
     const cls = classifyTank(t, a, ws);
+    const _md=+DB.settings.fishMaxDensity||FISH_MAX_DENSITY_DEF;
+    const dens=(t.volume>0&&bio!==null)?bio/t.volume:null;
+    const densCell=dens===null?'<span class="muted">—</span>':`<b style="color:${dens>_md?"var(--red)":dens>_md*0.85?"var(--amber)":"var(--green)"}" title="الحد ${fmt(_md)} كجم/م³">${fmt(dens)}</b>`;
+    /* 🥚 إنتاجية الأمهات: التفريخات المرتبطة بهذا الحوض ونسبة الفقس المسجّلة عند الترقية */
+    let broodInfo="";
+    if(fishIsBrood(t)){ const hs=DB.tanks.filter(x=>x.broodId===t.id); const eggs=hs.reduce((s2,x)=>s2+(+x.eggs||0),0);
+      const rates=hs.map(x=>((x.stageLog||[]).find(l=>l.from===FISH_STAGES[0])||{}).rate).filter(r=>typeof r==="number");
+      if(hs.length) broodInfo=` <span class="badge done" title="تفريخات هذا الحوض">🥚 ${hs.length} تفريخة · ${fmt(eggs)} بيضة${rates.length?" · فقس "+fmt(Math.round(rates.reduce((s2,r)=>s2+r,0)/rates.length*100))+"%":""}</span>`; }
     if(cls.st==="closed"){ /* مقفل — خارج كل الإحصاءات */ }
     else if(cls.st==="prod"){ stats.prod.n+=cur; stats.prod.kg+=bio||0; stats.prod.types[t.type]=(stats.prod.types[t.type]||0)+cur; }
     else if(cls.st==="soon"){ stats.soon.n+=cur; stats.soon.kg+=bio||0; if(cls.eta) stats.soon.etas.push(t.name+" ("+cls.eta+")"); }
@@ -8299,20 +8497,22 @@ function renderFish(){
       : `<span class="badge done">🐣 إنتاج${cls.eta?" — متوقع "+cls.eta:""}</span>`;
     const lw = lastWater[t.name];
     const wstat = lw ? (waterBad(lw)?`<span class="badge danger">⚠️ خارج المعدل (${lw.date})</span>`:`<span class="badge active">سليمة (${lw.date})</span>`) : `<span class="badge warn">لا قياس</span>`;
-    return `<tr><td><b>${ksNm(t.name)}</b></td><td>${ksTxt(t.type)}${(t.batches&&t.batches.length)?` <span class="badge done" title="${t.batches.map(b=>b.from+" → "+b.to+": إنزال "+fmt(b.initCount)+" · نافق "+fmt(b.dead)+" · مباع "+fmt(b.sold)+" · علف "+fmt(b.feed)+" كجم").join("\n")}">📜 ${t.batches.length}</span>`:""}</td><td>${t.startDate||"—"}</td><td>${fmt(t.initCount)}</td>
+    return `<tr><td><b>${ksNm(t.name)}</b></td><td>${ksTxt(t.type)}${broodInfo}${(t.batches&&t.batches.length)?` <button class="edt" style="font-size:.72rem" title="تقرير الدفعات السابقة — ${t.batches.map(b=>b.from+" → "+b.to+": إنزال "+fmt(b.initCount)+" · نافق "+fmt(b.dead)+" · مباع "+fmt(b.sold)+" · علف "+fmt(b.feed)+" كجم").join("\n")}" onclick="printBatchReport('${t.id}',-2)">📜 ${t.batches.length}</button>`:""}</td><td>${t.startDate||"—"}</td><td>${fmt(t.initCount)}</td>
       <td class="${a.dead>0?"neg":""}">${fmt(a.dead)}</td><td>${fmt(a.sold)}</td>
       <td class="pos" style="font-size:1rem"><b>${fmt(cur)} 🐟</b></td>
       <td>${readyBadge}</td>
       <td class="${mort>=10?"neg":""}">${__base>0?fmt(mort)+"% / "+fmt(100-mort)+"%":"—"}</td>
       <td>${bio!==null?fmt(bio)+" كجم":"—"}</td>
-      <td>${fmt(a.feed)} كجم</td><td>${_fkp&&a.feed?fmtSR(a.feed*_fkp):'<span class="muted">—</span>'}</td><td>${fcrCell}</td><td>${wstat}</td>
-      <td>${t.closedAt?`<button class="edt" title="إنزال دفعة جديدة" onclick="restockTank('${t.id}')">🔄</button>`:`${fishIsBrood(t)?`<button class="edt" title="تفريخة جديدة" onclick="hatchTank('${t.id}')">🥚</button>`:`<button class="edt" title="ترقية المرحلة" onclick="promoteTank('${t.id}')">⬆️</button>`}${(isOwner()||canSettle())?`<button class="edt" title="إقفال الدفعة" onclick="closeBatch('${t.id}')">🧼</button>`:""}`}<button class="edt" onclick="editTank('${t.id}')">✏️</button>${isOwner()?`<button class="del" onclick="delTank('${t.id}')">🗑️</button>`:""}</td></tr>`;
+      <td>${fmt(a.feed)} كجم</td><td>${_fkp&&a.feed?fmtSR(a.feed*_fkp):'<span class="muted">—</span>'}</td><td>${fcrCell}</td><td>${densCell}</td><td>${wstat}</td>
+      <td>${t.closedAt?`<button class="edt" title="إنزال دفعة جديدة" onclick="restockTank('${t.id}')">🔄</button>`:`${fishIsBrood(t)?`<button class="edt" title="تفريخة جديدة" onclick="hatchTank('${t.id}')">🥚</button>`:`<button class="edt" title="ترقية المرحلة" onclick="promoteTank('${t.id}')">⬆️</button>`}${(isOwner()||canSettle())?`<button class="edt" title="إقفال الدفعة" onclick="closeBatch('${t.id}')">🧼</button>`:""}<button class="edt" title="تقرير الدفعة الحالية" onclick="printBatchReport('${t.id}',-1)">📄</button>`}<button class="edt" onclick="editTank('${t.id}')">✏️</button>${isOwner()?`<button class="del" onclick="delTank('${t.id}')">🗑️</button>`:""}</td></tr>`;
   }).join("");
-  tblFishSum.innerHTML = `<tr><th>الحوض</th><th>النوع</th><th>تاريخ الإنزال</th><th>عدد السمك الابتدائي</th><th>النافق</th><th>المحصود</th><th>العدد الحالي</th><th>الجاهزية</th><th>النفوق / البقاء</th><th>الكتلة التقديرية</th><th>العلف الكلي</th><th>حصة العلف</th><th>FCR</th><th>آخر قياس مياه</th><th></th></tr>`
-    + (srows || `<tr><td colspan="15" class="muted">لا توجد أحواض بعد — أضف حوض من البطاقة أعلاه</td></tr>`);
+  tblFishSum.innerHTML = `<tr><th>الحوض</th><th>النوع</th><th>تاريخ الإنزال</th><th>عدد السمك الابتدائي</th><th>النافق</th><th>المحصود</th><th>العدد الحالي</th><th>الجاهزية</th><th>النفوق / البقاء</th><th>الكتلة التقديرية</th><th>العلف الكلي</th><th>حصة العلف</th><th>FCR</th><th>الكثافة كجم/م³</th><th>آخر قياس مياه</th><th></th></tr>`
+    + (srows || `<tr><td colspan="16" class="muted">لا توجد أحواض بعد — أضف حوض من البطاقة أعلاه</td></tr>`);
 
   const _gcd=document.getElementById("trCycleDays");
   if(_gcd && document.activeElement!==_gcd) _gcd.value=DB.settings.gradeDays||"";
+  const _mdI=document.getElementById("maxDens");
+  if(_mdI && document.activeElement!==_mdI) _mdI.value=+DB.settings.fishMaxDensity||FISH_MAX_DENSITY_DEF;
   const _tp=document.getElementById("tnProd");
   if(_tp && document.activeElement!==_tp){
     const _v=_tp.value;
@@ -8378,31 +8578,48 @@ function hatchTank(id){
   const _hcy={id:uid(), productId:_hpid, section:FISH_SECTION, status:"نشطة",
     plantDate:today(), harvestDate:"", initCost:0, notes:"🐟 دفعة تفريخة — "+t.name+" (آلي)"};
   if(_hpid) DB.cycles.push(_hcy);
-  DB.tanks.push({id:uid(), name:"تفريخة "+today()+" — "+t.name, type:FISH_STAGES[0], initCount:+n, meals:3, batches:[], startDate:today(), cycleId:(_hpid?_hcy.id:""), notes:"تفريخ من "+t.name});
+  DB.tanks.push({id:uid(), name:"تفريخة "+today()+" — "+t.name, type:FISH_STAGES[0], initCount:+n, eggs:+n, broodId:t.id, meals:3, batches:[], startDate:today(), cycleId:(_hpid?_hcy.id:""), notes:"تفريخ من "+t.name});
   save(); fillSelects(); renderFish(); toast("🥚 تم إنشاء حوض التفريخة ("+fmt(+n)+" بيضة)");
 }
 function renderFeedPlan(){
   const agg = tankAgg();
-  let total = 0;
+  let total = 0; const __pelNeed={};
   const rows = DB.tanks.map(t=>{
     const a = agg[t.name];
     const cur = tankCurrent(t, a);
     const lw = a && a.lastW;
     if(!cur || !lw) return "";
     const bio = cur*lw/1000;
-    const rate = fishIsBrood(t) ? 1.5 : feedRate(lw);
+    const baseRate = fishIsBrood(t) ? 1.5 : feedRate(lw);
+    /* عامل الحرارة: آخر حرارة مسجَّلة للحوض — البلطي يأكل نصف كميته تحت 22° ويتوقف تحت 16° */
+    const temp=tkLastTemp(t.name); const tf=feedTempFactor(temp);
+    const rate = +(baseRate*tf).toFixed(2);
     const daily = bio*rate/100;
     total += daily;
     const meals = t.meals||3;
+    const pel=fishPelletFor(t,lw);
+    if(!__pelNeed[pel]) __pelNeed[pel]={need:0,tanks:[]}; __pelNeed[pel].need+=daily; __pelNeed[pel].tanks.push(t.name);
     const fedToday = DB.fishLogs.filter(f=>f.tank===t.name && f.date===today() && f.feed>0).length;
     return `<tr><td><b>${ksNm(t.name)}</b></td><td>${fmt(cur)} 🐟</td><td>${fmt(lw)} جم</td>
-      <td>${fmt(bio)} كجم</td><td>${fmt(rate)}%</td><td class="pos"><b>${fmt(daily)} كجم/يوم</b></td>
-      <td>${meals} وجبات</td><td>${fmt(daily/meals)} كجم</td>
+      <td>${fmt(bio)} كجم</td><td>${fmt(rate)}%${tf!==1?` <span class="muted" title="عامل الحرارة ${temp}°">(${fmt(baseRate)}% × ${fmt(tf)})</span>`:""}</td><td class="pos"><b>${tf===0?"⛔ توقف — الحرارة "+temp+"°":fmt(daily)+" كجم/يوم"}</b></td>
+      <td>${meals} وجبات</td><td>${fmt(daily/meals)} كجم</td><td>${fishPelletLabel(pel)}</td>
       <td><span class="badge ${fedToday>=meals?"active":fedToday>0?"warn":"danger"}">${fedToday} / ${meals}</span></td></tr>`;
   }).join("");
-  tblFeedPlan.innerHTML = `<tr><th>الحوض</th><th>العدد</th><th>متوسط الوزن</th><th>الكتلة</th><th>نسبة التغذية</th><th>العلف المقترح يومياً</th><th>عدد الوجبات</th><th>العلف لكل وجبة</th><th>وجبات اليوم</th></tr>`
-    + (rows || `<tr><td colspan="9" class="muted">سجل متوسط أوزان الأحواض ليحسب لك السستم خطة التغذية</td></tr>`)
-    + (rows?`<tr><th colspan="5">إجمالي العلف المطلوب يومياً</th><th class="pos">${fmt(total)} كجم</th><th colspan="3"></th></tr>`:"");
+  tblFeedPlan.innerHTML = `<tr><th>الحوض</th><th>العدد</th><th>متوسط الوزن</th><th>الكتلة</th><th>نسبة التغذية</th><th>العلف المقترح يومياً</th><th>عدد الوجبات</th><th>العلف لكل وجبة</th><th>الحبيبة</th><th>وجبات اليوم</th></tr>`
+    + (rows || `<tr><td colspan="10" class="muted">سجل متوسط أوزان الأحواض ليحسب لك السستم خطة التغذية</td></tr>`)
+    + (rows?`<tr><th colspan="5">إجمالي العلف المطلوب يومياً</th><th class="pos">${fmt(total)} كجم</th><th colspan="4"></th></tr>`:"");
+  /* 🧺 كفاية العلف حسب حجم الحبيبة: الرصيد من أصناف المخزون التي يحوي اسمها رمز الحبيبة، والاستهلاك من نوع العلف في اليومية */
+  { const el=document.getElementById("tblFeedPellet");
+    if(el){ const since14=ksISO(new Date(Date.now()-14*864e5));
+      const kgOfItem=i=>{ const q=+i.qty||0, u=i.unit||"كجم"; let kg=(u==="كجم")?q:(u==="جم")?q/1000:(u==="طن")?q*1000:0; if(!kg){ try{ kg=q*(invUnitKg(u)||0); }catch(e){} } return kg||0; };
+      const pels=["بودرة","1ملي","2ملي","3ملي","4ملي"];
+      const prow=pels.map(p=>{ const need=(__pelNeed[p]||{}).need||0, tanks=(__pelNeed[p]||{}).tanks||[];
+        const stock=(DB.inventory||[]).filter(i=>i.cat==="أعلاف"&&String(i.name||"").includes(p)).reduce((s2,i)=>s2+kgOfItem(i),0);
+        const used=(DB.fishLogs||[]).filter(f=>f.date>=since14&&f.feedType===p).reduce((s2,f)=>s2+(+f.feed||0),0)/14;
+        const usage=used>0?used:need; const days=usage>0?stock/usage:null;
+        if(!need&&!stock&&!used) return "";
+        return `<tr><td><b>${fishPelletLabel(p)}</b></td><td>${tanks.map(ksNm).join("، ")||"—"}</td><td>${fmt(need)} كجم</td><td>${fmt(stock)} كجم</td><td>${fmt(usage)} كجم/يوم</td><td class="${days!==null&&days<7?"neg":"pos"}">${days===null?"—":fmt(days)+" يوم"}</td></tr>`; }).join("");
+      el.innerHTML=`<tr><th>الحبيبة</th><th>أحواضها</th><th>المطلوب يومياً</th><th>الرصيد بالمخزون</th><th>الاستهلاك</th><th>يكفي</th></tr>`+(prow||`<tr><td colspan="6" class="muted">تظهر كفاية كل حجم حبيبة بعد تسجيل أوزان الأحواض وأصناف العلف (اسم الصنف يحوي 1ملي/2ملي…)</td></tr>`); } }
 
   /* كفاية رصيد العلف */
   /* كان يجمع «40 كيس + 5 طن + 100 كجم = 145» ثم يقسمها على كجم/يوم ⇒ إنذار نقص كاذب يومياً */
@@ -8837,6 +9054,7 @@ function renderFishSecView(fs, cost){
   secClimateBox.style.display = "none";
   const _lw={}; (DB.waterLogs||[]).forEach(w=>{ if(!_lw[w.tank]||w.date>_lw[w.tank].date) _lw[w.tank]=w; });
   const _lwArr=Object.values(_lw).filter(w=>DB.tanks.some(t=>t.name===w.tank));
+  try{ renderFishTreat(); }catch(e){}
   const _bad=_lwArr.filter(w=>{ try{ return waterBad(w); }catch(e){ return false; } }).length;
   secKpis.insertAdjacentHTML("beforeend",`<div class="card kpi ${_bad?"red":"green"}"><div class="label">💧 حالة المياه</div><div class="value" style="font-size:1.05rem">${_lwArr.length?(_bad?fmt(_bad)+" حوض خارج المعدل":"كلها سليمة ✅"):"لا قياسات بعد"}</div></div>`);
   try{ renderFish(); }catch(e){}
@@ -11539,7 +11757,19 @@ function getAlerts(){
     items.push(`🐟 لم يُسجل قياس مياه اليوم`);
   const last3 = DB.fishLogs.filter(f=>f.date>=ksISO(new Date(Date.now()-3*864e5)));
   const dead3 = last3.reduce((s,f)=>s+(f.dead||0),0);
-  if(dead3>=20) items.push(`🐟 نافق مرتفع آخر 3 أيام: <b>${fmt(dead3)} سمكة</b> — افحص جودة المياه`);
+  if(dead3>=20){ const _cs={}; last3.forEach(f=>{ if(+f.dead>0&&f.deadCause) _cs[f.deadCause]=(_cs[f.deadCause]||0)+(+f.dead); }); const _top=Object.entries(_cs).sort((a,b)=>b[1]-a[1])[0];
+    items.push(`🐟 نافق مرتفع آخر 3 أيام: <b>${fmt(dead3)} سمكة</b>${_top?" — السبب الأكثر: "+ksTxt(_top[0])+" ("+fmt(_top[1])+")":" — افحص جودة المياه"}`); }
+  /* v12.43-A: الكثافة · انحراف النمو · فترة السحب · قياس الفجر */
+  try{
+    const _md=+DB.settings.fishMaxDensity||FISH_MAX_DENSITY_DEF; const _ws=fishWSeries(); const _agg=tankAgg();
+    DB.tanks.forEach(t=>{ if(t.closedAt) return; const a=_agg[t.name]; const cur=tankCurrent(t,a); if(!cur) return;
+      const lw=a&&a.lastW; if(lw&&t.volume>0){ const dens=cur*lw/1000/t.volume; if(dens>_md) items.push(`🐟 كثافة <b>${ksNm(t.name)}</b> ${fmt(dens)} كجم/م³ تتجاوز الحد ${fmt(_md)} — انقل أو بِع`); }
+      const dr=fishGrowthDrift(_ws[t.name]||[]); if(dr) items.push(`📉 نمو <b>${ksNm(t.name)}</b> انحرف: آخر وزن ${fmt(dr.act)} جم مقابل متوقع ${fmt(dr.exp)} (−${dr.pct}%) — راجع العلف والمياه`);
+      const wu=fishWithdrawalUntil(t.name); if(wu&&wu>=today()) items.push(`💊 <b>${ksNm(t.name)}</b> تحت فترة سحب دواء حتى ${wu} — لا يُباع`);
+    });
+    if(DB.waterLogs.some(w=>w.date>=ksISO(new Date(Date.now()-7*864e5)))){ const d2=ksISO(new Date(Date.now()-2*864e5));
+      if(!DB.waterLogs.some(w=>w.slot==="فجر"&&w.date>=d2)) items.push(`💧 لا قياس مياه «فجر» منذ يومين — الأكسجين عند الفجر هو الأخطر`); }
+  }catch(e){}
   const agg = tankAgg();
   const target = +(DB.settings.fishSellW||350);
   DB.tanks.forEach(t=>{
@@ -14239,13 +14469,13 @@ function csvTasks(){
     "سجل_الأعمال");
 }
 function csvWater(){
-  dlCSV([["التاريخ","الحوض","الحرارة (°م)","الأكسجين","pH","الأمونيا الكلية","النتريت","الموظف","ملاحظات"],
-    ...(DB.waterLogs||[]).map(w=>[w.date,w.tank||"",w.temp??"",w.o2??"",w.ph??"",w.amm??"",w.no2??"",w.employee||"",w.notes||""])],
+  dlCSV([["التاريخ","الحوض","الوقت","الحرارة (°م)","الأكسجين","pH","الأمونيا الكلية","النتريت","النترات","القلوية","الموظف","ملاحظات"],
+    ...(DB.waterLogs||[]).map(w=>[w.date,w.tank||"",w.slot||"",w.temp??"",w.o2??"",w.ph??"",w.amm??"",w.no2??"",w.no3??"",w.alk??"",w.employee||"",w.notes||""])],
     "سجل_قياسات_المياه");
 }
 function csvFish(){
-  dlCSV([["التاريخ","الحوض","الوجبة","العلف (كجم)","نوع العلف","النافق","متوسط الوزن (جم)","عدد السمك","الموظف","ملاحظات"],
-    ...(DB.fishLogs||[]).map(x=>[x.date,x.tank||"",x.meal??"",x.feed||0,x.feedType||"",x.dead||0,x.avgW??"",x.count??"",x.employee||"",x.notes||""])],
+  dlCSV([["التاريخ","الحوض","الوجبة","العلف (كجم)","نوع العلف","النافق","سبب النفوق","متوسط الوزن (جم)","متوسط وزن المباع (جم)","عدد السمك","الموظف","ملاحظات"],
+    ...(DB.fishLogs||[]).map(x=>[x.date,x.tank||"",x.meal??"",x.feed||0,x.feedType||"",x.dead||0,x.deadCause||"",x.avgW??"",x.soldW||"",x.count??"",x.employee||"",x.notes||""])],
     "سجل_الأعلاف_والنافق");
 }
 function csvHarvests(){
@@ -17533,7 +17763,7 @@ function invPostSales(inv){
     const fx = i.fishCount ? {fishSale:true, tank:i.tank, fishCount:i.fishCount}
       : (__isFishInvItem(i) ? askFishTank(i.name) : null);
     if(fx&&fx.fishCount&&(i.reconcile||fx.reconcile)) __fishReconcile(fx.tank, fx.fishCount, "فاتورة "+(inv.no||""));
-    DB.harvests.push({...(fx||{}), id:uid(), date:inv.date||today(), cycleId:i.cycleId||"",
+    DB.harvests.push({...(fx||{}), ...((fx&&fx.fishCount>0)?{avgWAtSale:(+i.eqKg>0?Math.round(i.eqKg*1000/fx.fishCount):tkWeightAt(fx.tank,inv.date||today())), estKg:+(+i.eqKg||0).toFixed(2)}:{}), id:uid(), date:inv.date||today(), cycleId:i.cycleId||"",
       productName:i.name, section:cyc?cyc.section:"", qty:+i.qty||0, unit:i.unit||"",
       price:unitGross, total:gross, taxAmt:+invLineTax(i).toFixed(2), taxRate:(+i.tax||0), customerId:inv.custId||"",
       paid:inv.status==='paid', employee:(CURRENT_USER?CURRENT_USER.name:""),
@@ -17964,6 +18194,7 @@ function saveInvoice(e,asDraft){
       const fishy=it._fishReq||__isFishInvItem(it);
       if(fishy && !(it.tank&&it.fishCount>0)){ toast("⚠️ بند سمكي: اختر الحوض وأدخل عدد الأسماك في سطر البند"); return; }
       if(fishy){
+        if(!fishSaleAllowed(it.tank)) return;   /* 💊 فترة سحب دواء */
         const chk=__fishOverCheck(it.tank, it.fishCount);
         if(!chk.ok) return;
         if(chk.reconcile) it.reconcile=true;

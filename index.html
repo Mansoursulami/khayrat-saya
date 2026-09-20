@@ -1265,6 +1265,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
           <div><label>العلاج المُعطى</label><input id="lskHlTreat" placeholder="الدواء والجرعة"></div>
           <div><label>اسم الطبيب البيطري</label><input id="lskHlVet" placeholder="اختياري"></div>
           <div><label>موعد المتابعة</label><input type="date" id="lskHlFollow"></div>
+          <div><label>فترة السحب (يوم)</label><input type="number" id="lskHlWd" min="0" step="1" placeholder="0 = لا يوجد" title="لا يُباع الحيوان ولا حليبه قبل انقضائها"></div>
           <div><label>الحظيرة</label><select id="lskHlBarn"></select></div>
           <div><label>خصم دواء من الصيدلية (اختياري)</label><select id="lskHlMed"></select></div>
           <div><label>كمية الدواء</label><input type="number" id="lskHlMedQty" min="0" step="0.1"></div>
@@ -1456,7 +1457,10 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
   <h2 class="fpI" data-fp="tanks">سجل الأعلاف والنافق <button class="btn small secondary no-print" onclick="csvFish()">⬇️ CSV</button></h2>
   <div class="card table-wrap fpI" data-fp="tanks"><table id="tblFish"></table></div>
 
-  <h2 class="fpI" data-fp="water">سجل قياسات المياه <button class="btn small secondary no-print" onclick="csvWater()">⬇️ CSV</button></h2>
+  <h2 class="fpI" data-fp="tanks">📊 مقارنة الدفعات (الحالية والمقفلة)</h2>
+  <div class="card table-wrap fpI" data-fp="tanks"><table id="tblBatchCmp"></table></div>
+
+  <h2 class="fpI" data-fp="water">سجل قياسات المياه <button class="btn small secondary no-print" onclick="csvWater()">⬇️ CSV</button> <button class="btn small secondary no-print" type="button" onclick="wtImportPick()" title="أعمدة: التاريخ · الحوض · الحرارة · الأكسجين · pH · الأمونيا · النيتريت · النترات · القلوية · الفترة">⬆️ استيراد CSV</button><input type="file" id="wtImpFile" accept=".csv,text/csv,text/plain" style="display:none" onchange="wtImportCSV(this.files[0]);this.value=''"></h2>
   <div class="filters card no-print fpI" data-fp="water">
     <div><label>من</label><input type="date" id="fWtFrom" onchange="renderWater()"></div>
     <div><label>إلى</label><input type="date" id="fWtTo" onchange="renderWater()"></div>
@@ -1648,6 +1652,11 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       </div>
       <button class="btn" id="cyBtn">حفظ الدورة</button>
     </form>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>📊 مقارنة الدورات لنفس المنتج — تكلفة الكيلو</h3>
+    <p class="muted" style="margin-bottom:8px">كل منتج له دورتان فأكثر: التكلفة والإنتاج وتكلفة الكيلو والهامش لكل دورة — الأفضل بالأخضر والأسوأ بالأحمر</p>
+    <div class="table-wrap"><table id="tblCycleCmp"></table></div>
   </div>
   <div class="card" id="cardAssign" style="margin-top:12px">
     <h3>📌 المهام المسندة للموظفين</h3>
@@ -2121,6 +2130,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <div><label>الرقم الإضافي (الرقم الفرعي) *</label><input id="cuAddl" required inputmode="numeric" maxlength="4"></div>
         <div><label>المدينة / المحافظة *</label><input id="cuCity" required></div>
         <div><label>الحي *</label><input id="cuRegion" required></div>
+        <div><label>المنطقة</label><input id="cuProv" placeholder="مثال: الرياض — للفاتورة الضريبية"></div>
         <div><label>الدولة *</label><input id="cuCountry" required placeholder="السعودية"></div>
         <div><label>الرمز البريدي *</label><input id="cuZip" required inputmode="numeric" maxlength="5"></div>
       </div>
@@ -2889,6 +2899,14 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
 
 <!-- ============ كشف الرواتب ============ -->
 <div class="tab" id="tab-payroll">
+  <div class="card" id="cardLabor">
+    <h3>⏱️ تكلفة ساعة العمل وتوزيع الرواتب من الواقع</h3>
+    <p class="muted" style="margin-bottom:8px">الساعات من سجل الحضور (دخول/انصراف، وإلا 8 ساعات ليوم الحضور)، والتوزيع على الأقسام من سجل الأعمال الفعلي — بدل النسب اليدوية</p>
+    <div class="filters" style="margin-bottom:8px"><div style="max-width:170px"><label>الشهر</label><input type="month" id="laborMonth" onchange="renderLaborStats()"></div>
+      <div style="flex:0;align-self:end"><button class="btn small" type="button" onclick="applyLaborAlloc()">✅ تطبيق النسب المقترحة على توزيع الرواتب</button></div></div>
+    <div class="table-wrap"><table id="tblLabor"></table></div>
+    <p class="muted" id="laborNote" style="margin-top:6px"></p>
+  </div>
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
       <h3 style="margin:0">💰 كشف الرواتب</h3>
@@ -3349,6 +3367,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     <div class="row" style="margin-top:10px">
       <div><label>اسم القسم الجديد</label><input id="newSecName" placeholder="مثال: بيت محمي مكيف 3"></div>
       <div><label>الاسم المختصر (للتقارير)</label><input id="newSecShort" placeholder="مثال: مكيف 3"></div>
+      <div><label>نوع القسم *</label><select id="newSecMod"><option value="agri">🌱 زراعة</option><option value="lvs">🐑 مواشي</option><option value="fish">🐟 أسماك</option></select></div>
       <div><label>نوع الري</label><select id="newSecIrrig"><option value="auto">💧 أوتوماتيكي (زر تأكيد يومي)</option><option value="manual">🚿 يدوي (يُسجل كعمل يومي)</option></select></div>
       <div style="display:flex;align-items:end;gap:8px">
         <button type="button" class="btn" onclick="addSection()">➕ إضافة القسم</button>
@@ -3383,6 +3402,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <div style="flex:1;min-width:120px"><label>الرقم الإضافي (الرقم الفرعي)</label><input id="coAddl" inputmode="numeric" maxlength="4" oninput="saveCompanyInfo()"></div>
       <div style="flex:1;min-width:150px"><label>المدينة / المحافظة</label><input id="coCity" oninput="saveCompanyInfo()"></div>
       <div style="flex:1;min-width:130px"><label>الحي</label><input id="coRegion" oninput="saveCompanyInfo()"></div>
+      <div style="flex:1;min-width:130px"><label>المنطقة</label><input id="coProv" placeholder="مثال: الرياض" oninput="saveCompanyInfo()"></div>
       <div style="flex:1;min-width:120px"><label>الدولة</label><input id="coCountry" placeholder="السعودية" oninput="saveCompanyInfo()"></div>
       <div style="flex:1;min-width:120px"><label>الرمز البريدي</label><input id="coZip" inputmode="numeric" maxlength="5" oninput="saveCompanyInfo()"></div>
     </div>
@@ -3431,6 +3451,11 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <div style="font-weight:700;margin-bottom:8px">📱 التطبيق على الجوال والعمل بلا إنترنت</div>
       <div id="ksPwaBox"></div>
     </div>
+    <div id="archCard" style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
+      <b>🗄️ أرشفة السنوات المقفلة</b>
+      <p class="muted" style="font-size:.74rem;margin:6px 0 8px">تنقل السجلات اليومية المسدَّدة لسنة <b>مُقفلة</b> إلى أرشيف سحابي مستقل وتخفّف مساحة الجهاز، ويبقى رصيد كل حساب في نهاية السنة بقيد افتتاحي واحد — فلا يتغيّر ميزان أي سنة لاحقة. <b>لا تُؤرشف</b>: الفواتير الإلكترونية (تسلسل زاتكا)، ومبيعات الأسماك والمواشي (تحكم أعداد الأحواض والقطيع)، وأي بيع أو شراء أو مصروف لم يُسدَّد بعد، وقيود الإهلاك ونهاية الخدمة والسلف. الأرشفة <b>قابلة للعكس</b> بزر الاستعادة.</p>
+      <div id="archBody" class="muted" style="font-size:.8rem">—</div>
+    </div>
     <div id="stgCard" style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
         <b>💾 مساحة البيانات على هذا الجهاز</b><span id="stgTxt" class="muted" style="font-size:.8rem">—</span>
@@ -3462,6 +3487,14 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <button class="btn secondary" type="button" onclick="cloudPush()">⬆️ رفع الآن</button>
       <button class="btn secondary" type="button" onclick="cloudPullApply()">⬇️ سحب من السحابة</button>
       <button class="btn secondary" type="button" style="border-color:#c66;color:#791F1F" onclick="cloudLogout()">🔌 قطع الاتصال</button>
+    </div>
+    <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)">
+    <h3 style="margin-top:14px">🧪 بيانات تجريبية</h3>
+    <p class="muted" style="margin-bottom:8px">لتجربة السستم بسجلات جاهزة (عملاء ومبيعات ومصروفات وحوض وقطيع). لا تُرفع للسحابة أبداً، وتُمسح بضغطة عند البدء الفعلي.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn secondary" type="button" onclick="ksDemoLoad()">🧪 تحميل بيانات تجريبية</button>
+      <button class="btn secondary" type="button" onclick="ksDemoWipe()">🧹 مسح البيانات التجريبية</button>
+      <button class="btn secondary" type="button" onclick="DB.settings.onboarded=false;save();ksOnboardOpen()">🚀 معالج إعداد المزرعة</button>
     </div>
     <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)">
     <h3 style="margin-top:14px">📤 تصدير بيانات المزرعة</h3>
@@ -3663,6 +3696,20 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
 /* ════ محرك الترجمة المركزي — أي لغة جديدة: أضف كائنها في I18N فقط ════ */
 const I18N={en:{},ur:{}};
 const I18N_PAT=[];
+/* v12.44-A — بوابات الاشتراك وشريحته ولوحة المزوّد */
+I18N_PAT.push(
+ {re:/^⏳ فترة تجريبية — باقي (\d+) يوم$/,en:"⏳ Trial — $1 days left",ur:"⏳ آزمائشی — $1 دن باقی"},
+ {re:/^🔔 الاشتراك ينتهي خلال (\d+) يوم$/,en:"🔔 Subscription ends in $1 days",ur:"🔔 سبسکرپشن $1 دن میں ختم"},
+ {re:/^🔒 قراءة فقط — سماح (\d+) يوم$/,en:"🔒 Read-only — $1 grace days",ur:"🔒 صرف پڑھنے کے لیے — $1 دن مہلت"},
+ {re:/^⏳ فُعّلت التجربة حتى (.+)$/,en:"⏳ Trial activated until $1",ur:"⏳ آزمائش فعال تا $1"},
+ {re:/^✅ فُعّل الاشتراك حتى (.+)$/,en:"✅ Subscription activated until $1",ur:"✅ سبسکرپشن فعال تا $1"},
+ {re:/^✅ اشتراك نشط حتى (.+)$/,en:"✅ Active until $1",ur:"✅ فعال تا $1"},
+ {re:/^📄 صدر عرض السعر (.+) — صالح حتى (.+)$/,en:"📄 Quote $1 issued — valid until $2",ur:"📄 کوٹیشن $1 جاری — تا $2"},
+ {re:/^✅ صدرت الفاتورة (.+)$/,en:"✅ Invoice $1 issued",ur:"✅ انوائس $1 جاری"},
+ {re:/^🧾 مستند اشتراك — (.+)$/,en:"🧾 Subscription document — $1",ur:"🧾 سبسکرپشن دستاویز — $1"},
+ {re:/^مطلوب: (.+)$/,en:"Requested: $1",ur:"درخواست: $1"},
+ {re:/^إجمالي الفواتير \((\d+) فاتورة — العروض غير محتسبة\)$/,en:"Total invoices ($1 — quotes excluded)",ur:"کل انوائسز ($1 — کوٹیشن شامل نہیں)"}
+);
 let __patDepth=0;
 function __trCapture(v){
   if(v===undefined) return "";
@@ -4297,6 +4344,63 @@ Object.assign(I18N.en,{"— عميل محذوف —":"— deleted customer —",
 Object.assign(I18N.ur,{"— عميل محذوف —":"— حذف شدہ گاہک —","— موظف محذوف —":"— حذف شدہ ملازم —","المبيعات الإجمالية":"مجموعی فروخت"});
 /* i18n v12.12 — نصوص جولة الأرقام والفاعلية والقرارات الثلاثة */
 Object.assign(I18N.en,{"🏠 بدل السكن (⃁)":"🏠 Housing allowance (⃁)","🚗 بدل المواصلات (⃁)":"🚗 Transport allowance (⃁)","بدلات أخرى (⃁)":"Other allowances (⃁)","إجمالي البدلات الشهرية (⃁)":"Total monthly allowances (⃁)","السكن والمواصلات يدخلان في مكافأة نهاية الخدمة — «أخرى» لا تدخل":"Housing & transport count toward end-of-service; \"Other\" does not","خاضعة لضريبة القيمة المضافة":"Subject to VAT","نعم — فاتورة ضريبية من مورّد مسجَّل":"Yes — tax invoice from a registered supplier","لا — رسوم حكومية / تأمينات / مورّد غير مسجَّل":"No — government fees / insurance / unregistered supplier","🔍 مراجعة الضريبة الداخلة على المصروفات":"🔍 Input VAT review on expenses","↩️ مؤشر المردودات":"↩️ Returns indicator","عدد المصروفات":"Expenses count","الضريبة الداخلة المفترضة":"Assumed input VAT","التصنيف بالجملة":"Bulk classify","🚫 غير خاضعة":"🚫 Not subject","✅ خاضعة":"✅ Subject","✅ كلها خاضعة":"✅ All subject","مصروفات غير خاضعة (رسوم/تأمينات/مورّد غير مسجَّل)":"Non-taxable expenses (fees/insurance/unregistered supplier)","غير مستحق":"Not due","1–30 يوم":"1–30 days","31–60 يوم":"31–60 days","61–90 يوم":"61–90 days","أكثر من 90":"Over 90","الأسبوع":"Week","متوقع وارد":"Expected in","متوقع صادر":"Expected out","الرصيد المتوقع":"Projected balance","الرصيد الحالي":"Current balance","النقدية (صندوق + بنك)":"Cash (cash + bank)","عدد المبيعات":"Sales count","الدورات":"Cycles","الإيراد (صافي الضريبة)":"Revenue (net of VAT)","متوسط السعر":"Avg. price","متوسط الكمية للبيعة":"Avg. qty per sale","التغيّر":"Change","جديد":"New","المبيعات الإجمالية":"Gross sales","المردودات":"Returns","نسبة المردودات":"Returns rate","صافي المبيعات":"Net sales","النسبة":"Rate","رصيد افتتاحي":"Opening balance","قيمة المخزون بعده":"Stock value after","قيمة الفروقات":"Variance value","السبب":"Reason","الاسم المختصر (للتقارير)":"Short name (for reports)","مردود مبيعات":"Sales return","بيع مباشر":"Direct sale","— منتج محذوف —":"— deleted product —","— مورد محذوف —":"— deleted supplier —","— صنف محذوف —":"— deleted item —","— بلا مورد —":"— no supplier —","— موظف غير موجود —":"— employee not found —"});
+Object.assign(I18N.en,{"🗄️ أرشفة السنوات المقفلة":"🗄️ Archive closed years","📊 مقارنة الدفعات (الحالية والمقفلة)":"📊 Batch comparison (current & closed)","⬆️ استيراد CSV":"⬆️ Import CSV","الدفعة":"Batch","إنزال":"Stocked","نافق":"Dead","بقاء":"Survival","مباع كجم":"Sold kg","الربح":"Profit","↩️ استعادة":"↩️ Restore","🗄️ أرشفة":"🗄️ Archive","🔒 مقفلة":"🔒 Closed","الحجم التقريبي":"Approx. size"});
+Object.assign(I18N.ur,{"🗄️ أرشفة السنوات المقفلة":"🗄️ بند سالوں کا آرکائیو","📊 مقارنة الدفعات (الحالية والمقفلة)":"📊 بیچ موازنہ (موجودہ اور بند)","⬆️ استيراد CSV":"⬆️ CSV درآمد","الدفعة":"بیچ","إنزال":"ڈالی گئی","نافق":"مردہ","بقاء":"بقا","مباع كجم":"فروخت کلو","الربح":"منافع","↩️ استعادة":"↩️ بحال کریں","🗄️ أرشفة":"🗄️ آرکائیو","🔒 مقفلة":"🔒 بند","الحجم التقريبي":"تخمینی حجم"});
+Object.assign(I18N.en,{"فترة السحب (يوم)":"Withdrawal (days)","🏚️ تقرير الحظائر (تكلفة الرأس)":"🏚️ Barn report (cost per head)","📊 مقارنة الدورات لنفس المنتج — تكلفة الكيلو":"📊 Cycle comparison per product — cost per kg","⏱️ تكلفة ساعة العمل وتوزيع الرواتب من الواقع":"⏱️ Labor cost per hour & real salary allocation","✅ تطبيق النسب المقترحة على توزيع الرواتب":"✅ Apply suggested salary allocation","الشهر":"Month","الأجر الشهري":"Monthly pay","أيام الحضور":"Days present","الساعات":"Hours","تكلفة الساعة":"Cost per hour","أعمال الشهر":"Tasks this month","التوزيع المقترح":"Suggested allocation","المنتج / الدورة":"Product / cycle","الأيام":"Days","الإنتاج (كجم)":"Output (kg)","تكلفة الكيلو":"Cost per kg","الهامش":"Margin"});
+Object.assign(I18N.ur,{"فترة السحب (يوم)":"واپسی مدت (دن)","🏚️ تقرير الحظائر (تكلفة الرأس)":"🏚️ باڑے کی رپورٹ (فی سر لاگت)","📊 مقارنة الدورات لنفس المنتج — تكلفة الكيلو":"📊 فی پروڈکٹ سائیکل موازنہ — فی کلو لاگت","⏱️ تكلفة ساعة العمل وتوزيع الرواتب من الواقع":"⏱️ فی گھنٹہ مزدوری لاگت اور حقیقی تنخواہ تقسیم","✅ تطبيق النسب المقترحة على توزيع الرواتب":"✅ تجویز کردہ تقسیم لاگو کریں","الشهر":"مہینہ","الأجر الشهري":"ماہانہ اجرت","أيام الحضور":"حاضری کے دن","الساعات":"گھنٹے","تكلفة الساعة":"فی گھنٹہ لاگت","أعمال الشهر":"مہینے کے کام","التوزيع المقترح":"تجویز کردہ تقسیم","المنتج / الدورة":"پروڈکٹ / سائیکل","الأيام":"دن","الإنتاج (كجم)":"پیداوار (کلو)","تكلفة الكيلو":"فی کلو لاگت","الهامش":"مارجن"});
+Object.assign(I18N.en,{"🧪 بيانات تجريبية":"🧪 Demo data","🧪 تحميل بيانات تجريبية":"🧪 Load demo data","🧹 مسح البيانات التجريبية":"🧹 Wipe demo data","🚀 معالج إعداد المزرعة":"🚀 Farm setup wizard","الاستخدام":"Usage","لتجربة السستم بسجلات جاهزة (عملاء ومبيعات ومصروفات وحوض وقطيع). لا تُرفع للسحابة أبداً، وتُمسح بضغطة عند البدء الفعلي.":"Try the system with ready records (customers, sales, expenses, a tank, a herd). Never uploaded to the cloud; wiped in one click when you start for real.","فهمت":"Got it","وش يسوي هذا؟":"What does this do?"});
+Object.assign(I18N.ur,{"🧪 بيانات تجريبية":"🧪 آزمائشی ڈیٹا","🧪 تحميل بيانات تجريبية":"🧪 آزمائشی ڈیٹا لوڈ کریں","🧹 مسح البيانات التجريبية":"🧹 آزمائشی ڈیٹا مٹائیں","🚀 معالج إعداد المزرعة":"🚀 فارم سیٹ اپ وزرڈ","الاستخدام":"استعمال","لتجربة السستم بسجلات جاهزة (عملاء ومبيعات ومصروفات وحوض وقطيع). لا تُرفع للسحابة أبداً، وتُمسح بضغطة عند البدء الفعلي.":"تیار ریکارڈز کے ساتھ سسٹم آزمائیں۔ کبھی کلاؤڈ پر نہیں جاتا؛ اصل آغاز پر ایک کلک سے مٹ جاتا ہے۔","فهمت":"سمجھ گیا","وش يسوي هذا؟":"یہ کیا کرتا ہے؟"});
+Object.assign(I18N.en,{"المنطقة":"Region","نوع القسم *":"Section type *","النوع":"Type","🌱 زراعة":"🌱 Crops","🐑 مواشي":"🐑 Livestock","🐟 أسماك":"🐟 Fish",
+ "حسابك جاهز — بانتظار التفعيل":"Your account is ready — awaiting activation",
+ "أُنشئت مزرعتك بنجاح وبياناتك آمنة. وصلنا طلبك وسنتواصل معك قريباً لتفعيل الفترة التجريبية أو الاشتراك — وبعد التفعيل اضغط «تحقّق من التفعيل».":"Your farm was created and your data is safe. We received your request and will contact you soon to activate the trial or subscription — after activation press “Check activation”.",
+ "انتهت الفترة التجريبية (٧ أيام)":"The 7-day trial has ended",
+ "نتمنى أن التجربة نالت رضاك! للاشتراك وتفعيل مزرعتك بشكل دائم تواصل مع خيرات سايه — كل بياناتك التجريبية محفوظة وسترجع كما هي لحظة التفعيل.":"We hope you enjoyed the trial! To subscribe and activate your farm permanently contact Khayrat Saya — all your trial data is kept and returns exactly as it was on activation.",
+ "انتهى اشتراك مزرعتك":"Your farm subscription has ended",
+ "بياناتك كلها محفوظة وآمنة في سحابتك ولن تُمس أبداً. جدد الاشتراك ويرجع كل شيء كما كان في نفس اللحظة.":"All your data is safely stored in your cloud and will never be touched. Renew and everything returns instantly.",
+ "الاشتراك موقوف":"Subscription suspended",
+ "تم إيقاف اشتراك هذه المزرعة مؤقتاً — للاستفسار تواصل مع خيرات سايه.":"This farm’s subscription is temporarily suspended — contact Khayrat Saya for details.",
+ "🔄 تحقّق من التفعيل":"🔄 Check activation","تسجيل الخروج":"Sign out","⏳ جارٍ التحقق…":"⏳ Checking…","لم يتم التفعيل بعد — تواصل مع خيرات سايه":"Not activated yet — contact Khayrat Saya",
+ "🛠️ لوحة المزود — اشتراكات المزارع":"🛠️ Provider panel — farm subscriptions",
+ "تظهر لك فقط (جلسة إيميل المزود). المديولات أزرار تُضغط تفعيلاً/إيقافاً وتُنفذ في السحابة فوراً، ثم اختر للمزرعة: تجربة ٧ أيام أو اشتراك سنة.":"Visible to you only (provider email session). Module buttons toggle instantly in the cloud; then choose per farm: 7-day trial or one-year subscription.",
+ "🧾 فواتير الاشتراك":"🧾 Subscription invoices","تُصدر من زر 🧾 أمام كل مزرعة ببياناتها المسجّلة، وتُحفظ في بياناتك أنت وتُزامَن مع سحابتك.":"Issued from the 🧾 button next to each farm with its registered details, stored in your own data and synced to your cloud.",
+ "إضافة مزرعة يدوياً برمزها":"Add a farm manually by code","رمز المزرعة (uid) xxxxxxxx-…":"Farm code (uid) xxxxxxxx-…","اسم المزرعة":"Farm name","اختياري":"optional","➕ إضافة":"➕ Add","🔄 تحديث":"🔄 Refresh",
+ "⏳ جارٍ جلب المزارع من السحابة…":"⏳ Loading farms from the cloud…","تأكد من تنفيذ SQL جدول farm_plan في السحابة أولاً":"Make sure the farm_plan SQL was executed in the cloud first",
+ "🏡 المزارع":"🏡 Farms","✅ نشطة":"✅ Active","⏳ تجريبية":"⏳ Trial","🕓 بانتظار":"🕓 Pending","⚠️ تنتهي قريباً":"⚠️ Ending soon",
+ "المزرعة":"Farm","بيانات الطلب":"Request details","المديولات":"Modules","الحالة":"Status","حتى":"Until","إجراءات":"Actions",
+ "⏳ تجربة ٧أ":"⏳ 7-day trial","🔄 تمديد سنة":"🔄 Extend a year","✅ اشتراك سنة":"✅ Subscribe a year","▶️ استئناف":"▶️ Resume","⏸️ إيقاف":"⏸️ Suspend","🧾 فاتورة":"🧾 Invoice","واتساب ↗":"WhatsApp ↗",
+ "🏡 لا مزارع مسجلة بعد — أول مزرعة تنشئ حسابها ستظهر هنا تلقائياً":"🏡 No farms yet — the first farm that signs up appears here automatically",
+ "⚠️ لوحة المزود فقط":"⚠️ Provider panel only","⚠️ لم يُعثر على بيانات المزرعة":"⚠️ Farm data not found","الفترة معبّأة من الاشتراك الذي فُعّل للتو.":"Period prefilled from the subscription just activated.",
+ "«عرض سعر» لمن يطلب مستنداً قبل التحويل — بلا ترقيم ضريبي وبلا أثر ضريبي، ويُحوَّل لفاتورة بعد السداد.":"“Quote” for a document before payment — no tax numbering, no tax effect; converted to an invoice after payment.",
+ "نوع المستند":"Document type","🧾 فاتورة (بعد السداد)":"🧾 Invoice (after payment)","📄 عرض سعر (قبل السداد)":"📄 Quote (before payment)","قيمة الاشتراك الأساسي (⃁)":"Base subscription (⃁)","قيمة المديولات الإضافية (⃁)":"Extra modules (⃁)","من تاريخ":"From","إلى تاريخ":"To","نسبة الضريبة % (صفر إن كنت غير مسجَّل)":"VAT % (zero if not registered)",
+ "⚠️ أدخل قيمة الاشتراك":"⚠️ Enter the subscription amount","⛔ تاريخ النهاية قبل البداية":"⛔ End date before start","اشتراك سنوي في سستم تشغيل المزرعة":"Annual subscription to the farm operating system","مديولات إضافية":"Extra modules","📄 إصدار عرض سعر اشتراك":"📄 Issue subscription quote","🧾 إصدار فاتورة اشتراك":"🧾 Issue subscription invoice",
+ "الرقم":"No.","الفترة":"Period","🧾 تحويل لفاتورة":"🧾 Convert to invoice","🧾 لا مستندات بعد — أصدرها من زر 🧾 أمام المزرعة":"🧾 No documents yet — issue from the 🧾 button next to the farm",
+ "تفعيل فترة تجريبية ٧ أيام لهذه المزرعة (بالمديولات المفعلة بأزرارها)؟":"Activate a 7-day trial for this farm (with the modules toggled on)?","⚠️ اكتب رمز المزرعة":"⚠️ Enter the farm code","✅ أُضيفت":"✅ Added","❌ خطأ اتصال":"❌ Connection error",
+ "⚠️ مديول هذا النوع غير مفعّل في اشتراكك":"⚠️ This module is not enabled in your subscription"});
+Object.assign(I18N.ur,{"المنطقة":"علاقہ","نوع القسم *":"سیکشن کی قسم *","النوع":"قسم","🌱 زراعة":"🌱 زراعت","🐑 مواشي":"🐑 مویشی","🐟 أسماك":"🐟 مچھلی",
+ "حسابك جاهز — بانتظار التفعيل":"آپ کا اکاؤنٹ تیار ہے — فعال ہونے کا انتظار",
+ "أُنشئت مزرعتك بنجاح وبياناتك آمنة. وصلنا طلبك وسنتواصل معك قريباً لتفعيل الفترة التجريبية أو الاشتراك — وبعد التفعيل اضغط «تحقّق من التفعيل».":"آپ کا فارم بن گیا اور ڈیٹا محفوظ ہے۔ درخواست موصول ہوئی، آزمائش یا سبسکرپشن فعال کرنے کے لیے جلد رابطہ کریں گے — فعال ہونے پر «فعالیت چیک کریں» دبائیں۔",
+ "انتهت الفترة التجريبية (٧ أيام)":"7 دن کی آزمائش ختم ہو گئی",
+ "نتمنى أن التجربة نالت رضاك! للاشتراك وتفعيل مزرعتك بشكل دائم تواصل مع خيرات سايه — كل بياناتك التجريبية محفوظة وسترجع كما هي لحظة التفعيل.":"امید ہے آزمائش پسند آئی! مستقل سبسکرپشن کے لیے خیرات سایہ سے رابطہ کریں — آپ کا سارا آزمائشی ڈیٹا محفوظ ہے اور فعال ہوتے ہی واپس آ جائے گا۔",
+ "انتهى اشتراك مزرعتك":"آپ کے فارم کی سبسکرپشن ختم ہو گئی",
+ "بياناتك كلها محفوظة وآمنة في سحابتك ولن تُمس أبداً. جدد الاشتراك ويرجع كل شيء كما كان في نفس اللحظة.":"آپ کا سارا ڈیٹا کلاؤڈ میں محفوظ ہے اور کبھی نہیں چھیڑا جائے گا۔ تجدید کریں اور سب کچھ فوراً واپس آ جائے گا۔",
+ "الاشتراك موقوف":"سبسکرپشن معطل","تم إيقاف اشتراك هذه المزرعة مؤقتاً — للاستفسار تواصل مع خيرات سايه.":"اس فارم کی سبسکرپشن عارضی طور پر معطل ہے — معلومات کے لیے خیرات سایہ سے رابطہ کریں۔",
+ "🔄 تحقّق من التفعيل":"🔄 فعالیت چیک کریں","تسجيل الخروج":"سائن آؤٹ","⏳ جارٍ التحقق…":"⏳ چیک ہو رہا ہے…","لم يتم التفعيل بعد — تواصل مع خيرات سايه":"ابھی فعال نہیں — خیرات سایہ سے رابطہ کریں",
+ "🛠️ لوحة المزود — اشتراكات المزارع":"🛠️ پرووائیڈر پینل — فارم سبسکرپشنز",
+ "تظهر لك فقط (جلسة إيميل المزود). المديولات أزرار تُضغط تفعيلاً/إيقافاً وتُنفذ في السحابة فوراً، ثم اختر للمزرعة: تجربة ٧ أيام أو اشتراك سنة.":"صرف آپ کو نظر آتا ہے (پرووائیڈر ای میل سیشن)۔ ماڈیول بٹن فوراً کلاؤڈ میں لاگو ہوتے ہیں؛ پھر فارم کے لیے 7 دن آزمائش یا ایک سال سبسکرپشن چنیں۔",
+ "🧾 فواتير الاشتراك":"🧾 سبسکرپشن انوائسز","تُصدر من زر 🧾 أمام كل مزرعة ببياناتها المسجّلة، وتُحفظ في بياناتك أنت وتُزامَن مع سحابتك.":"ہر فارم کے سامنے 🧾 بٹن سے جاری ہوتی ہیں، آپ کے ڈیٹا میں محفوظ اور کلاؤڈ سے ہم آہنگ۔",
+ "إضافة مزرعة يدوياً برمزها":"کوڈ سے فارم شامل کریں","رمز المزرعة (uid) xxxxxxxx-…":"فارم کوڈ (uid) xxxxxxxx-…","اسم المزرعة":"فارم کا نام","اختياري":"اختیاری","➕ إضافة":"➕ شامل کریں","🔄 تحديث":"🔄 تازہ کریں",
+ "⏳ جارٍ جلب المزارع من السحابة…":"⏳ کلاؤڈ سے فارم لوڈ ہو رہے ہیں…","تأكد من تنفيذ SQL جدول farm_plan في السحابة أولاً":"پہلے کلاؤڈ میں farm_plan SQL چلائیں",
+ "🏡 المزارع":"🏡 فارم","✅ نشطة":"✅ فعال","⏳ تجريبية":"⏳ آزمائشی","🕓 بانتظار":"🕓 زیرِ التوا","⚠️ تنتهي قريباً":"⚠️ جلد ختم",
+ "المزرعة":"فارم","بيانات الطلب":"درخواست کی تفصیل","المديولات":"ماڈیولز","الحالة":"حالت","حتى":"تک","إجراءات":"کارروائیاں",
+ "⏳ تجربة ٧أ":"⏳ 7 دن آزمائش","🔄 تمديد سنة":"🔄 ایک سال توسیع","✅ اشتراك سنة":"✅ ایک سال سبسکرپشن","▶️ استئناف":"▶️ بحال","⏸️ إيقاف":"⏸️ معطل","🧾 فاتورة":"🧾 انوائس","واتساب ↗":"واٹس ایپ ↗",
+ "🏡 لا مزارع مسجلة بعد — أول مزرعة تنشئ حسابها ستظهر هنا تلقائياً":"🏡 ابھی کوئی فارم نہیں — پہلا سائن اپ کرنے والا فارم خود بخود یہاں آئے گا",
+ "⚠️ لوحة المزود فقط":"⚠️ صرف پرووائیڈر پینل","⚠️ لم يُعثر على بيانات المزرعة":"⚠️ فارم کا ڈیٹا نہیں ملا","الفترة معبّأة من الاشتراك الذي فُعّل للتو.":"مدت ابھی فعال ہونے والی سبسکرپشن سے بھری گئی۔",
+ "«عرض سعر» لمن يطلب مستنداً قبل التحويل — بلا ترقيم ضريبي وبلا أثر ضريبي، ويُحوَّل لفاتورة بعد السداد.":"«کوٹیشن» ادائیگی سے پہلے دستاویز کے لیے — نہ ٹیکس نمبر نہ ٹیکس اثر؛ ادائیگی کے بعد انوائس میں بدلتی ہے۔",
+ "نوع المستند":"دستاویز کی قسم","🧾 فاتورة (بعد السداد)":"🧾 انوائس (ادائیگی کے بعد)","📄 عرض سعر (قبل السداد)":"📄 کوٹیشن (ادائیگی سے پہلے)","قيمة الاشتراك الأساسي (⃁)":"بنیادی سبسکرپشن (⃁)","قيمة المديولات الإضافية (⃁)":"اضافی ماڈیولز (⃁)","من تاريخ":"از","إلى تاريخ":"تا","نسبة الضريبة % (صفر إن كنت غير مسجَّل)":"ٹیکس % (رجسٹرڈ نہ ہوں تو صفر)",
+ "⚠️ أدخل قيمة الاشتراك":"⚠️ سبسکرپشن کی رقم درج کریں","⛔ تاريخ النهاية قبل البداية":"⛔ اختتام تاریخ آغاز سے پہلے","اشتراك سنوي في سستم تشغيل المزرعة":"فارم آپریٹنگ سسٹم کی سالانہ سبسکرپشن","مديولات إضافية":"اضافی ماڈیولز","📄 إصدار عرض سعر اشتراك":"📄 سبسکرپشن کوٹیشن جاری کریں","🧾 إصدار فاتورة اشتراك":"🧾 سبسکرپشن انوائس جاری کریں",
+ "الرقم":"نمبر","الفترة":"مدت","🧾 تحويل لفاتورة":"🧾 انوائس میں بدلیں","🧾 لا مستندات بعد — أصدرها من زر 🧾 أمام المزرعة":"🧾 ابھی کوئی دستاویز نہیں — فارم کے سامنے 🧾 بٹن سے جاری کریں",
+ "تفعيل فترة تجريبية ٧ أيام لهذه المزرعة (بالمديولات المفعلة بأزرارها)؟":"اس فارم کے لیے 7 دن کی آزمائش فعال کریں (فعال ماڈیولز کے ساتھ)؟","⚠️ اكتب رمز المزرعة":"⚠️ فارم کوڈ لکھیں","✅ أُضيفت":"✅ شامل ہو گیا","❌ خطأ اتصال":"❌ کنکشن خرابی",
+ "⚠️ مديول هذا النوع غير مفعّل في اشتراكك":"⚠️ اس قسم کا ماڈیول آپ کی سبسکرپشن میں فعال نہیں"});
 Object.assign(I18N.en,{"حجم الحوض (م³)":"Tank volume (m³)","الكثافة القصوى (كجم/م³)":"Max density (kg/m³)","الكثافة كجم/م³":"Density kg/m³","سبب النفوق":"Mortality cause","جودة مياه":"Water quality","مرض":"Disease","فرز/نقل":"Grading/transfer","افتراس":"Predation","مجهول":"Unknown","متوسط وزن المباع (جم)":"Avg. weight of sold (g)","النترات (ملجم/لتر)":"Nitrate (mg/L)","القلوية (ملجم/لتر كربونات)":"Alkalinity (mg/L CaCO₃)","وقت القياس":"Sampling time","فجر":"Dawn","صباح":"Morning","ظهر":"Noon","مساء":"Evening","نترات":"Nitrate","قلوية":"Alkalinity","الوقت":"Time","💊 سجل علاج الأسماك وفترة السحب":"💊 Fish treatment & withdrawal log","الدواء / المادة *":"Drug / substance *","الجرعة":"Dose","فترة السحب (يوم) *":"Withdrawal (days) *","حفظ العلاج":"Save treatment","سجل العلاج":"Treatment log","الدواء":"Drug","فترة السحب":"Withdrawal","البيع":"Sale","الحبيبة":"Pellet","أحواضها":"Tanks","المطلوب يومياً":"Daily need","الرصيد بالمخزون":"Stock","الاستهلاك":"Usage","يكفي":"Lasts","تقرير الدفعة الحالية":"Current batch report","إقفال الدفعة":"Close batch","بودرة":"Powder"});
 Object.assign(I18N.ur,{"حجم الحوض (م³)":"تالاب کا حجم (م³)","الكثافة القصوى (كجم/م³)":"زیادہ سے زیادہ کثافت (کلو/م³)","الكثافة كجم/م³":"کثافت کلو/م³","سبب النفوق":"اموات کی وجہ","جودة مياه":"پانی کا معیار","مرض":"بیماری","فرز/نقل":"چھانٹی/منتقلی","افتراس":"شکار","مجهول":"نامعلوم","متوسط وزن المباع (جم)":"فروخت شدہ کا اوسط وزن (گرام)","النترات (ملجم/لتر)":"نائٹریٹ (ملی گرام/لیٹر)","القلوية (ملجم/لتر كربونات)":"الکلینیٹی (ملی گرام/لیٹر)","وقت القياس":"پیمائش کا وقت","فجر":"فجر","صباح":"صبح","ظهر":"دوپہر","مساء":"شام","نترات":"نائٹریٹ","قلوية":"الکلینیٹی","الوقت":"وقت","💊 سجل علاج الأسماك وفترة السحب":"💊 مچھلی کے علاج اور واپسی مدت کا ریکارڈ","الدواء / المادة *":"دوا / مادہ *","الجرعة":"خوراک","فترة السحب (يوم) *":"واپسی مدت (دن) *","حفظ العلاج":"علاج محفوظ کریں","سجل العلاج":"علاج کا ریکارڈ","الدواء":"دوا","فترة السحب":"واپسی مدت","البيع":"فروخت","الحبيبة":"دانہ","أحواضها":"تالاب","المطلوب يومياً":"روزانہ ضرورت","الرصيد بالمخزون":"اسٹاک","الاستهلاك":"استعمال","يكفي":"کافی","تقرير الدفعة الحالية":"موجودہ بیچ رپورٹ","إقفال الدفعة":"بیچ بند کریں","بودرة":"پاؤڈر"});
 Object.assign(I18N.en,{"بيض ويرقات":"Eggs & larvae","زريعة":"Fry","إصبعيات":"Fingerlings","تسمين":"Grow-out","أمهات":"Broodstock","مرحلة السمك *":"Fish stage *","الأمونيا الكلية (ملجم/لتر)":"Total ammonia (mg/L)","النتريت (ملجم/لتر)":"Nitrite (mg/L)","نتريت":"Nitrite","النفوق / البقاء":"Mortality / survival","إقفال الدفعة":"Close batch","إنزال دفعة جديدة":"Restock","🔄 حفظ الإنزال الجديد":"🔄 Save new stocking","🧼 مقفل":"🧼 Closed","تفريخة جديدة":"New hatch","ترقية المرحلة":"Promote stage","1 مم":"1 mm","2 مم":"2 mm","3 مم":"3 mm","4 مم":"4 mm","المعدلات المناسبة للبلطي: حرارة 25–32°م، أكسجين أعلى من 4 ملجم/لتر، pH بين 6.5–8.5، أمونيا كلية أقل من 0.5 ملجم/لتر، نتريت أقل من 0.5 ملجم/لتر — أي قياس خارج المعدل يظهر بالأحمر":"Tilapia ranges: temperature 25–32°C, oxygen above 4 mg/L, pH 6.5–8.5, total ammonia below 0.5 mg/L, nitrite below 0.5 mg/L — any reading outside the range shows in red","تقدير عدد السمك اللي يوصل وزن البيع في كل شهر خلال السنة القادمة، حسب معدل النمو بين آخر قياسي وزن لكل حوض — سجّل الوزن دورياً ليكون التقدير دقيقاً.":"Estimated fish reaching sale weight each month over the coming year, from the growth rate between the last two weight samples per tank — record weights regularly for accuracy."});
@@ -4463,7 +4567,7 @@ const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
 const KEY = "khayratSayaFarm";
-const KS_VER="v12.43-A";
+const KS_VER="v12.44-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4566,6 +4670,7 @@ function load(){
       if(!d.settings.sections || !d.settings.sections.length) d.settings.sections = DEFAULT_SECTIONS.map(s=>({name:s.name, short:s.short}));
       // ترحيل: إضافة أي أقسام افتراضية جديدة وإعادة ترتيبها حسب DEFAULT_SECTIONS
       DEFAULT_SECTIONS.forEach(ds=>{ if(!d.settings.sections.some(s=>s.name===ds.name)) d.settings.sections.push({name:ds.name, short:ds.short}); });
+      d.settings.sections.forEach(sc=>{ if(sc && !sc.mod) sc.mod=secModule(sc.name); });   /* v12.44-A: تثبيت النوع مرة واحدة من الاسم ثم لا يُستنتج بعدها */
       d.settings.sections.sort((a,b)=>{
         const ai = DEFAULT_SECTIONS.findIndex(ds=>ds.name===a.name);
         const bi = DEFAULT_SECTIONS.findIndex(ds=>ds.name===b.name);
@@ -5016,6 +5121,7 @@ async function cloudPush(__preAuth, __force){
   if(window.__ksReadOnly && !__force && !__preAuth){ toast("🔒 الاشتراك منتهٍ — وضع قراءة فقط: الرفع معطّل"); return; }
   __cloudTimer=null;
   if(!cloudOn()||__cloudBusy) return;
+  if(DB&&DB.settings&&DB.settings.demo){ try{ cloudStatusUI("🧪 بيانات تجريبية — لا تُرفع"); }catch(e){} return; }   /* 🧪 v12.44-A: التجريبي لا يصل السحابة أبداً */
   if(typeof ksTabAllowed==="function" && !ksTabAllowed()) return;   /* 🛑 لا نرفع بهوية مزرعة غير هوية هذه النافذة */
   if(ksDataDriftBlock("رفع")) return;   /* 🛑 لا نرفع بيانات مزرعة إلى صف مزرعة أخرى */
   try{ if(!__preAuth && sessionStorage.getItem("ksAuthed")!=="1") return; }catch(e){}  /* لا رفع قبل الدخول إلا لرفع البقايا */
@@ -5067,7 +5173,7 @@ async function cloudPush(__preAuth, __force){
       r=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+encodeURIComponent(__fid),{method:"PATCH",
         body:JSON.stringify({data:DB,updated_at:now})});
     }
-    if(r.ok && __ok()){ DB.settings.lastCloudSync=now; localStorage.setItem(KEY,JSON.stringify(DB)); window.__ksDirty=false; try{ localStorage.removeItem("ksPend"); }catch(e){} cloudStatusUI(); }
+    if(r.ok && __ok()){ DB.settings.lastCloudSync=now; localStorage.setItem(KEY,JSON.stringify(DB)); window.__ksDirty=false; try{ localStorage.removeItem("ksPend"); }catch(e){} try{ planStatsPush(now); }catch(e){} cloudStatusUI(); }
     else{
       let __m="⚠️ تعذر الرفع ("+r.status+")";
       try{ const __tx=await r.text();
@@ -5152,7 +5258,10 @@ var FARM_PLAN=null; /* var وليس let: refreshSections تعمل قبل هذا 
 window.__ksReadOnly=false;
 const PLAN_MODS=[["agri","🌱","الزراعة"],["lvs","🐑","المواشي"],["fish","🐟","الأسماك"]];
 function planIsProvider(){ try{ const s=cloudSess(); return !!s&&String(s.email||"").toLowerCase()===PROVIDER_EMAIL; }catch(e){ return false; } }
-function secModule(sec){ const s=String(sec||""); if(/سمك|أسماك|اسماك|استزراع/.test(s)) return "fish"; if(/مواشي|ضان|أغنام|اغنام|ماعز|حلال/.test(s)) return "lvs"; return "agri"; }
+function secModule(sec){ const s=String(sec||"");
+  /* v12.44-A: النوع خاصية محفوظة على القسم (mod) — الاستنتاج من الاسم احتياط للأقسام القديمة فقط */
+  try{ const list=(typeof DB!=="undefined"&&DB&&DB.settings&&DB.settings.sections)||[]; const hit=list.find(x=>x&&x.name===s&&x.mod); if(hit) return hit.mod; }catch(e){}
+  if(/سمك|أسماك|اسماك|استزراع/.test(s)) return "fish"; if(/مواشي|ضان|أغنام|اغنام|ماعز|حلال|حظيرة|حظائر/.test(s)) return "lvs";   /* v12.44-A: الحظيرة اسم شائع لقسم مواشٍ */ return "agri"; }
 /* ── ⏱️ مرجع اليوم: أكبر تاريخ رأيناه، لا ساعة الجهاز وحدها ──────────────────
    حساب انتهاء الاشتراك كان يقرأ `today()` من ساعة الجهاز — فإرجاع التاريخ
    شهراً للوراء يعيد اشتراكاً منتهياً «نشطاً». الآن: مرجع اليوم = الأكبر بين
@@ -5404,7 +5513,7 @@ async function providerRender(){
     const box=(l,v,c)=>'<div class="card" style="padding:10px 16px;border-inline-start:4px solid '+c+'"><div class="muted" style="font-size:.7rem">'+l+'</div><div style="font-size:1.2rem;font-weight:800">'+v+'</div></div>';
     kp.innerHTML=box("🏡 المزارع",rows.length,"#047857")+box("✅ نشطة",n("active"),"#2563eb")+box("⏳ تجريبية",n("trial"),"#7c3aed")+box("🕓 بانتظار",n("pending"),"#d97706")+box("⚠️ تنتهي قريباً",soon,"#dc2626");
   }
-  tbl.innerHTML='<tr><th>المزرعة</th><th>بيانات الطلب</th><th>المديولات</th><th>الحالة</th><th>حتى</th><th>إجراءات</th></tr>'
+  tbl.innerHTML='<tr><th>المزرعة</th><th>بيانات الطلب</th><th>المديولات</th><th>الحالة</th><th>حتى</th><th>الاستخدام</th><th>إجراءات</th></tr>'
     +(rows.length?rows.map(p=>{
       const mods=PLAN_MODS.map(mm=>'<button type="button" class="lskChip'+(p.modules&&p.modules[mm[0]]===true?" on":"")+'" style="padding:5px 10px;font-size:.7rem" onclick="provModTgl(\''+p.farm_id+'\',\''+mm[0]+'\',this)">'+mm[1]+' '+mm[2]+'</button>').join(" ");
       const till=p.status==="trial"?(p.trial_ends||"—"):(p.expires_at||"—");
@@ -5424,8 +5533,8 @@ async function providerRender(){
         +(p.phone?'<a href="https://wa.me/'+wa+'" target="_blank" rel="noopener" style="font-size:.66rem">واتساب ↗</a>':'')
         +line("📍",p.city)+line("🏷️",rq&&("مطلوب: "+rq))+line("🧾",p.cr_no&&("س.ت "+p.cr_no))
         +line("🧮",p.tax_no&&("ض. "+p.tax_no))+line("📝",p.req_note);
-      return '<tr><td style="font-weight:700">'+nm+'</td><td>'+(info||'<span class="muted" style="font-size:.7rem">—</span>')+'</td><td><div style="display:flex;gap:5px;flex-wrap:wrap">'+mods+'</div></td><td>'+provBadge(p)+'</td><td style="white-space:nowrap">'+till+'</td><td style="white-space:nowrap">'+acts+'</td></tr>';
-    }).join(""):'<tr><td colspan="6" class="muted" style="padding:22px;text-align:center">🏡 لا مزارع مسجلة بعد — أول مزرعة تنشئ حسابها ستظهر هنا تلقائياً</td></tr>');
+      return '<tr><td style="font-weight:700">'+nm+'</td><td>'+(info||'<span class="muted" style="font-size:.7rem">—</span>')+'</td><td><div style="display:flex;gap:5px;flex-wrap:wrap">'+mods+'</div></td><td>'+provBadge(p)+'</td><td style="white-space:nowrap">'+till+'</td><td>'+provUsageCell(p)+'</td><td style="white-space:nowrap">'+acts+'</td></tr>';
+    }).join(""):'<tr><td colspan="7" class="muted" style="padding:22px;text-align:center">🏡 لا مزارع مسجلة بعد — أول مزرعة تنشئ حسابها ستظهر هنا تلقائياً</td></tr>');
 }
 
 /* ═══════════ v12.31-A — تصدير كامل لبيانات المزرعة ═══════════
@@ -5483,6 +5592,363 @@ function ksRecCounts(){
       if(Array.isArray(lv[k])){ c["livestock."+k]=lv[k].length; t+=lv[k].length; } });
   }catch(e){}
   c.__total=t; return c;
+}
+/* ═══════════ v12.44-A — (8) إحصاءات الاستخدام: المزرعة تكتب ثلاثة أعمدة في صفها في farm_plan فقط
+   (last_sync · rec_count · size_kb · app_ver) مرة كل ساعة بعد رفع ناجح. المزوّد لا يقرأ بيانات المزرعة (خصوصية)
+   لكنه يرى «من يستعمل فعلاً ومن يقترب من سقف المتصفح». يحتاج تنفيذ أعمدة-إحصاءات-الاستخدام.sql؛ وبدونه يفشل PATCH بصمت. */
+async function planStatsPush(nowIso){
+  try{
+    if(!cloudOn() || !cloudIsFarmOwner()) return;
+    if(DB.settings&&DB.settings.demo) return;
+    const at=+(localStorage.getItem("ksStatsAt")||0); if(Date.now()-at<3600e3) return;
+    const fid=cloudFarmId(); if(!fid) return;
+    const rc=ksRecCounts(); let kb=0; try{ kb=Math.round((localStorage.getItem(KEY)||"").length*2/1024); }catch(e){}
+    const r=await cloudAuthFetch("/rest/v1/farm_plan?farm_id=eq."+encodeURIComponent(fid),{method:"PATCH",headers:{Prefer:"return=minimal"},
+      body:JSON.stringify({last_sync:nowIso||new Date().toISOString(), rec_count:rc.__total||0, size_kb:kb, app_ver:KS_VER})});
+    if(r&&r.ok) localStorage.setItem("ksStatsAt",String(Date.now()));
+  }catch(e){}
+}
+function provUsageCell(p){
+  if(!p.last_sync) return '<span class="muted" style="font-size:.7rem">— لا إحصاءات بعد —</span>';
+  const days=Math.floor((Date.now()-new Date(p.last_sync).getTime())/864e5);
+  const col=days>30?"var(--red)":days>7?"var(--amber)":"var(--green)";
+  const kb=+p.size_kb||0; const kbCol=kb>=4000?"var(--red)":kb>=3000?"var(--amber)":"inherit";
+  return '<div style="font-size:.7rem;white-space:nowrap"><span style="color:'+col+'">🕒 '+(days===0?"اليوم":"منذ "+fmt(days)+" يوم")+'</span>'
+    +'<br>📚 '+fmt(+p.rec_count||0)+' سجل<br><span style="color:'+kbCol+'">💾 '+fmt(kb)+' ك.ب'+(kb>=4000?" ⚠️ قرب السقف":"")+'</span>'+(p.app_ver?'<br><span class="muted">'+escH(p.app_ver)+'</span>':'')+'</div>';
+}
+
+/* ═══════════ v12.44-A — (5) معالج البدء: مزرعة فارغة ⇒ أربع خطوات تُنشئ الأقسام والمنتجات بدل صفحة فارغة ═══════════ */
+function ksFarmIsEmpty(){
+  return !(DB.employees||[]).length && !(DB.cycles||[]).length && !(DB.harvests||[]).length && !(DB.tanks||[]).length
+      && !(DB.customers||[]).length && !(DB.expenses||[]).length && !(DB.purchases||[]).length && !(DB.invoices||[]).length;
+}
+function ksOnboardMaybe(){
+  try{
+    if(!isOwner()) return; if(DB.settings.onboarded || DB.settings.demo) return; if(!ksFarmIsEmpty()) return;
+    if(document.getElementById("onbModal")) return;
+    if(document.getElementById("cloudGate") && getComputedStyle(document.getElementById("cloudGate")).display!=="none") return;
+    ksOnboardOpen();
+  }catch(e){}
+}
+const ONB_SUGGEST={agri:["الزراعة المكشوفة","المشتل","بيت محمي 1"], lvs:["حظيرة 1"], fish:["الاستزراع السمكي (بلطي)"]};
+const ONB_TYPES={agri:["خضار","تمور","فواكه"], fish:["أسماك"], lvs:[]};
+let __onb=null;
+function ksOnboardOpen(){
+  const mods=(typeof PLAN_MODS!=="undefined"?PLAN_MODS.map(m=>m[0]):["agri","lvs","fish"]).filter(k=>typeof modOn!=="function"||modOn(k));
+  __onb={step:0, name:DB.settings.companyName||"", admin:DB.settings.adminName||DB.settings.ownerName||"", mods:Object.fromEntries(mods.map(k=>[k,true])), avail:mods,
+    secs:Object.fromEntries(mods.map(k=>[k,ONB_SUGGEST[k].join("\n")])), prods:new Set((DB.products||[]).map(p=>p.name)), extra:""};
+  let m=document.getElementById("onbModal");
+  if(!m){ m=document.createElement("div"); m.id="onbModal"; m.style.cssText="position:fixed;inset:0;z-index:99970;background:rgba(6,95,70,.55);display:flex;padding:16px;overflow:auto"; document.body.appendChild(m); }
+  ksOnboardRender();
+}
+function ksOnboardRender(){
+  const m=document.getElementById("onbModal"); if(!m||!__onb) return;
+  const o=__onb; const L={agri:"🌱 الزراعة",lvs:"🐑 المواشي",fish:"🐟 الأسماك"};
+  const chosen=o.avail.filter(k=>o.mods[k]);
+  const steps=["المنشأة","النشاط","الأقسام","المنتجات"];
+  const bar=steps.map((t,i)=>'<span style="flex:1;text-align:center;font-size:.72rem;padding:6px 4px;border-radius:8px;background:'+(i===o.step?"var(--green)":i<o.step?"var(--green-light)":"var(--card)")+';color:'+(i===o.step?"#fff":"var(--muted)")+'">'+(i+1)+' · '+t+'</span>').join("");
+  let body="";
+  if(o.step===0) body='<div class="row"><div><label>اسم المنشأة *</label><input id="onbName" value="'+escH(o.name)+'" placeholder="مثال: مزرعة الخير"></div><div><label>اسم المسؤول (الأدمن)</label><input id="onbAdmin" value="'+escH(o.admin)+'"></div></div>'
+    +'<p class="muted" style="font-size:.78rem">الرقم الضريبي والسجل التجاري تُدخلهما لاحقاً من بيانات المنشأة — لأنهما يُقفلان بعد أول حفظ.</p>';
+  else if(o.step===1) body='<p class="muted" style="font-size:.8rem;margin-bottom:8px">اختر ما تعمل به المزرعة فعلاً — يمكن تغييره لاحقاً من الاشتراك</p><div style="display:flex;gap:8px;flex-wrap:wrap">'
+    +o.avail.map(k=>'<button type="button" class="lskChip'+(o.mods[k]?" on":"")+'" style="padding:10px 16px;font-size:.9rem" onclick="__onb.mods[\''+k+'\']=!__onb.mods[\''+k+'\'];ksOnboardRender()">'+L[k]+'</button>').join("")+'</div>';
+  else if(o.step===2) body='<p class="muted" style="font-size:.8rem;margin-bottom:8px">قسم في كل سطر — عدّل الأسماء كما تريد، والنوع ثابت بالمجموعة</p><div class="row">'
+    +chosen.map(k=>'<div><label>'+L[k]+'</label><textarea id="onbSec_'+k+'" rows="4" style="width:100%">'+escH(o.secs[k]||"")+'</textarea></div>').join("")+'</div>';
+  else body='<p class="muted" style="font-size:.8rem;margin-bottom:8px">المنتجات التي تبيعها — ألغِ ما لا تحتاجه وأضف غيره سطراً في كل مرة</p>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+DEFAULT_PRODUCTS.filter(p=>chosen.some(k=>ONB_TYPES[k].includes(p[1]))).map(p=>'<label class="lskChip'+(o.prods.has(p[0])?" on":"")+'" style="padding:6px 12px;cursor:pointer"><input type="checkbox" style="display:none" '+(o.prods.has(p[0])?"checked":"")+' onchange="if(this.checked)__onb.prods.add(\''+escH(p[0])+'\');else __onb.prods.delete(\''+escH(p[0])+'\');ksOnboardRender()">'+escH(p[0])+' <span class="muted">('+p[1]+')</span></label>').join("")+'</div>'
+    +'<label>منتجات إضافية (سطر لكل منتج)</label><textarea id="onbExtra" rows="3" style="width:100%">'+escH(o.extra)+'</textarea>';
+  m.innerHTML='<div class="card" style="max-width:640px;margin:auto;width:100%;padding:22px">'
+    +'<h3 style="margin:0 0 4px">🚀 إعداد المزرعة — خطوة '+(o.step+1)+' من 4</h3><p class="muted" style="margin:0 0 12px;font-size:.78rem">أربع خطوات وتبدأ العمل. كل ما تختاره هنا يُعدَّل لاحقاً من الإعدادات.</p>'
+    +'<div style="display:flex;gap:6px;margin-bottom:14px">'+bar+'</div>'+body
+    +'<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">'
+    +(o.step>0?'<button type="button" class="btn secondary" onclick="ksOnboardStep(-1)">⬅️ السابق</button>':'')
+    +(o.step<3?'<button type="button" class="btn" onclick="ksOnboardStep(1)">التالي ➡️</button>':'<button type="button" class="btn" onclick="ksOnboardFinish()">✅ إنشاء المزرعة</button>')
+    +'<span style="flex:1"></span><button type="button" class="btn secondary" onclick="ksOnboardSkip()">تخطّي — أبدأ فارغاً</button></div></div>';
+  m.style.display="flex";
+}
+function ksOnboardCollect(){
+  const o=__onb; const g=id=>document.getElementById(id);
+  if(o.step===0){ o.name=(g("onbName")||{}).value||""; o.admin=(g("onbAdmin")||{}).value||""; }
+  if(o.step===2){ o.avail.forEach(k=>{ const t=g("onbSec_"+k); if(t) o.secs[k]=t.value; }); }
+  if(o.step===3){ o.extra=(g("onbExtra")||{}).value||""; }
+}
+function ksOnboardStep(d){
+  const o=__onb; ksOnboardCollect();
+  if(d>0 && o.step===0 && !o.name.trim()){ toast("⚠️ اسم المنشأة إلزامي"); return; }
+  if(d>0 && o.step===1 && !o.avail.some(k=>o.mods[k])){ toast("⚠️ اختر نشاطاً واحداً على الأقل"); return; }
+  o.step=Math.max(0,Math.min(3,o.step+d)); ksOnboardRender();
+}
+function ksOnboardSkip(){ DB.settings.onboarded=true; save(); const m=document.getElementById("onbModal"); if(m) m.remove(); toast("بدأت فارغاً — الإعداد من الإعدادات متى شئت"); }
+function ksOnboardFinish(){
+  const o=__onb; ksOnboardCollect();
+  if(!o.name.trim()){ o.step=0; ksOnboardRender(); toast("⚠️ اسم المنشأة إلزامي"); return; }
+  DB.settings.companyName=o.name.trim(); if(o.admin.trim()) DB.settings.adminName=o.admin.trim();
+  const secs=[]; o.avail.filter(k=>o.mods[k]).forEach(k=>{ String(o.secs[k]||"").split(/\n/).map(x=>x.trim()).filter(Boolean).forEach(nm=>{ if(!secs.some(x=>x.name===nm)) secs.push({name:nm, short:nm, irrig:"auto", mod:k}); }); });
+  if(!secs.length){ toast("⚠️ أضف قسماً واحداً على الأقل"); o.step=2; ksOnboardRender(); return; }
+  DB.settings.sections=secs;
+  const firstFish=secs.find(x=>x.mod==="fish"); if(firstFish) DB.settings.fishSection=firstFish.name;
+  /* المنتجات: نُبقي المختار من الافتراضي (المزرعة فارغة فلا مراجع) ونضيف الإضافي بنوع نشاطه */
+  DB.products=(DB.products||[]).filter(p=>o.prods.has(p.name));
+  const fishOn=!!o.mods.fish, agriOn=!!o.mods.agri;
+  String(o.extra||"").split(/\n/).map(x=>x.trim()).filter(Boolean).forEach(nm=>{ if(!DB.products.some(p=>p.name===nm)){ const rec={id:uid(), name:nm, type:(!agriOn&&fishOn)?"أسماك":"خضار", unit:"كجم", unitW:1, price:0}; try{ rec.prodNo=nextProdNo(); }catch(e){} DB.products.push(rec); } });
+  DB.settings.onboarded=true;
+  try{ refreshSections(); }catch(e){} save();
+  const m=document.getElementById("onbModal"); if(m) m.remove();
+  try{ fillSelects(); }catch(e){} try{ renderSecMgr(); }catch(e){} try{ renderStHub(); }catch(e){} try{ renderDailySecPicker(); }catch(e){} try{ fillCompanyInfo(); }catch(e){}
+  try{ const h=document.getElementById("headerFarmName"); if(h) h.textContent=DB.settings.companyName; }catch(e){}
+  try{ showTab("dash"); renderDash(); }catch(e){}
+  try{ logEdit("🚀 إعداد المزرعة", secs.length+" قسم · "+DB.products.length+" منتج"); }catch(e){}
+  toast("✅ جاهزة — "+secs.length+" قسم و"+DB.products.length+" منتج. ابدأ بتسجيل أول دورة أو إنزال");
+}
+
+/* ═══════════ v12.44-A — (6) بيانات تجريبية: يراها العميل في التجربة ثم يمسحها — ولا تصل السحابة أبداً (حارس في cloudPush) ═══════════ */
+function ksDemoLoad(){
+  if(!isOwner()){ toast("⚠️ للمالك فقط"); return; }
+  if(!ksFarmIsEmpty() && !confirm("المزرعة فيها بيانات. تحميل البيانات التجريبية يضيف سجلات تجريبية إليها ويوقف الرفع للسحابة حتى تمسحها. متابعة؟")) return;
+  ["customers","suppliers","employees","inventory","cycles","harvests","tasks","expenses","tanks","fishLogs","waterLogs"].forEach(k=>{ if(!Array.isArray(DB[k])) DB[k]=[]; });
+  const d=today(); const ago=(n)=>{ const x=new Date(d+"T00:00:00"); x.setDate(x.getDate()-n); return ksISO(x); };
+  const on=k=>typeof modOn!=="function"||modOn(k);
+  DB.settings.sections=DB.settings.sections&&DB.settings.sections.length?DB.settings.sections:[];
+  const ensureSec=(name,mod)=>{ if(!DB.settings.sections.some(x=>x.name===name)) DB.settings.sections.push({name,short:name,irrig:"auto",mod}); };
+  if(on("agri")){ ensureSec("الزراعة المكشوفة","agri"); ensureSec("بيت محمي 1","agri"); }
+  if(on("lvs")) ensureSec("حظيرة 1","lvs");
+  if(on("fish")) ensureSec(DB.settings.fishSection||"الاستزراع السمكي (بلطي)","fish");
+  refreshSections();
+  if(!DB.settings.companyName) DB.settings.companyName="مزرعة تجريبية";
+  const pTom=(DB.products||[]).find(p=>p.name==="طماطم")||(DB.products||[])[0];
+  const pFish=(DB.products||[]).find(p=>p.type==="أسماك");
+  const c1={id:uid(),name:"مصنع ألبان الريف (تجريبي)",phone:"0500000001",custNo:"CUS-D001",street:"طريق الملك فهد",bldg:"2020",addl:"3040",city:"الرياض",region:"العليا",prov:"منطقة الرياض",country:"السعودية",zip:"12211",payDays:30};
+  const c2={id:uid(),name:"سوق الخضار المركزي (تجريبي)",phone:"0500000002",custNo:"CUS-D002",city:"الرياض",region:"العزيزية",country:"السعودية",zip:"14515"};
+  DB.customers.push(c1,c2);
+  DB.suppliers.push({id:uid(),supNo:"SUP-D001",name:"شركة الأعلاف الوطنية (تجريبي)",phone:"0500000003"});
+  const e1={id:uid(),empNo:"D001",name:"سعيد (تجريبي)",job:"عامل زراعي",idNo:"1000000001",salary:2500,phone:"0500000004",section:"عام (كل المزرعة)",hireDate:ago(400),status:"نشط",nationality:"مصري",perms:{tabs:{},acts:{}}};
+  const e2={id:uid(),empNo:"D002",name:"خالد (تجريبي)",job:"مشرف",idNo:"1000000002",salary:4500,phone:"0500000005",section:"عام (كل المزرعة)",hireDate:ago(800),status:"نشط",nationality:"سعودي",perms:{tabs:{},acts:{}}};
+  DB.employees.push(e1,e2);
+  const inv1={id:uid(),itemNo:"ITM-D001",name:"سماد مركب NPK (تجريبي)",cat:"أسمدة",qty:40,unit:"كيس",cost:85,min:10};
+  DB.inventory.push(inv1);
+  if(on("fish")) DB.inventory.push({id:uid(),itemNo:"ITM-D002",name:"علف بلطي 3ملي (تجريبي)",cat:"أعلاف",qty:600,unit:"كجم",cost:4.2,min:100});
+  if(on("lvs")) DB.inventory.push({id:uid(),itemNo:"ITM-D003",name:"شعير (تجريبي)",cat:"أعلاف",qty:900,unit:"كجم",cost:1.6,min:200});
+  if(on("agri") && pTom){
+    const cy={id:uid(),productId:pTom.id,section:"بيت محمي 1",status:"نشطة",plantDate:ago(75),harvestDate:ago(15),initCost:3200,qtyInfo:"1200 شتلة",employee:e2.name,notes:"دورة تجريبية"};
+    DB.cycles.push(cy);
+    [[14,420,c1.id,true],[10,380,c2.id,true],[6,510,c1.id,false],[2,300,c2.id,false]].forEach(([n2,kg,cid,paid])=>{
+      const price=6, tot=+(kg*price).toFixed(2), tax=+(tot-tot/1.15).toFixed(2);
+      DB.harvests.push({id:uid(),date:ago(n2),cycleId:cy.id,section:"بيت محمي 1",productName:pTom.name,qty:kg,unit:"كجم",price,total:tot,taxAmt:tax,taxRate:15,taxIncl:true,customerId:cid,customer:custName(cid),paid,employee:e1.name,notes:"بيع تجريبي"});
+    });
+    DB.tasks.push({id:uid(),date:ago(1),section:"بيت محمي 1",type:"ري",employee:e1.name,notes:"تجريبي"},{id:uid(),date:d,section:"الزراعة المكشوفة",type:"تسميد",employee:e1.name,notes:"تجريبي"});
+  }
+  [["كهرباء",1850,20],["ماء",600,18],["وقود",900,9],["صيانة",450,5],["أسمدة ومبيدات",1200,25]].forEach(([cat,amt,n2])=>{
+    DB.expenses.push({id:uid(),date:ago(n2),cat,section:"عام (كل المزرعة)",amount:amt,employee:e2.name,notes:"مصروف تجريبي",vatable:true});
+  });
+  if(on("fish")){
+    const fsName=DB.settings.fishSection||"الاستزراع السمكي (بلطي)";
+    const fcy={id:uid(),productId:(pFish||pTom||{}).id||"",section:fsName,status:"نشطة",plantDate:ago(60),harvestDate:"",initCost:1500,notes:"🐟 دفعة حوض 1 (آلي)"};
+    DB.cycles.push(fcy);
+    DB.tanks.push({id:uid(),name:"حوض 1 (تجريبي)",type:"تسمين",initCount:2000,avgW:30,volume:20,meals:3,startDate:ago(60),cycleId:fcy.id,batches:[],notes:"تجريبي"});
+    [[55,25,0,45],[45,30,3,70],[35,36,0,110],[25,40,2,150],[15,44,0,190],[5,48,1,230]].forEach(([n2,feed,dead,w])=>DB.fishLogs.push({id:uid(),date:ago(n2),tank:"حوض 1 (تجريبي)",feed,feedType:"3ملي",dead,avgW:w,employee:e1.name,notes:"تجريبي"}));
+    [[3,28,5.5,7.6,0.2,0.1],[1,29,5.1,7.5,0.3,0.15]].forEach(([n2,t,o2,ph,amm,no2])=>DB.waterLogs.push({id:uid(),date:ago(n2),tank:"حوض 1 (تجريبي)",temp:t,o2,ph,amm,no2,slot:"فجر",employee:e1.name}));
+  }
+  if(on("lvs")){
+    const lv=getLivestock(); ["barns","animals","feedLogs"].forEach(k=>{ if(!Array.isArray(lv[k])) lv[k]=[]; });
+    lv.barns.push({id:uid(),name:"حظيرة 1",type:"مغلقة",cap:80,notes:"تجريبي"});
+    lv.animals.push({id:uid(),date:ago(90),type:"ضان",count:45,gender:"مختلط",barn:"حظيرة 1",notes:"جرد تجريبي"});
+    lv.feedLogs.push({id:uid(),date:ago(2),animal:"ضان",feed:"شعير (تجريبي)",qty:60,unit:"كجم",barn:"حظيرة 1",employee:e1.name,notes:"تجريبي"});
+  }
+  DB.settings.demo=true; DB.settings.onboarded=true;
+  try{ localStorage.setItem("ksBannerDismissed","1"); }catch(e){}
+  save();
+  try{ fillSelects(); }catch(e){} try{ applyRole(); }catch(e){} try{ showTab("dash"); renderDash(); }catch(e){}
+  toast("🧪 حُمّلت البيانات التجريبية — لن تُرفع للسحابة. امسحها من الإعدادات متى شئت");
+}
+function ksDemoWipe(){
+  if(!isOwner()){ toast("⚠️ للمالك فقط"); return; }
+  if(!DB.settings.demo){ toast("لا توجد بيانات تجريبية محمّلة"); return; }
+  if(!confirm("مسح كل البيانات (التجريبية وأي إدخال أُضيف معها) والبدء بمزرعة فارغة؟\nتبقى بيانات المنشأة والأقسام واللغة.")) return;
+  const s0=DB.settings; const keep={companyName:s0.companyName,companyNameEn:s0.companyNameEn,adminName:s0.adminName,ownerName:s0.ownerName,lang:s0.lang,theme:s0.theme,fontSize:s0.fontSize,
+    sections:s0.sections,fishSection:s0.fishSection,taxNo:s0.taxNo,unifiedNo:s0.unifiedNo,crNo:s0.crNo,coPhone:s0.coPhone,coStreet:s0.coStreet,coBldg:s0.coBldg,coAddl:s0.coAddl,coCity:s0.coCity,coRegion:s0.coRegion,coProv:s0.coProv,coCountry:s0.coCountry,coZip:s0.coZip,noVat:s0.noVat,vatRate:s0.vatRate,onboarded:true};
+  const fresh=blank(); Object.keys(keep).forEach(k=>{ if(keep[k]!==undefined) fresh.settings[k]=keep[k]; });
+  DB=fresh; delete DB.settings.demo;
+  try{ refreshSections(); }catch(e){} save();
+  try{ fillSelects(); }catch(e){} try{ applyRole(); }catch(e){} try{ showTab("dash"); renderDash(); }catch(e){}
+  const b=document.getElementById("ksDemoBar"); if(b) b.remove();
+  toast("🧹 مُسحت البيانات التجريبية — المزرعة فارغة وجاهزة والرفع للسحابة يعمل");
+}
+function ksDemoBanner(){
+  let b=document.getElementById("ksDemoBar");
+  if(!(DB.settings&&DB.settings.demo)){ if(b) b.remove(); return; }
+  if(!b){ b=document.createElement("div"); b.id="ksDemoBar"; document.body.appendChild(b); }
+  b.style.cssText="position:fixed;top:0;left:0;right:0;z-index:5001;background:#7c3aed;color:#fff;font-size:.78rem;font-weight:700;padding:5px 12px;text-align:center;direction:rtl";
+  b.innerHTML='🧪 بيانات تجريبية — لا تُرفع للسحابة <button class="btn small secondary" style="margin-inline-start:10px;padding:2px 10px" onclick="ksDemoWipe()">🧹 مسح والبدء فعلياً</button>';
+}
+
+/* ═══════════ v12.44-A — (7) دليل المساعدة: شرح ما تفعله البطاقة وأثرها في الدفاتر ═══════════ */
+const KS_HELP={
+"تسجيل عمل يومي":"يسجّل ما نُفّذ اليوم في القسم (ري، تسميد، حصاد…) باسم الموظف. لا أثر مالي؛ يظهر في سجل الأعمال وتقارير الإنتاجية.",
+"تسجيل دورة زراعية / دفعة استزراع جديدة":"الدورة هي وعاء التكلفة والإيراد لمحصول أو دفعة. تكلفة البداية تدخل قائمة الدخل، وكل مصروف تربطه بها وكل بيع منها يُحسبان في ربحية الدورة والقسم.",
+"تسجيل مصروف تشغيلي":"يخصم من الصندوق فوراً إن كان نقدياً، أو يُقيَّد ديناً على الجهة إن كان آجلاً حتى تسدّده. خانة «خاضعة للضريبة» تحدد دخوله في إقرار ضريبة المدخلات.",
+"إضافة صنف للمخزون":"صنف بكمية وتكلفة وحد أدنى للتنبيه. الشراء يزيده والصرف والتغذية والرش تنقصه، وقيمة المخزون في الدفاتر تُطابق هذه الشاشة بعد التسوية الشهرية.",
+"إضافة صنف بتكلفته":"فاتورة شراء: تزيد المخزون بالكمية وتقيّد الدين على المورد (أو الصندوق إن دُفعت) وضريبة المدخلات. حذفها يعكس الكمية والدفاتر.",
+"إضافة عميل":"بيانات العميل وعنوانه الوطني الكامل — العنوان شرط لقبول الفاتورة الضريبية عند الهيئة. أيام السداد تحسب تاريخ الاستحقاق تلقائياً.",
+"إضافة مورد":"جهة الشراء. كل فاتورة شراء آجلة تظهر في كشف المورد حتى تُسدَّد.",
+"إضافة موظف":"سجل الموظف وراتبه وبدلاته. البدلات المفصولة تحدد أساس مكافأة نهاية الخدمة. الدخول للسستم يكون عبر طلب الانضمام السحابي لا من هنا.",
+"إضافة منتج":"ما تبيعه المزرعة. سعر البيع الافتراضي يظهر في الفواتير، والنوع يحدد أي مديول يخصه.",
+"عرض سعر جديد":"مستند بلا أثر مالي ولا ترقيم ضريبي. يتحول لفاتورة بضغطة واحدة بنفس البنود.",
+"الفواتير الإلكترونية":"الفاتورة المعتمدة تأخذ رقماً ضريبياً متسلسلاً ورمز QR وتدخل الدفاتر إيراداً وذمماً وضريبة مخرجات. المسودة لا أثر لها. الاعتماد لا يُتراجع عنه — استعمل إشعاراً دائناً.",
+"الفواتير المتكررة":"عقود التوريد الشهرية: يولّد السستم مسودة كل شهر بلا رقم — لا يُعتمد ولا يُقرّ بضريبة إلا عندما يتم التوريد فعلاً.",
+"قيد يدوي جديد":"قيد محاسبي حر لما لا يغطيه السستم تلقائياً (رأس مال، قرض، تسوية). يجب أن يتوازن ولا يُقبل داخل سنة مقفلة.",
+"سجل الأعلاف والنافق اليومي":"يخصم العلف من المخزون ويخصم النافق من عدد الحوض. متوسط الوزن يحرّك الجاهزية للبيع ومعدل التحويل. عدد المباع يُنشئ بيعاً بانتظار التسعير.",
+"قياسات مياه الأحواض":"لا أثر مالي. أي قياس خارج المعدل يظهر بالأحمر وينبّه، وقياس الفجر هو الأهم لأن الأكسجين أدنى ما يكون عنده.",
+"سجل علاج الأسماك وفترة السحب":"يمنع بيع الحوض حتى تنقضي فترة سحب الدواء — من اليومية ومن الفاتورة. التكلفة تُسجَّل مصروفاً مربوطاً بدورة الدفعة إن أردت.",
+"إدارة الأحواض (عدد السمك)":"الحوض يحمل دفعة واحدة في كل مرة. عند البيع الكامل أقفل الدفعة (🧼) فتنتهي دورتها المالية، ثم أنزل دفعة جديدة (🔄) فتبدأ سجلات جديدة معزولة عن القديمة.",
+"سجل تغذية المواشي (مربوط بالمخزون)":"يخصم العلف من المخزون بلا مصروف مكرر (تكلفة العلف دخلت عند شرائه).",
+"سجل المواليد والنفوق":"يحرّك صافي القطيع: المواليد تزيد والنفوق ينقص. النفوق الأكبر من الموجود مرفوض.",
+"بيع المواشي والحليب":"بيع الرؤوس يخصم القطيع ويقيّد الإيراد والضريبة والدين. بيع الحليب لا يمسّ القطيع. السعر شامل الضريبة افتراضاً.",
+"سجل الصحة والعلاج":"دواء يُخصم من الصيدلية البيطرية. لا يمنع البيع تلقائياً — راقب فترات السحب يدوياً.",
+"كشف الرواتب":"الكشف وحده لا يقيّد شيئاً. الدفع هو ما يقيّد مصروف الراتب كاملاً ويُخرج الصافي نقداً ويسدّد السلفة. زر التراجع يعكس الخمسة.",
+"تسجيل حضور / انصراف":"الغياب المسجَّل صراحةً يُخصم من الراتب بالأيام الفعلية. يوم بلا سجل لا يُعدّ غياباً.",
+"تسليم عهدة":"معدة أو مبلغ في ذمة الموظف. لا يُحذف الموظف وعليه عهدة غير مُعادة.",
+"المزامنة السحابية":"كل حفظ يُرفع تلقائياً بعد ثوانٍ. الرفع الفوري قبل إغلاق التطبيق. العمل بلا إنترنت محفوظ ويُرفع عند عودة الاتصال.",
+"سلة المهملات (آخر المحذوفات)":"المحذوف يُستعاد بأثره الكامل (المخزون والقطيع والدفاتر). في الوضع الرقابي الحذف المالي يصير إلغاءً بقيد عكسي لا محواً.",
+"بيانات الشركة (المزرعة)":"الاسم والعنوان الوطني والرقم الضريبي. الرقم الضريبي والسجل يُقفلان بعد أول حفظ (اشتراك واحد = كيان قانوني واحد).",
+"إدارة الأقسام":"القسم مكان داخل مديول. نوعه يحدد شاشاته (زراعة/مواشي/أسماك). إعادة التسمية ترحّل كل السجلات القديمة.",
+"توزيع المصاريف المشتركة على الأقسام":"المصروف المسجَّل على «عام» يُوزَّع بهذه النسب على الأقسام في ربحية كل قسم.",
+"أهداف الإيرادات الشهرية (⃁)":"مرجع لشريط التقدم في الملخص فقط — لا أثر مالي.",
+"سقف المصروفات الشهري (⃁)":"تنبيه عند تجاوزه — لا يمنع التسجيل.",
+"تسجيل جودة الحصاد":"درجة الجودة للدورة. لا أثر مالي؛ تظهر في مؤشرات الجودة.",
+"سجل أمراض النباتات ومعالجتها":"توثيق المرض والعلاج بالقسم. الرش المرتبط يُخصم من المخزون ويفعّل فترة الأمان قبل الحصاد.",
+"قياس مناخ البيوت المحمية":"حرارة ورطوبة البيت. لا أثر مالي.",
+"جرد الحيوانات":"عدد كل نوع في كل حظيرة. هو الأساس الذي تُخصم منه المبيعات والنفوق وتُضاف إليه المواليد.",
+"سجل الحظائر":"أماكن المواشي. النقل بين الحظائر لا يغيّر العدد الكلي.",
+"تسجيل إجازة":"الإجازة بلا راتب تُخصم بالأيام الفعلية داخل الشهر. الإجازة العابرة للشهر تُقسم بين الشهرين.",
+"تقييم أداء الموظفين":"درجات دورية. لا أثر مالي.",
+"استيراد بيانات (CSV)":"يقرأ ملفاً بقالب السستم. المكرر يُتخطى، والمستورد يدخل بصلاحيات صفر. ملف البنك لا يكتب في الدفاتر أبداً.",
+"تصدير بيانات المزرعة":"نسخة كاملة من كل شيء بما فيها المرفقات — حقك التعاقدي في بياناتك. للمالك فقط.",
+"الصيدلية البيطرية":"مخزون الأدوية بالكمية. كل استخدام في السجل الصحي يخصم منها.",
+"تتبع المدفوعات الآجلة":"سند مربوط بفاتورة يسدّدها فعلاً عند التحصيل — لا تحصيل مزدوج.",
+"الفوترة الإلكترونية — المرحلة الثانية":"ما أنجزه السستم (بنية الفاتورة، السلسلة، العدّاد) وما يحتاجه من المزرعة (شهادة باسمها وربط بالهيئة). التوقيع الرسمي يتم على الخادم لا في المتصفح."
+};
+function ksHelpKey(t){ return String(t||"").replace(/[\u{1F000}-\u{1FAFF}\u2600-\u27BF\uFE0F\u200D➕⬆️⬇️↩️⚙️❓☁️♻️⚖️⏰⏳]/gu,"").replace(/\s+/g," ").trim(); }
+function ksHelpInject(){
+  document.querySelectorAll(".card > h3, .card h3").forEach(h=>{
+    if(h.querySelector(".ksHelpBtn")) return;
+    const key=ksHelpKey(h.textContent); if(!KS_HELP[key]) return;
+    const b=document.createElement("button"); b.type="button"; b.className="ksHelpBtn no-print"; b.title="وش يسوي هذا؟"; b.textContent="؟"; b.dataset.key=key;
+    b.style.cssText="margin-inline-start:8px;width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:.8rem;cursor:pointer;vertical-align:middle;line-height:1";
+    b.onclick=function(ev){ ev.preventDefault(); ev.stopPropagation(); ksHelpShow(this.dataset.key, h.textContent); };
+    h.appendChild(b);
+  });
+}
+function ksHelpShow(key, title){
+  let m=document.getElementById("ksHelpModal");
+  if(!m){ m=document.createElement("div"); m.id="ksHelpModal"; m.style.cssText="position:fixed;inset:0;z-index:99960;background:rgba(0,0,0,.45);display:flex;padding:16px"; m.onclick=function(e){ if(e.target===m) m.style.display="none"; }; document.body.appendChild(m); }
+  m.innerHTML='<div class="card" style="max-width:520px;margin:auto;width:100%;padding:20px"><h3 style="margin:0 0 10px">❓ '+escH(String(title||key).replace(/؟$/,"").trim())+'</h3><p style="line-height:1.9;margin:0 0 14px">'+escH(KS_HELP[key]||"")+'</p><button type="button" class="btn" onclick="document.getElementById(\'ksHelpModal\').style.display=\'none\'">فهمت</button></div>';
+  m.style.display="flex";
+}
+/* ═══ 🗄️ v12.44-A — أرشفة السنوات المقفلة ═══
+   القاعدة: يُؤرشف فقط ما (١) وقع كاملاً داخل سنة مقفلة، (٢) وسُدِّد بالكامل، (٣) ولا يحكم أي رصيد جارٍ (حوض/قطيع/مخزون/سلفة/تسلسل فاتورة).
+   والرصيد المحاسبي يُحفظ بالضبط: نحسب أرصدة كل الحسابات حتى 31/12 قبل النقل وبعده ونقيّد الفرق قيداً افتتاحياً واحداً (archiveOf=السنة). */
+const ARCH_DB=["expenses","harvests","purchases","payments","supPayments","deferredPayments","invMoves","tasks","attendance","salaryPays","payrollRuns","waterLogs","recons","journals"];
+const ARCH_LV=["milkLogs","feedLogs","weightLogs","healthLogs","dailyReports"];
+function archYearOf(r,coll){ if(coll==="payrollRuns") return String(r.month||"").slice(0,4); return String(r.date||"").slice(0,4); }
+function archEligible(coll, r, y, ctx){
+  if(!r || archYearOf(r,coll)!==String(y)) return false;
+  if(r.apv==="p") return false;
+  switch(coll){
+    case "expenses":   return !(exIsCredit(r) && exRemain(r)>0.004);
+    case "harvests":   return !r.fishSale && !r.livestockSale && !(+r.heads>0) && !r.unpriced && hRemain(r)<=0.004;
+    case "purchases":  return pRemain(r)<=0.004;
+    case "payments":   { const h=(DB.harvests||[]).find(x=>x.id===r.harvestId); return !h || ctx.harv.has(h.id); }
+    case "supPayments":{ const p=(DB.purchases||[]).find(x=>x.id===r.purchaseId); return !p || ctx.purch.has(p.id); }
+    case "deferredPayments": return !!r.paid;
+    case "payrollRuns":return (r.rows||[]).length>0 && (r.rows||[]).every(x=>x.status==="مدفوع");
+    case "journals":   return !r.eosMonth && !r.eosPayEmp && !r.depMonth && !r.advRef && !r.ref && !r.archiveOf && !/^قيد إقفال/.test(String(r.desc||""));
+    default: return true;
+  }
+}
+function archPlan(y){
+  const ctx={harv:new Set(),purch:new Set()};
+  (DB.harvests||[]).forEach(h=>{ if(archEligible("harvests",h,y,ctx)) ctx.harv.add(h.id); });
+  (DB.purchases||[]).forEach(p=>{ if(archEligible("purchases",p,y,ctx)) ctx.purch.add(p.id); });
+  const colls={}, lv={}; let total=0;
+  ARCH_DB.forEach(k=>{ const a=(DB[k]||[]).filter(r=>archEligible(k,r,y,ctx)); if(a.length){ colls[k]=a; total+=a.length; } });
+  const L=DB.livestock&&!Array.isArray(DB.livestock)?DB.livestock:{};
+  ARCH_LV.forEach(k=>{ const a=(L[k]||[]).filter(r=>archEligible(k,r,y,ctx)); if(a.length){ lv[k]=a; total+=a.length; } });
+  let kb=0; try{ kb=Math.round(JSON.stringify({colls,lv}).length*2/1024); }catch(e){}
+  return {year:y, colls, lv, total, kb};
+}
+function archYears(){
+  const c=(DB.settings||{}).closedThrough||""; if(!c) return [];
+  const last=+c.slice(0,4); let first=last;
+  ARCH_DB.forEach(k=>(DB[k]||[]).forEach(r=>{ const yy=+archYearOf(r,k); if(yy>1990 && yy<first) first=yy; }));
+  (DB.archives||[]).forEach(a=>{ if(+a.year<first) first=+a.year; });
+  const out=[]; for(let yy=first; yy<=last; yy++) out.push(yy); return out;
+}
+function archGuard(what){
+  if(!ksOwnerOnly(what||"الأرشفة")) return false;
+  if(window.__ksReadOnly){ toast("🔒 الاشتراك في وضع القراءة فقط"); return false; }
+  if(DB.settings&&DB.settings.demo){ toast("🧪 البيانات التجريبية لا تُؤرشف"); return false; }
+  if(!cloudOn() || !cloudIsFarmOwner()){ toast("☁️ الأرشفة تحتاج جلسة سحابية لصاحب المزرعة"); return false; }
+  if(!ksOutAllowed()){ toast("⛔ هوية النافذة لا تطابق بيانات الجهاز"); return false; }
+  if(ksIsDirty()){ toast("⏳ توجد تعديلات لم تُرفع بعد — انتظر اكتمال المزامنة ثم أعد المحاولة"); return false; }
+  return true;
+}
+async function ksArchiveYear(y){
+  y=+y; const end=y+"-12-31";
+  if(!archGuard("أرشفة سنة "+y)) return false;
+  const c=(DB.settings||{}).closedThrough||""; if(!c || end>c){ toast("🔒 أقفل سنة "+y+" أولاً من الحسابات ← إقفال السنة المالية"); return false; }
+  if((DB.archives||[]).some(a=>+a.year===y)){ toast("🗄️ سنة "+y+" مؤرشفة مسبقاً"); return false; }
+  const plan=archPlan(y); if(!plan.total){ toast("لا سجلات مؤهلة للأرشفة في "+y); return false; }
+  const desc=Object.entries(plan.colls).concat(Object.entries(plan.lv)).map(([k,a])=>k+": "+a.length).join(" · ");
+  if(!confirm("أرشفة سنة "+y+"؟\n"+fmt(plan.total)+" سجل (~"+fmt(plan.kb)+" ك.ب) تُرفع للأرشيف السحابي ثم تُزال من الجهاز، ويُقيَّد رصيد افتتاحي بتاريخ "+end+".\n"+desc+"\nقابلة للعكس من زر الاستعادة.")) return false;
+  const fid=cloudFarmId();
+  const payload={farm_id:fid, year:y, rec_count:plan.total, app_ver:KS_VER, data:{colls:plan.colls, lv:plan.lv, at:new Date().toISOString()}};
+  try{
+    await cloudAuthFetch("/rest/v1/farm_archive?farm_id=eq."+encodeURIComponent(fid)+"&year=eq."+y,{method:"DELETE"});
+    const r=await cloudAuthFetch("/rest/v1/farm_archive",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify(payload)});
+    if(!r||!r.ok){ let t=""; try{ t=await r.text(); }catch(e){} toast("❌ لم يُرفع الأرشيف — لم يُحذف شيء من الجهاز ("+(r?r.status:"شبكة")+")"+(/farm_archive/.test(t)&&/does not exist|relation/.test(t)?" — نفّذ ملف farm_archive.sql في Supabase أولاً":"")); return false; }
+  }catch(e){ toast("❌ تعذّر الاتصال — لم يُحذف شيء من الجهاز"); return false; }
+  try{ takeSnap(false); }catch(e){}
+  const B0=acctBalances("",end);
+  const ids=new Set(); Object.values(plan.colls).forEach(a=>a.forEach(r=>ids.add(r.id))); Object.values(plan.lv).forEach(a=>a.forEach(r=>ids.add(r.id)));
+  Object.keys(plan.colls).forEach(k=>{ DB[k]=(DB[k]||[]).filter(r=>!ids.has(r.id)); });
+  const L=DB.livestock&&!Array.isArray(DB.livestock)?DB.livestock:null; if(L) Object.keys(plan.lv).forEach(k=>{ L[k]=(L[k]||[]).filter(r=>!ids.has(r.id)); });
+  const B1=acctBalances("",end); const lines=[];
+  [...new Set([...Object.keys(B0),...Object.keys(B1)])].forEach(code=>{ const v0=B0[code]?B0[code].d-B0[code].c:0, v1=B1[code]?B1[code].d-B1[code].c:0; const d=+(v0-v1).toFixed(2); if(Math.abs(d)<0.005) return; lines.push(d>0?{a:code,debit:d,credit:0}:{a:code,debit:0,credit:-d}); });
+  const jid=uid();
+  if(lines.length) DB.journals.push({id:jid, date:end, desc:"رصيد افتتاحي مرحّل — أرشفة سنة "+y, lines, archiveOf:y, employee:CURRENT_USER?CURRENT_USER.name:""});
+  DB.archives=DB.archives||[]; DB.archives.push({year:y, at:today(), count:plan.total, kb:plan.kb, journalId:lines.length?jid:"", by:CURRENT_USER?CURRENT_USER.name:""});
+  try{ logEdit("🗄️ أرشفة سنة "+y, plan.total+" سجل"); }catch(e){}
+  save(); try{ renderArchive(); acctRenderAll(); ksStoreUI(); }catch(e){}
+  toast("🗄️ أُرشفت سنة "+y+" — "+fmt(plan.total)+" سجل، والأرصدة محفوظة بقيد افتتاحي"); return true;
+}
+async function ksArchiveRestore(y){
+  y=+y; if(!archGuard("استعادة أرشيف "+y)) return false;
+  const a=(DB.archives||[]).find(x=>+x.year===y); if(!a){ toast("لا أرشيف لسنة "+y); return false; }
+  if(!confirm("استعادة سجلات سنة "+y+" من الأرشيف إلى الجهاز وحذف القيد الافتتاحي؟")) return false;
+  const fid=cloudFarmId(); let row=null;
+  try{ const r=await cloudAuthFetch("/rest/v1/farm_archive?select=data,rec_count&farm_id=eq."+encodeURIComponent(fid)+"&year=eq."+y,{method:"GET"}); if(r&&r.ok){ const j=await r.json(); row=Array.isArray(j)?j[0]:null; } }catch(e){}
+  if(!row||!row.data){ toast("❌ لم يُجلب الأرشيف من السحابة — لم يتغيّر شيء"); return false; }
+  try{ takeSnap(false); }catch(e){}
+  let back=0; const colls=row.data.colls||{}, lv=row.data.lv||{};
+  Object.keys(colls).forEach(k=>{ DB[k]=DB[k]||[]; const have=new Set(DB[k].map(r=>r.id)); colls[k].forEach(r=>{ if(!have.has(r.id)){ DB[k].push(r); back++; } }); });
+  const L=getLivestock(); Object.keys(lv).forEach(k=>{ L[k]=L[k]||[]; const have=new Set(L[k].map(r=>r.id)); lv[k].forEach(r=>{ if(!have.has(r.id)){ L[k].push(r); back++; } }); });
+  DB.journals=(DB.journals||[]).filter(j=>+j.archiveOf!==y);
+  DB.archives=(DB.archives||[]).filter(x=>+x.year!==y);
+  try{ await cloudAuthFetch("/rest/v1/farm_archive?farm_id=eq."+encodeURIComponent(fid)+"&year=eq."+y,{method:"DELETE"}); }catch(e){}
+  try{ logEdit("↩️ استعادة أرشيف سنة "+y, back+" سجل"); }catch(e){}
+  save(); try{ renderArchive(); acctRenderAll(); ksStoreUI(); }catch(e){}
+  toast("↩️ استُعيدت سنة "+y+" — "+fmt(back)+" سجل"); return true;
+}
+function renderArchive(){
+  const el=document.getElementById("archBody"); if(!el) return;
+  const ys=archYears();
+  if(!ys.length){ el.innerHTML='لا سنوات مُقفلة بعد — الأرشفة تتاح للسنة بعد إقفالها من الحسابات.'; return; }
+  el.innerHTML='<table style="width:100%;font-size:.8rem"><tr><th>السنة</th><th>الحالة</th><th>السجلات</th><th>الحجم التقريبي</th><th></th></tr>'+ys.map(y=>{
+    const a=(DB.archives||[]).find(x=>+x.year===y);
+    if(a) return '<tr><td><b>'+y+'</b></td><td>🗄️ مؤرشفة '+ksTxt(a.at)+'</td><td>'+fmt(a.count)+'</td><td>'+fmt(a.kb)+' ك.ب</td><td><button class="btn small secondary" type="button" onclick="ksArchiveRestore('+y+')">↩️ استعادة</button></td></tr>';
+    const p=archPlan(y);
+    return '<tr><td><b>'+y+'</b></td><td>🔒 مقفلة</td><td>'+fmt(p.total)+' مؤهل</td><td>'+fmt(p.kb)+' ك.ب</td><td>'+(p.total?'<button class="btn small" type="button" onclick="ksArchiveYear('+y+')">🗄️ أرشفة</button>':'<span class="muted">لا شيء مؤهل</span>')+'</td></tr>';
+  }).join("")+'</table>';
 }
 function ksExportAll(){
   if(!ksExportGuard("تصدير بيانات المزرعة")) return;
@@ -6682,6 +7148,9 @@ function applyRole(){
   // تحديث جرس التنبيهات عند الدخول
   setTimeout(buildNotifications, 500);
   try{ ksNoVatUI(); }catch(e){}   /* 🏷️ إخفاء شاشة الضريبة لغير المسجَّل عند كل تطبيق للدور */
+  try{ ksHelpInject(); }catch(e){}     /* ❓ v12.44-A: زر الشرح على كل بطاقة لها مدخل في الدليل */
+  try{ ksDemoBanner(); }catch(e){}     /* 🧪 شريط البيانات التجريبية */
+  try{ setTimeout(ksOnboardMaybe, 300); }catch(e){}   /* 🚀 معالج البدء للمزرعة الفارغة */
 }
 function cloudGateNeeded(){
   try{
@@ -8428,8 +8897,86 @@ function renderFishTreat(){
 }
 function csvFishTreat(){ dlCSV([["التاريخ","الحوض","الدواء","الجرعة","فترة السحب (يوم)","الموظف","ملاحظات"],
   ...(DB.fishTreatments||[]).map(x=>[x.date,x.tank||"",x.drug||"",x.dose||"",x.withdrawal||0,x.employee||"",x.notes||""])],"سجل_علاج_الأسماك"); }
+/* ⬇️ v12.44-A — تقرير الدفعة كملف CSV (نفس أرقام المطبوعة، من batchStats) */
+function csvBatchReport(tankId, idx){
+  const t=(DB.tanks||[]).find(x=>x.id===tankId); if(!t) return;
+  let b=null; if(idx>=0) b=(t.batches||[])[idx]||null; else if(idx===-2){ const bs=t.batches||[]; b=bs.length?bs[bs.length-1]:null; if(!b) return; }
+  const st=batchStats(t,b);
+  const rows=[["الحوض",st.name],["الدفعة",(st.from||"—")+" → "+(st.to||today())],["المرحلة",st.stage||""],["الأيام",st.days==null?"":st.days],["الإنزال",st.init],["نافق",st.dead],["بقاء %",st.surv==null?"":st.surv.toFixed(1)],["منقول إليه",st.tin],["منقول منه",st.tout],["مباع (عدد)",st.soldN],["مباع (كجم)",st.soldKg.toFixed(2)],["علف (كجم)",st.feed],["FCR",st.fcr==null?"":st.fcr.toFixed(2)],["تكلفة الإنزال",st.stockCost.toFixed(2)],["تكلفة العلف",st.feedCost.toFixed(2)],["مصروفات الدورة",st.expCost.toFixed(2)],["التكلفة الكلية",st.cost.toFixed(2)],["الإيراد (صافي)",st.rev.toFixed(2)],["الربح",st.profit.toFixed(2)],["تكلفة الكيلو",st.costPerKg==null?"":st.costPerKg.toFixed(2)],["مبيعات بانتظار التسعير",st.unpriced],["علاجات",st.treats.length]];
+  Object.entries(st.causes||{}).forEach(([c,v])=>rows.push(["نفوق — "+c,v]));
+  exportCSV(["البند","القيمة"], rows, "دفعة-"+ksSafeName(st.name)+"-"+(st.from||today()));
+}
+/* 📊 v12.44-A — مقارنة الدفعات: كل الدفعات المقفلة والحالية في جدول واحد بالأخضر/الأحمر على تكلفة الكيلو وFCR */
+function batchCmpRows(){
+  const out=[];
+  (DB.tanks||[]).forEach(t=>{
+    (t.batches||[]).forEach((b,i)=>{ try{ out.push(Object.assign(batchStats(t,b),{tankId:t.id,idx:i,type:t.type})); }catch(e){} });
+    if(+t.initCount>0 && !t.closedAt){ try{ out.push(Object.assign(batchStats(t,null),{tankId:t.id,idx:-1,type:t.type})); }catch(e){} }
+  });
+  out.sort((a,b)=>String(b.from||"").localeCompare(String(a.from||"")));
+  return out;
+}
+function renderBatchCompare(){
+  const el=document.getElementById("tblBatchCmp"); if(!el) return;
+  const rows=batchCmpRows().slice(0,60);
+  if(rows.length<2){ el.innerHTML='<tr><td class="muted">تظهر المقارنة عند وجود دفعتين فأكثر (حالية أو مقفلة)</td></tr>'; return; }
+  const cpk=rows.filter(r=>r.costPerKg!=null).map(r=>r.costPerKg), fcrs=rows.filter(r=>r.fcr!=null).map(r=>r.fcr);
+  const bestC=cpk.length?Math.min(...cpk):null, worstC=cpk.length>1?Math.max(...cpk):null, bestF=fcrs.length?Math.min(...fcrs):null, worstF=fcrs.length>1?Math.max(...fcrs):null;
+  const col=(v,best,worst)=>v==null?"":(v===best?"var(--green)":(worst!=null&&v===worst?"var(--red)":"inherit"));
+  el.innerHTML='<tr><th>الحوض</th><th>الدفعة</th><th>المرحلة</th><th>الأيام</th><th>إنزال</th><th>نافق</th><th>بقاء</th><th>مباع كجم</th><th>FCR</th><th>تكلفة الكيلو</th><th>الإيراد</th><th>الربح</th><th></th></tr>'
+    +rows.map(r=>`<tr><td><b>${ksNm(r.name)}</b></td><td>${r.closed?"⚪":"🟢"} ${ksTxt(r.from)}${r.closed?" → "+ksTxt(r.to):""}</td><td>${ksTxt(r.stage)}</td><td>${r.days==null?"—":fmt(r.days)}</td><td>${fmt(r.init)}</td><td class="${r.dead>0?"neg":""}">${fmt(r.dead)}</td><td>${r.surv==null?"—":fmt(Math.round(r.surv))+"%"}</td><td>${fmt(r.soldKg)}</td><td><b style="color:${col(r.fcr,bestF,worstF)}">${r.fcr==null?"—":r.fcr.toFixed(2)}</b></td><td><b style="color:${col(r.costPerKg,bestC,worstC)}">${r.costPerKg==null?"—":fmtSR(r.costPerKg)}</b></td><td>${fmtSR(r.rev)}</td><td class="${r.profit>=0?"pos":"neg"}">${fmtSR(r.profit)}</td><td><button class="edt" title="CSV" onclick="csvBatchReport('${r.tankId}',${r.idx})">⬇️</button></td></tr>`).join("");
+}
+/* ⬆️ v12.44-A — استيراد قياسات المياه من ملف CSV (أجهزة القياس تصدّر CSV) — الملف لا يكتب إلا سجلات مياه، ولا يمسّ أي رصيد */
+function wtImportPick(){ const f=document.getElementById("wtImpFile"); if(f) f.click(); }
+const WT_COLS=[["date",/^(التاريخ|تاريخ|date|day)$/i],["tank",/^(الحوض|حوض|tank|pond)$/i],["temp",/^(الحرارة|حرارة|temp|temperature|°c)$/i],["o2",/^(الأكسجين|اكسجين|أكسجين|o2|do|oxygen)$/i],["ph",/^(ph|الحموضة|حموضة)$/i],["amm",/^(الأمونيا|امونيا|أمونيا|amm|ammonia|nh3|tan)$/i],["no2",/^(النيتريت|نيتريت|no2|nitrite)$/i],["no3",/^(النترات|نترات|no3|nitrate)$/i],["alk",/^(القلوية|قلوية|alk|alkalinity|kh)$/i],["slot",/^(الفترة|فترة|slot|time|الوقت)$/i],["notes",/^(ملاحظات|notes?|remarks?)$/i]];
+function wtParseCSV(text){
+  const lines=String(text||"").replace(/^\uFEFF/,"").split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<2) return {error:"الملف فارغ أو بلا صفوف بيانات"};
+  const hdr=bkSplit(lines[0]).map(h=>h.trim()); const map={};
+  hdr.forEach((h,i)=>{ const hit=WT_COLS.find(([k,re])=>re.test(h)); if(hit && map[hit[0]]===undefined) map[hit[0]]=i; });
+  if(map.date===undefined || map.tank===undefined) return {error:"لم أجد عمودَي «التاريخ» و«الحوض» في السطر الأول — الأعمدة الموجودة: "+hdr.join(" · ")};
+  const meas=["temp","o2","ph","amm","no2","no3","alk"].filter(k=>map[k]!==undefined);
+  if(!meas.length) return {error:"لا يوجد أي عمود قياس (حرارة/أكسجين/pH/أمونيا/نيتريت/نترات/قلوية)"};
+  const tanks=new Set((DB.tanks||[]).map(t=>String(t.name||"").trim()));
+  const rows=[], skipped=[];
+  for(let i=1;i<lines.length;i++){
+    const c=bkSplit(lines[i]); if(c.every(x=>!x)) continue;
+    const date=bkDate(c[map.date]), tank=String(c[map.tank]||"").trim();
+    if(!date){ skipped.push({line:i+1,why:"تاريخ غير مقروء: "+(c[map.date]||"—")}); continue; }
+    if(!tanks.has(tank)){ skipped.push({line:i+1,why:"حوض غير موجود: "+(tank||"—")}); continue; }
+    if(!ksDateAllowed(date,"")){ skipped.push({line:i+1,why:"داخل سنة مقفلة: "+date}); continue; }
+    const rec={date,tank,slot:map.slot!==undefined?String(c[map.slot]||"").trim():"",notes:map.notes!==undefined?String(c[map.notes]||"").trim():""};
+    let any=false; meas.forEach(k=>{ const raw=String(c[map[k]]||"").trim(); if(raw===""){ rec[k]=null; return; } const v=bkNum(raw); rec[k]=v; any=true; });
+    if(!any){ skipped.push({line:i+1,why:"بلا أي قياس"}); continue; }
+    rows.push(rec);
+  }
+  return {rows, skipped, meas};
+}
+function wtImportApply(parsed){
+  const have=new Set((DB.waterLogs||[]).map(w=>String(w.date)+"|"+String(w.tank).trim()+"|"+String(w.slot||"")));
+  let added=0, dup=0;
+  parsed.rows.forEach(r=>{ const key=r.date+"|"+r.tank+"|"+(r.slot||""); if(have.has(key)){ dup++; return; } have.add(key);
+    DB.waterLogs.push(Object.assign({id:uid(),employee:CURRENT_USER?CURRENT_USER.name:"",imported:true},r)); added++; });
+  return {added,dup};
+}
+function wtImportCSV(file){
+  if(!file) return;
+  if(!isOwner() && !canTab("fish")){ toast("⚠️ ما عندك صلاحية على الأسماك"); return; }
+  if(window.__ksReadOnly){ toast("🔒 وضع القراءة فقط"); return; }
+  if(file.size>3*1024*1024){ toast("⚠️ الملف أكبر من 3 ميجا"); return; }
+  const rd=new FileReader();
+  rd.onload=()=>{ const p=wtParseCSV(rd.result); if(p.error){ toast("❌ "+p.error); return; }
+    if(!p.rows.length){ toast("⚠️ لا صف صالح"+(p.skipped.length?" — "+p.skipped[0].why:"")); return; }
+    if(!confirm("استيراد "+p.rows.length+" قياس"+(p.skipped.length?" (وتخطّي "+p.skipped.length+" سطراً)":"")+"؟")) return;
+    const r=wtImportApply(p); save(); try{ renderWater(); }catch(e){}
+    try{ logEdit("⬆️ استيراد قياسات مياه", r.added+" سجل من "+file.name); }catch(e){}
+    toast("✅ أُضيف "+r.added+" قياس"+(r.dup?" · "+r.dup+" مكرر تُخطّي":"")+(p.skipped.length?" · "+p.skipped.length+" سطر متجاوَز":""));
+    if(p.skipped.length) try{ alert("سطور متجاوَزة:\n"+p.skipped.slice(0,15).map(x=>"سطر "+x.line+": "+x.why).join("\n")+(p.skipped.length>15?"\n…":"")); }catch(e){} };
+  rd.readAsText(file,"utf-8");
+}
 function renderFish(){
   try{ renderFishTreat(); }catch(e){}
+  try{ renderBatchCompare(); }catch(e){}
   const __logSold={}; (DB.harvests||[]).forEach(h=>{ if(h.fishLogId) __logSold[h.fishLogId]=(__logSold[h.fishLogId]||0)+(+h.fishCount||0); });
   const rows = DB.fishLogs.slice().reverse().slice(0,200).map(f=>
     `<tr><td>${ksTxt(f.date)}</td><td><b>${ksTxt(f.tank)}</b></td><td>${f.meal?`<span class="badge active">وجبة ${f.meal}</span>`:"—"}</td><td>${fmt(f.feed)} كجم</td>
@@ -8497,7 +9044,7 @@ function renderFish(){
       : `<span class="badge done">🐣 إنتاج${cls.eta?" — متوقع "+cls.eta:""}</span>`;
     const lw = lastWater[t.name];
     const wstat = lw ? (waterBad(lw)?`<span class="badge danger">⚠️ خارج المعدل (${lw.date})</span>`:`<span class="badge active">سليمة (${lw.date})</span>`) : `<span class="badge warn">لا قياس</span>`;
-    return `<tr><td><b>${ksNm(t.name)}</b></td><td>${ksTxt(t.type)}${broodInfo}${(t.batches&&t.batches.length)?` <button class="edt" style="font-size:.72rem" title="تقرير الدفعات السابقة — ${t.batches.map(b=>b.from+" → "+b.to+": إنزال "+fmt(b.initCount)+" · نافق "+fmt(b.dead)+" · مباع "+fmt(b.sold)+" · علف "+fmt(b.feed)+" كجم").join("\n")}" onclick="printBatchReport('${t.id}',-2)">📜 ${t.batches.length}</button>`:""}</td><td>${t.startDate||"—"}</td><td>${fmt(t.initCount)}</td>
+    return `<tr><td><b>${ksNm(t.name)}</b></td><td>${ksTxt(t.type)}${broodInfo}${(t.batches&&t.batches.length)?` <button class="edt" style="font-size:.72rem" title="تقرير الدفعات السابقة — ${t.batches.map(b=>b.from+" → "+b.to+": إنزال "+fmt(b.initCount)+" · نافق "+fmt(b.dead)+" · مباع "+fmt(b.sold)+" · علف "+fmt(b.feed)+" كجم").join("\n")}" onclick="printBatchReport('${t.id}',-2)">📜 ${t.batches.length}</button>`:""}${(+t.initCount>0&&!t.closedAt)?` <button class="edt" style="font-size:.72rem" title="تقرير الدفعة الحالية CSV" onclick="csvBatchReport('${t.id}',-1)">⬇️</button>`:""}</td><td>${t.startDate||"—"}</td><td>${fmt(t.initCount)}</td>
       <td class="${a.dead>0?"neg":""}">${fmt(a.dead)}</td><td>${fmt(a.sold)}</td>
       <td class="pos" style="font-size:1rem"><b>${fmt(cur)} 🐟</b></td>
       <td>${readyBadge}</td>
@@ -8853,6 +9400,41 @@ function renderSecView(){
 }
 
 /* شاشة المواشي داخل المتابعة */
+/* 🏚️ v12.44-A — تقرير الحظائر: لكل حظيرة رؤوس ومواليد ونفوق ومبيعات وحليب وعلف وعلاج، وتكلفة الرأس
+   = (علف الحظيرة بتكلفة المخزون + حصتها من مصروفات قسم المواشي بنسبة رؤوسها) ÷ رؤوسها. بلا تخمين: الحظيرة بلا رؤوس تُعرض بلا تكلفة رأس. */
+function lvBarnStats(from,to){
+  const lv=getLivestock(); const inP=d=>{ d=String(d||""); return (!from||d>=from)&&(!to||d<=to); };
+  const barns=[...new Set([...(lv.barns||[]).map(b=>b.name),...(lv.animals||[]).map(a=>a.barn).filter(Boolean)])];
+  const secExp=(DB.expenses||[]).filter(x=>x.section==="قسم المواشي"&&inP(x.date)&&!x.voided).reduce((s2,x)=>s2+(+x.amount||0),0);
+  const rows=barns.map(bn=>{
+    const heads=(lv.animals||[]).filter(a=>a.barn===bn).reduce((s2,a)=>s2+(+a.count||0),0);
+    const births=(lv.birthDeathLogs||[]).filter(x=>x.barn===bn&&x.type==="مولود"&&inP(x.date)).reduce((s2,x)=>s2+(+x.count||1),0);
+    const deaths=(lv.birthDeathLogs||[]).filter(x=>x.barn===bn&&x.type==="نفوق"&&inP(x.date)).reduce((s2,x)=>s2+(+x.count||1),0);
+    const sales=(DB.harvests||[]).filter(h=>h.livestockSale&&h.barn===bn&&inP(h.date)&&!h.returnOf);
+    const soldHeads=sales.filter(h=>h.saleType==="حيوان").reduce((s2,h)=>s2+(+h.heads||0),0);
+    const rev=sales.reduce((s2,h)=>s2+hNet(h),0), milkRev=sales.filter(h=>h.saleType==="حليب").reduce((s2,h)=>s2+hNet(h),0);
+    const milkL=(lv.milkLogs||[]).filter(m=>m.barn===bn&&inP(m.date)).reduce((s2,m)=>s2+(+m.morning||0)+(+m.evening||0),0);
+    const feedKg=(lv.feedLogs||[]).filter(f=>f.barn===bn&&inP(f.date)).reduce((s2,f)=>s2+(+f.qty||0),0);
+    const feedCost=(lv.feedLogs||[]).filter(f=>f.barn===bn&&inP(f.date)).reduce((s2,f)=>{ const it=(DB.inventory||[]).find(i=>i.id===f.itemId); return s2+(+f.qty||0)*(it?(+it.cost||0):0); },0);
+    const treats=(lv.healthLogs||[]).filter(h=>h.barn===bn&&inP(h.date)).length;
+    return {barn:bn,heads,births,deaths,soldHeads,rev,milkRev,milkL,feedKg,feedCost,treats};
+  });
+  const totalHeads=rows.reduce((s2,r)=>s2+r.heads,0);
+  rows.forEach(r=>{ r.expShare=totalHeads>0?secExp*r.heads/totalHeads:0; r.cost=r.feedCost+r.expShare; r.costPerHead=r.heads>0?r.cost/r.heads:null;
+    const base=r.heads+r.deaths+r.soldHeads; r.survival=(r.births>0&&base>0)?Math.max(0,(base-r.deaths)/base*100):null; });
+  return {rows,secExp,totalHeads};
+}
+function printLvBarnReport(){
+  const y=String(new Date().getFullYear()); const st=lvBarnStats(y+"-01-01", today());
+  const w=window.open("","_blank","width=860,height=900"); if(!w){ toast("⚠️ اسمح بالنوافذ المنبثقة"); return; }
+  const rows=st.rows.map(r=>`<tr><td><b>${ksTxt(r.barn)}</b></td><td>${fmt(r.heads)}</td><td>${fmt(r.births)}</td><td>${fmt(r.deaths)}</td><td>${fmt(r.soldHeads)}</td><td>${fmtSR(r.rev)}</td><td>${fmt(r.milkL)} ل</td><td>${fmtSR(r.milkRev)}</td><td>${fmt(r.feedKg)} كجم</td><td>${fmtSR(r.feedCost)}</td><td>${fmtSR(r.expShare)}</td><td><b>${r.costPerHead===null?"—":fmtSR(r.costPerHead)}</b></td><td>${r.survival===null?"—":fmt(Math.round(r.survival))+"%"}</td><td>${fmt(r.treats)}</td></tr>`).join("")||`<tr><td colspan="14">لا حظائر مسجَّلة</td></tr>`;
+  w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>تقرير الحظائر</title>
+  <style>body{font-family:Tahoma,Arial;padding:24px;color:#1f2937}h1{color:#065f46;font-size:16pt}table{width:100%;border-collapse:collapse;font-size:10pt}th,td{border:1px solid #d1d5db;padding:5px 7px;text-align:right}th{background:#f2f8f4}.k{font-size:9.5pt;color:#555}@media print{button{display:none}}</style></head><body>
+  <h1>🏚️ تقرير الحظائر — ${ksCoName()}</h1><div class="k">السنة ${y} حتى ${today()} · مصروفات قسم المواشي في الفترة ${fmtSR(st.secExp)} موزعة على الحظائر بنسبة الرؤوس (${fmt(st.totalHeads)} رأس)</div>
+  <table style="margin-top:12px"><tr><th>الحظيرة</th><th>الرؤوس</th><th>مواليد</th><th>نفوق</th><th>مباع (رأس)</th><th>إيراد المبيعات</th><th>حليب (لتر)</th><th>إيراد الحليب</th><th>علف</th><th>تكلفة العلف</th><th>حصة مصروفات القسم</th><th>تكلفة الرأس</th><th>بقاء المواليد</th><th>علاجات</th></tr>${rows}</table>
+  <p class="k">تكلفة الرأس = (علف الحظيرة بتكلفة المخزون + حصتها من مصروفات القسم) ÷ رؤوسها الحالية. بقاء المواليد = 1 − النفوق ÷ (الرؤوس + النفوق + المباع) للحظائر التي سجّلت مواليد.</p>
+  <button onclick="window.print()">🖨️ طباعة</button></body></html>`); w.document.close();
+}
 function printLvReport(){
   const lv=getLivestock(); const t=today();
   const m30=ksISO(new Date(Date.now()-30*864e5));
@@ -8957,7 +9539,7 @@ function renderLivestockSecView(fs, cost){
     <div class="card kpi amber"><div class="label">⚖️ متوسط النمو</div><div class="value">${growthAvg!=null?fmt(growthAvg)+" جم/يوم":"—"}</div><div class="muted" style="font-size:.8rem">${_wl.filter(r=>r.date>=m30).length} قياس (30ي)</div></div>`;
 
   // جدول الحيوانات بدل دورات الزراعة
-  secTitle1.innerHTML = "🐑 جرد الحيوانات <button class=\"btn small secondary no-print\" onclick=\"printLvReport()\">🖨️ تقرير القطيع</button>";
+  secTitle1.innerHTML = "🐑 جرد الحيوانات <button class=\"btn small secondary no-print\" onclick=\"printLvReport()\">🖨️ تقرير القطيع</button> <button class=\"btn small secondary no-print\" onclick=\"printLvBarnReport()\">🏚️ تقرير الحظائر (تكلفة الرأس)</button>";
   const animals = lv.animals||[];
   tblSecCycles.innerHTML = `<tr><th>نوع الحيوان</th><th>العدد</th><th>الجنس</th><th>ملاحظات</th><th>تاريخ الإضافة</th></tr>`
     + (animals.length
@@ -9141,7 +9723,32 @@ function delCycle(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ م
   DB.harvests = DB.harvests.filter(x=>x.cycleId!==id);
   save(); fillSelects(); renderCycles(); renderHarvests();
 }
+/* 📊 v12.44-A — مقارنة دورات المنتج الواحد: تكلفة الكيلو المصدر الوحيد للحكم على الدورة */
+function cycleCmpRows(){
+  const kgOf=h=>{ const u=h.unit||"كجم", q=+h.qty||0; if(u==="كجم") return q; if(u==="طن") return q*1000; if(u==="جم") return q/1000; if(h.fishSale&&+h.fishCount>0){ const w=+h.avgWAtSale||0; return w?h.fishCount*w/1000:0; } try{ return q*(invUnitKg(u)||0); }catch(e){ return 0; } };
+  const byProd={};
+  (DB.cycles||[]).forEach(c=>{ (byProd[c.productId]=byProd[c.productId]||[]).push(c); });
+  const out=[];
+  Object.entries(byProd).forEach(([pid,cs])=>{ if(cs.length<2) return;
+    const rows=cs.map(c=>{ const hs=(DB.harvests||[]).filter(h=>h.cycleId===c.id&&!h.returnOf); const kg=hs.reduce((s2,h)=>s2+kgOf(h),0), rev=hs.reduce((s2,h)=>s2+hNet(h),0), cost=cycleCostOf(c);
+      const end=(c.status==="منتهية"&&c.harvestDate)?c.harvestDate:today(); const days=c.plantDate?Math.max(0,Math.round((new Date(end+"T00:00:00")-new Date(c.plantDate+"T00:00:00"))/864e5)):null;
+      return {id:c.id,section:c.section,plantDate:c.plantDate,status:c.status,days,cost,kg,rev,cpk:kg>0?cost/kg:null,margin:rev>0?(rev-cost)/rev*100:null}; });
+    const withKg=rows.filter(r=>r.cpk!==null); const best=withKg.length?Math.min(...withKg.map(r=>r.cpk)):null, worst=withKg.length>1?Math.max(...withKg.map(r=>r.cpk)):null;
+    out.push({pid,name:prodName(pid),rows,best,worst,avgCpk:withKg.length?withKg.reduce((s2,r)=>s2+r.cpk,0)/withKg.length:null});
+  });
+  return out;
+}
+function renderCycleCompare(){
+  const el=document.getElementById("tblCycleCmp"); if(!el) return;
+  const groups=cycleCmpRows();
+  if(!groups.length){ el.innerHTML='<tr><td class="muted">تظهر المقارنة عندما يكون لمنتج واحد دورتان فأكثر</td></tr>'; return; }
+  el.innerHTML='<tr><th>المنتج / الدورة</th><th>القسم</th><th>البداية</th><th>الأيام</th><th>التكلفة</th><th>الإنتاج (كجم)</th><th>تكلفة الكيلو</th><th>الإيراد</th><th>الهامش</th></tr>'
+    +groups.map(g=>`<tr style="background:var(--green-light)"><td colspan="6"><b>${ksNm(g.name)}</b> <span class="muted">(${g.rows.length} دورات)</span></td><td><b>متوسط ${g.avgCpk===null?"—":fmt(g.avgCpk)+" ⃁"}</b></td><td colspan="2"></td></tr>`
+      +g.rows.map(r=>{ const col=r.cpk===null?"":(r.cpk===g.best?"var(--green)":(g.worst!==null&&r.cpk===g.worst?"var(--red)":"inherit"));
+        return `<tr><td style="padding-inline-start:18px">${r.status==="نشطة"?"🟢":"⚪"} ${ksTxt(r.plantDate)}</td><td>${ksTxt(r.section)}</td><td>${ksTxt(r.plantDate)}</td><td>${r.days===null?"—":fmt(r.days)}</td><td>${fmtSR(r.cost)}</td><td>${fmt(r.kg)}</td><td><b style="color:${col}">${r.cpk===null?"—":fmt(r.cpk)+" ⃁"}</b></td><td>${fmtSR(r.rev)}</td><td class="${r.margin===null?"":r.margin>=0?"pos":"neg"}">${r.margin===null?"—":fmt(Math.round(r.margin))+"%"}</td></tr>`; }).join("")).join("");
+}
 function renderCycles(){
+  try{ renderCycleCompare(); }catch(e){}
   const rows = DB.cycles.filter(c=> (fCySec.value==="all"||c.section===fCySec.value)
       && (fCyStatus.value==="all"||c.status===fCyStatus.value)
       && (!fCyProd.value||prodName(c.productId).includes(fCyProd.value.trim())))
@@ -11127,7 +11734,7 @@ function addCustomer(e){
   if(!ksNeed([[cuName.value,"اسم العميل"]])) return;
   const rec = {name:cuName.value.trim(), phone:cuPhone.value, vatNo:cuVat.value.trim(), unifiedNo:cuUnified.value.trim(), creditLimit:+cuLimit.value||0, payDays:+cuPayDays.value||0,
     street:cuStreet.value.trim(), bldg:cuBldg.value.trim(), addl:cuAddl.value.trim(), city:cuCity.value.trim(),
-    region:cuRegion.value.trim(), country:cuCountry.value.trim()||"السعودية", zip:cuZip.value.trim()};
+    region:cuRegion.value.trim(), prov:((document.getElementById("cuProv")||{}).value||"").trim(), country:cuCountry.value.trim()||"السعودية", zip:cuZip.value.trim()};
   /* 🔁 نافذة «عميل جديد» السريعة تمنع التكرار صراحةً، وهذا النموذج لا يفحص شيئاً —
      قاعدتان مختلفتان لنفس الشيء. عميلان بنفس الاسم = دين مقسوم على سجلين وكشفان ناقصان. */
   { const __d=(DB.customers||[]).find(x=>x.id!==EDIT.customer && (x.name||"").trim()===rec.name);
@@ -11141,7 +11748,7 @@ function editCustomer(id){
   const c = DB.customers.find(x=>x.id===id); if(!c) return;
   cuName.value=c.name; cuPhone.value=c.phone||""; cuVat.value=c.vatNo||""; cuUnified.value=c.unifiedNo||""; cuLimit.value=c.creditLimit||""; cuPayDays.value=c.payDays||"";
   cuStreet.value=c.street||""; cuBldg.value=c.bldg||""; cuAddl.value=c.addl||""; cuCity.value=c.city||"";
-  cuRegion.value=c.region||""; cuCountry.value=c.country||""; cuZip.value=c.zip||"";
+  cuRegion.value=c.region||""; try{ cuProv.value=c.prov||""; }catch(e){} cuCountry.value=c.country||""; cuZip.value=c.zip||"";
   EDIT.customer=id; cuBtn.textContent="💾 حفظ التعديل"; markEditing("cardCustomer",true);
 }
 function delCustomer(id){
@@ -11757,6 +12364,14 @@ function getAlerts(){
     items.push(`🐟 لم يُسجل قياس مياه اليوم`);
   const last3 = DB.fishLogs.filter(f=>f.date>=ksISO(new Date(Date.now()-3*864e5)));
   const dead3 = last3.reduce((s,f)=>s+(f.dead||0),0);
+  /* 💧 v12.44-A: برنامج الري — قسم أوتوماتيكي بدورة نشطة مرّ عليه أكثر من N يوم بلا تأكيد ري */
+  try{ (DB.settings.sections||[]).forEach(sc=>{ if(!sc||secModule(sc.name)!=="agri"||sc.irrig==="manual") return; const every=(sc.irrigEvery===undefined?1:+sc.irrigEvery); if(!(every>0)) return;
+      if(!(DB.cycles||[]).some(c=>c.section===sc.name&&c.status==="نشطة")) return;
+      const last=secLastIrrig(sc.name); const days=last?Math.floor((new Date(today()+"T00:00:00")-new Date(last+"T00:00:00"))/864e5):null;
+      if(days===null) items.push(`💧 قسم <b>${ksNm(sc.name)}</b>: لم يُسجَّل أي تأكيد ري رغم وجود دورة نشطة (البرنامج كل ${fmt(every)} يوم)`);
+      else if(days>every) items.push(`💧 قسم <b>${ksNm(sc.name)}</b>: مرّ ${fmt(days)} يوم بلا تأكيد ري (البرنامج كل ${fmt(every)} يوم)`); }); }catch(e){}
+  /* 💊 المواشي تحت فترة سحب */
+  try{ const lv=DB.livestock||{}; const seen=new Set(); (lv.healthLogs||[]).forEach(h=>{ if(!(+h.withdrawal>0)||!h.animal||seen.has(h.animal)) return; const u=lvWithdrawalUntil(h.animal,""); if(u&&u>=today()){ seen.add(h.animal); items.push(`💊 <b>${ksNm(h.animal)}</b> تحت فترة سحب دواء حتى ${u} — لا يُباع ولا حليبه`); } }); }catch(e){}
   if(dead3>=20){ const _cs={}; last3.forEach(f=>{ if(+f.dead>0&&f.deadCause) _cs[f.deadCause]=(_cs[f.deadCause]||0)+(+f.dead); }); const _top=Object.entries(_cs).sort((a,b)=>b[1]-a[1])[0];
     items.push(`🐟 نافق مرتفع آخر 3 أيام: <b>${fmt(dead3)} سمكة</b>${_top?" — السبب الأكثر: "+ksTxt(_top[0])+" ("+fmt(_top[1])+")":" — افحص جودة المياه"}`); }
   /* v12.43-A: الكثافة · انحراف النمو · فترة السحب · قياس الفجر */
@@ -13257,6 +13872,7 @@ function renderClosedLine(){
   el.innerHTML = c
     ? `🔒 مقفلة حتى <b>${c}</b> — أي قيد أو فاتورة أو مصروف بتاريخ ≤ هذا اليوم مرفوض.`
     : `لم تُقفل أي سنة بعد — الإقفال يرحّل صافي النتيجة إلى «الأرباح المحتجزة (3103)» ويمنع التعديل عليها.`;
+  try{ const ar=(DB.archives||[]).map(a=>a.year).sort(); if(ar.length) el.innerHTML+=` · 🗄️ سنوات مؤرشفة: <b>${ar.join("، ")}</b> — تفاصيلها في الأرشيف السحابي ورصيدها بقيد افتتاحي.`; }catch(e){}
 }
 
 function __ageBucket(days){
@@ -14155,7 +14771,7 @@ function fillCompanyInfo(){
   try{ ksNoVatUI(); }catch(e){}
   const map={companyNameInp:s.companyName, companyNameEnInp:s.companyNameEn, taxNoInp:s.taxNo, unifiedNoInp:(s.unifiedNo||s.crNo), coPhone:s.coPhone, agrNoInp:s.agrNo,
     coStreet:(s.coStreet||s.nationalAddress||""), coBldg:s.coBldg, coAddl:s.coAddl, coCity:s.coCity,
-    coRegion:s.coRegion, coCountry:s.coCountry, coZip:s.coZip};
+    coRegion:s.coRegion, coProv:s.coProv, coCountry:s.coCountry, coZip:s.coZip};
   Object.keys(map).forEach(id=>{ const e=g(id); if(e && !e.matches(":focus")) e.value=map[id]||""; });
   const _lk=legalLocked();
   [["taxNoInp",s.taxNo],["unifiedNoInp",(s.unifiedNo||s.crNo)]].forEach(([id2,v2])=>{
@@ -14333,6 +14949,7 @@ function saveCompanyInfo(showToast){
   DB.settings.coAddl    = document.getElementById("coAddl")?.value||"";
   DB.settings.coCity    = document.getElementById("coCity")?.value||"";
   DB.settings.coRegion  = document.getElementById("coRegion")?.value||"";
+  DB.settings.coProv    = document.getElementById("coProv")?.value||"";
   DB.settings.coCountry = document.getElementById("coCountry")?.value||"";
   DB.settings.coZip     = document.getElementById("coZip")?.value||"";
   save();
@@ -14347,20 +14964,36 @@ function addSection(){
   const name = document.getElementById("newSecName")?.value.trim();
   const short = document.getElementById("newSecShort")?.value.trim();
   const irrig = document.getElementById("newSecIrrig")?.value||"auto";
+  const mod = document.getElementById("newSecMod")?.value||"agri";
   if(!name){ toast("⚠️ أدخل اسم القسم"); return; }
+  if(typeof modOn==="function" && !modOn(mod)){ toast("⚠️ مديول هذا النوع غير مفعّل في اشتراكك"); return; }
   DB.settings.sections = DB.settings.sections||[];
   if(DB.settings.sections.some(x=>x.name===name)){ toast("⚠️ القسم موجود مسبقاً"); return; }
-  DB.settings.sections.push({name, short:short||name, irrig});
+  DB.settings.sections.push({name, short:short||name, irrig, mod});
   refreshSections();
   save(); try{renderSecMgr();}catch(e){} try{renderStHub();}catch(e){} toast("✅ تم إضافة القسم: "+name);
   const n=document.getElementById("newSecName"); if(n)n.value="";
   const s=document.getElementById("newSecShort"); if(s)s.value="";
 }
+function secSetIrrigEvery(name, v){
+  const r=(DB.settings.sections||[]).find(x=>x&&x.name===name); if(!r) return;
+  const d=Math.max(0,Math.round(+v||0)); r.irrigEvery=d; save();
+  toast(d>0?"💧 "+name+": تنبيه إن مرّ أكثر من "+d+" يوم بلا تأكيد ري":"💧 "+name+": تنبيه الري متوقف");
+}
+/* آخر تأكيد ري للقسم (أوتوماتيكي أو يدوي) */
+function secLastIrrig(name){ let last=""; (DB.tasks||[]).forEach(t=>{ if(t.section===name&&(t.type==="الري"||t.type==="ري")&&t.date>last) last=t.date; }); return last; }
 function secSetIrrig(name, v){
   const r=(DB.settings.sections||[]).find(x=>x&&x.name===name); if(!r) return;
   r.irrig=(v==="manual")?"manual":"auto";
   save(); try{ if(typeof CUR_DAILY_SEC!=="undefined"&&CUR_DAILY_SEC===name) irrWrapSync(name); }catch(e){}
   toast(v==="manual"?"🚿 "+name+": الري يدوي — يُسجل كعمل يومي":"💧 "+name+": الري أوتوماتيكي — زر تأكيد سريع في اليوميات");
+}
+function secSetMod(name, v){
+  const r=(DB.settings.sections||[]).find(x=>x&&x.name===name); if(!r) return;
+  if(!["agri","lvs","fish"].includes(v)) return;
+  if(typeof modOn==="function" && !modOn(v)){ toast("⚠️ مديول هذا النوع غير مفعّل في اشتراكك"); renderSecMgr(); return; }
+  r.mod=v; refreshSections(); save(); renderSecMgr(); try{ renderStHub(); }catch(e){} try{ renderDailySecPicker(); }catch(e){}
+  toast("✅ "+name+": "+({agri:"🌱 زراعة",lvs:"🐑 مواشي",fish:"🐟 أسماك"})[v]);
 }
 function secHasData(name){
   return (DB.tasks||[]).some(t=>t.section===name)||(DB.cycles||[]).some(c=>c.section===name)
@@ -14377,7 +15010,7 @@ function delSectionCfg(name){
 function renderSecMgr(){
   const t=document.getElementById("tblSecMgr"); if(!t) return;
   const list=(DB.settings.sections&&DB.settings.sections.length)?DB.settings.sections:DEFAULT_SECTIONS.map(x=>({name:x.name,short:x.short}));
-  t.innerHTML='<tr><th>القسم</th><th>الاسم المختصر</th><th>نوع الري</th><th></th></tr>'
+  t.innerHTML='<tr><th>القسم</th><th>الاسم المختصر</th><th>النوع</th><th>نوع الري</th><th></th></tr>'
     + list.map(x=>{
       const agri=(typeof secModule==="function")?secModule(x.name)==="agri":true;
       const irr=(x.irrig==="manual")?"manual":"auto";
@@ -14385,12 +15018,16 @@ function renderSecMgr(){
         ? '<select onchange="secSetIrrig(\''+escH(x.name).replace(/'/g,"\\'")+'\',this.value)" style="min-width:150px">'
           +'<option value="auto"'+(irr==="auto"?" selected":"")+'>💧 أوتوماتيكي (زر تأكيد)</option>'
           +'<option value="manual"'+(irr==="manual"?" selected":"")+'>🚿 يدوي (عمل يومي)</option></select>'
+          +(irr==="auto"?' <label style="font-size:.7rem;white-space:nowrap">تنبيه بعد <input type="number" min="0" step="1" value="'+(x.irrigEvery===undefined?1:x.irrigEvery)+'" style="width:52px" onchange="secSetIrrigEvery(\''+escH(x.name).replace(/'/g,"\\'")+'\',this.value)" title="0 لإيقاف التنبيه"> يوم بلا ري</label>':'')
         : '<span class="muted">—</span>';
       const del=secHasData(x.name)?'<span class="muted" style="font-size:.72rem">عليه بيانات</span>'
         : '<button class="del" onclick="delSectionCfg(\''+escH(x.name).replace(/'/g,"\\'")+'\')">🗑️</button>';
+      const curMod=x.mod||secModule(x.name);
+      const modSel='<select onchange="secSetMod(\''+escH(x.name).replace(/'/g,"\\'")+'\',this.value)" style="min-width:120px">'
+        +[["agri","🌱 زراعة"],["lvs","🐑 مواشي"],["fish","🐟 أسماك"]].map(([v,l])=>'<option value="'+v+'"'+(curMod===v?" selected":"")+'>'+l+'</option>').join("")+'</select>';
       const nm='<input class="secNameIn" data-orig="'+escH(x.name)+'" value="'+escH(x.name)+'" style="min-width:140px">';
       const sh='<input class="secShortIn" value="'+escH(x.short||x.name)+'" style="min-width:110px">';
-      return '<tr><td style="font-weight:700;white-space:nowrap">'+secIconOf(x.name)+' '+nm+'</td><td>'+sh+'</td><td>'+sel+'</td><td>'+del+'</td></tr>';
+      return '<tr><td style="font-weight:700;white-space:nowrap">'+secIconOf(x.name)+' '+nm+'</td><td>'+sh+'</td><td>'+modSel+'</td><td>'+sel+'</td><td>'+del+'</td></tr>';
     }).join("");
 }
 function __ksRenameSection(oldN,newN){
@@ -15385,7 +16022,7 @@ function stView(k){
     if(k==="company"){ try{ fillCompanyInfo(); }catch(e){} }
     if(k==="perms"){ try{ permFillSelect(); }catch(e){} }
     if(k==="log"){ try{ empMovesInit(); }catch(e){} }
-    if(k==="backup"){ try{ cloudStatusUI(); }catch(e){} try{ ksStoreUI(); }catch(e){} try{ ctrlUI(); }catch(e){} }
+    if(k==="backup"){ try{ cloudStatusUI(); }catch(e){} try{ ksStoreUI(); }catch(e){} try{ ctrlUI(); }catch(e){} try{ renderArchive(); }catch(e){} }
   }
   try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(e){}
 }
@@ -15504,7 +16141,47 @@ function eosFill(){
   if(em&&st&&!st.value) st.value=em.hireDate||em.startDate||"";
   if(emp) try{ calcEos(); }catch(e){}
 }
+/* ⏱️ v12.44-A — تكلفة ساعة العمل: الأجر الشهري ÷ ساعات الحضور الفعلية، وتوزيع مقترح على الأقسام من سجل الأعمال */
+function hrLaborStats(month){
+  const m=month||today().slice(0,7);
+  const att=(DB.attendance||[]).filter(a=>String(a.date||"").startsWith(m));
+  const tasks=(DB.tasks||[]).filter(t=>String(t.date||"").startsWith(m)&&t.section&&t.section!=="عام (كل المزرعة)");
+  const hrs=(a)=>{ if(a.status==="غائب"||a.status==="إجازة") return 0; if(a.inT&&a.outT){ const [h1,m1]=String(a.inT).split(":").map(Number), [h2,m2]=String(a.outT).split(":").map(Number); const d=(h2*60+m2-(h1*60+m1))/60; if(d>0&&d<24) return +d.toFixed(2); } return 8; };
+  const rows=(DB.employees||[]).filter(e=>+e.salary>0).map(e=>{
+    const mine=att.filter(a=>a.empId===e.id); const hours=+mine.reduce((s2,a)=>s2+hrs(a),0).toFixed(2); const days=mine.filter(a=>hrs(a)>0).length;
+    const cost=(+e.salary||0)+(+e.allowances||0); const perHour=hours>0?cost/hours:null;
+    const my=tasks.filter(t=>t.employee===e.name||t.empId===e.id); const bySec={}; my.forEach(t=>{ bySec[t.section]=(bySec[t.section]||0)+1; });
+    const tot=my.length; const share={}; Object.entries(bySec).forEach(([sec,c])=>{ share[sec]=Math.round(c/tot*100); });
+    /* تصحيح التقريب حتى يكون المجموع 100 */
+    const keys=Object.keys(share); if(keys.length){ const sum=keys.reduce((s2,k)=>s2+share[k],0); share[keys[0]]+=100-sum; }
+    return {id:e.id,name:e.name,cost,days,hours,perHour,tasks:tot,share};
+  });
+  const secCost={}; rows.forEach(r=>{ Object.entries(r.share).forEach(([sec,p])=>{ secCost[sec]=(secCost[sec]||0)+r.cost*p/100; }); });
+  return {month:m,rows,secCost};
+}
+function renderLaborStats(){
+  const el=document.getElementById("tblLabor"); if(!el) return;
+  const mi=document.getElementById("laborMonth"); if(mi&&!mi.value) mi.value=today().slice(0,7);
+  const st=hrLaborStats(mi?mi.value:"");
+  const secs=Object.keys(st.secCost);
+  el.innerHTML='<tr><th>الموظف</th><th>الأجر الشهري</th><th>أيام الحضور</th><th>الساعات</th><th>تكلفة الساعة</th><th>أعمال الشهر</th><th>التوزيع المقترح</th></tr>'
+    +(st.rows.map(r=>`<tr><td><b>${ksNm(r.name)}</b></td><td>${fmtSR(r.cost)}</td><td>${fmt(r.days)}</td><td>${fmt(r.hours)}</td><td><b>${r.perHour===null?'<span class="muted">— بلا حضور —</span>':fmtSR(r.perHour)}</b></td><td>${fmt(r.tasks)}</td><td>${Object.keys(r.share).length?Object.entries(r.share).map(([k,v])=>ksTxt(SECT_SHORT[k]||k)+" "+v+"%").join(" · "):'<span class="muted">— بلا أعمال مسجَّلة —</span>'}</td></tr>`).join("")||'<tr><td colspan="7" class="muted">لا موظفون برواتب</td></tr>')
+    +(secs.length?'<tr><th colspan="6">تكلفة العمالة لكل قسم (من الأعمال الفعلية)</th><th>'+secs.map(k=>ksTxt(SECT_SHORT[k]||k)+" "+fmtSR(st.secCost[k])).join(" · ")+'</th></tr>':'');
+  const nt=document.getElementById("laborNote"); if(nt) nt.textContent="شهر "+st.month+" — تكلفة الساعة تُحسب من الحضور المسجَّل فقط؛ والتوزيع المقترح لا يُطبَّق إلا بالزر.";
+}
+function applyLaborAlloc(){
+  if(!isOwner()){ toast("⚠️ للمالك فقط"); return; }
+  const mi=document.getElementById("laborMonth"); const st=hrLaborStats(mi?mi.value:"");
+  const withTasks=st.rows.filter(r=>Object.keys(r.share).length);
+  if(!withTasks.length){ toast("⚠️ لا أعمال مسجَّلة بأسماء الموظفين في هذا الشهر"); return; }
+  if(!confirm("تطبيق التوزيع المقترح على "+withTasks.length+" موظف (يستبدل نسبهم اليدوية)؟")) return;
+  withTasks.forEach(r=>{ const em=(DB.employees||[]).find(e=>e.id===r.id); if(em){ em.alloc={}; Object.entries(r.share).forEach(([sec,p])=>{ if(SECTIONS.includes(sec)) em.alloc[sec]=p; }); } });
+  save(); try{ renderAllocEditors(); }catch(e){} try{ renderIncome(); }catch(e){}
+  try{ logEdit("⏱️ توزيع الرواتب من سجل الأعمال", st.month+" — "+withTasks.length+" موظف"); }catch(e){}
+  toast("✅ طُبّق التوزيع المقترح على "+withTasks.length+" موظف");
+}
 function renderHrAll(){
+  try{ renderLaborStats(); }catch(e){}
   try{ eosBasisNote(); }catch(e){}
   try{ renderEosDist(); }catch(e){}
   ["advEmp","lvEmp","custEmp","atEmp","eosEmp"].forEach(id=>{
@@ -16572,6 +17249,7 @@ function addLivestockHealth(e){
     treatment:g("lskHlTreat").value,
     vet:g("lskHlVet").value,
     followUp:g("lskHlFollow").value,
+    withdrawal:+(g("lskHlWd")?.value)||0,
     barn:(g("lskHlBarn")?.value||""),
     notes:(g("lskHlNotes")?.value||"")};
   const _mid=document.getElementById("lskHlMed")?.value;
@@ -16660,6 +17338,15 @@ function calcLvSaleTotal(){
   const q=+(document.getElementById("lvSlQty")?.value)||0, p=+(document.getElementById("lvSlPrice")?.value)||0;
   const el=document.getElementById("lvSlTotal"); if(el) el.value=fmtSR(q*p);
 }
+/* آخر تاريخ يُمنع فيه بيع نوع الحيوان (أو وسم بعينه) بسبب علاج بفترة سحب */
+function lvWithdrawalUntil(animal, tag){
+  let until=""; const lv=DB.livestock||{};
+  (lv.healthLogs||[]).forEach(h=>{ if(!(+h.withdrawal>0)) return; if(tag){ if(h.tag!==tag) return; } else if(h.animal!==animal) return;
+    const d=new Date(String(h.date||"")+"T00:00:00"); if(isNaN(d)) return; d.setDate(d.getDate()+(+h.withdrawal)); const u=ksISO(d); if(u>until) until=u; });
+  return until;
+}
+/* ✅ true = مسموح البيع (تُستدعى منفيةً) */
+function lvSaleAllowed(animal, what){ const u=lvWithdrawalUntil(animal,""); if(u && u>=today()){ toast("⛔ «"+animal+"» تحت فترة سحب دواء حتى "+u+" — لا يُباع "+(what==="حليب"?"حليبه":"")+" قبلها"); return false; } return true; }
 function addLvSale(e){
   e.preventDefault();
   const g=id=>document.getElementById(id);
@@ -16674,6 +17361,8 @@ function addLvSale(e){
     if(heads<=0){ toast("⚠️ أدخل عدد الرؤوس المباعة (يُخصم من القطيع)"); return; }
     if(!g("lvSlAnimal")?.value || g("lvSlAnimal").value==="__new"){ toast("⚠️ اختر نوع الحيوان المباع"); return; }
   }
+  /* 💊 v12.44-A: فترة سحب الدواء — لا يُباع الحيوان ولا حليبه قبل انقضائها (نفس منطق الأسماك) */
+  { const __an=(type==="حيوان"||type==="حليب")?(g("lvSlAnimal")?.value||""):""; if(__an && !lvSaleAllowed(__an, type)) return; }
   const cid=g("lvSlCust").value;
   const animal=(type==="حيوان")?(g("lvSlAnimal")?.value||""):"";
   if(type==="حيوان"&&animal){ const avail=lvNetOf(animal);
@@ -18691,7 +19380,7 @@ async function zkStamp(inv){
   if(!inv.zkBuyer){
     const c=(DB.customers||[]).find(x=>x.id===inv.custId);
     if(c) inv.zkBuyer={crn:c.unifiedNo||"", street:c.street||"", bldg:c.bldg||"", addl:c.addl||"",
-                       city:c.city||"", region:c.region||"", zip:c.zip||"", country:c.country||""};
+                       city:c.city||"", region:c.region||"", prov:c.prov||"", zip:c.zip||"", country:c.country||""};
   }
   const xml = zkBuildXml(inv);
   inv.zkHash = await zkSha256B64(zkCanon(xml));     /* سلسلة تحقّق داخلية — ليست تجزئة زاتكا الرسمية */
@@ -18790,7 +19479,7 @@ function zkParty(tag, o){
         <cbc:CitySubdivisionName>${zkEsc(o.dist||o.region||"")}</cbc:CitySubdivisionName>
         <cbc:CityName>${zkEsc(o.city||"")}</cbc:CityName>
         <cbc:PostalZone>${zkEsc(zkZip(o.zip,cc))}</cbc:PostalZone>
-        <cbc:CountrySubentity>${zkEsc(o.region||o.dist||"")}</cbc:CountrySubentity>
+        <cbc:CountrySubentity>${zkEsc(o.prov||o.region||o.dist||"")}</cbc:CountrySubentity>   <!-- المنطقة إن سُجّلت، وإلا الحي (توافق رجعي — كان يعمل ويجتاز) -->
         <cac:Country><cbc:IdentificationCode>${zkEsc(cc)}</cbc:IdentificationCode></cac:Country>
       </cac:PostalAddress>
       <cac:PartyTaxScheme>
@@ -18808,7 +19497,7 @@ function zkBuildXml(inv){
   const tot=net+tax;
   const rate=(inv.items||[]).length?(+(inv.items[0].tax)||0):0;
   const supplier={name:st.companyName,vat:st.taxNo,crn:st.unifiedNo,street:st.coStreet,bldg:st.coBldg,
-                  addl:st.coAddl,city:st.coCity,region:st.coRegion,zip:st.coZip,cc:st.coCountry};
+                  addl:st.coAddl,city:st.coCity,region:st.coRegion,prov:st.coProv,zip:st.coZip,cc:st.coCountry};
   /* عنوان المشتري: اللقطة المحفوظة وقت الاعتماد أولاً — لأن الفاتورة الموقّعة لا تتغيّر
      بتعديل سجل العميل لاحقاً. وإن غابت اللقطة (فواتير قديمة) نقرأ السجل الحيّ. */
   const cRec=(DB.customers||[]).find(c=>c.id===inv.custId)||{};
@@ -18816,7 +19505,7 @@ function zkBuildXml(inv){
   const pick=(k,alt)=> (b[k]!==undefined&&b[k]!=="") ? b[k] : (cRec[alt||k]||"");
   const buyer={name:inv.custName, vat:inv.custVat, crn:pick("crn","unifiedNo"),
                street:pick("street"), bldg:pick("bldg"), addl:pick("addl"),
-               city:pick("city"), region:pick("region"), zip:pick("zip"),
+               city:pick("city"), region:pick("region"), prov:pick("prov"), zip:pick("zip"),
                cc:zkCountryCode(b.country||cRec.country)};
   const lines=(inv.items||[]).map((i,n)=>{
     const ln=invLineNet(i), lt=invLineTax(i), r=(+i.tax||0);

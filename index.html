@@ -1831,6 +1831,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <div><label>الصنف *</label><select id="mvItem" required></select></div>
         <div><label>النوع *</label><select id="mvType"><option>صرف</option><option>إضافة (شراء/توريد)</option></select></div>
         <div><label>الكمية *</label><input type="number" id="mvQty" min="0.01" step="0.01" required></div>
+        <div><label>انتهاء الصلاحية (للإضافة)</label><input type="date" id="mvExp"></div>
         <div><label>التاريخ *</label><input type="date" id="mvDate" required></div>
       </div>
       <div class="row">
@@ -1901,6 +1902,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
         <div><label>إضافة لصنف مخزون (اختياري)</label><select id="puItem" onchange="puItemReq()"></select></div>
         <div><label id="puUnitLbl">الوحدة</label><select id="puUnit" onchange="puUnitChange(this)"></select></div>
         <div><label id="puQtyLbl">الكمية</label><input type="number" id="puQty" min="0" step="0.01"></div>
+        <div><label>انتهاء الصلاحية (أعلاف/أدوية/مبيدات)</label><input type="date" id="puExp" title="يُسجَّل على دفعة هذا الشراء — يُخصم منها بالأقرب انتهاءً ولا يُصرف منها بعد انتهائها"></div>
         <div><label>السداد *</label><select id="puPaid"><option value="1">مدفوع</option><option value="0">آجل (مستحق للمورد)</option></select></div>
       </div>
       <div class="row">
@@ -2057,6 +2059,11 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
           <div><label>دخول</label><input type="time" id="atIn"></div>
           <div><label>انصراف</label><input type="time" id="atOut"></div>
           <div style="display:flex;align-items:end"><button class="btn" onclick="addAtt()">تسجيل</button></div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button class="btn secondary" type="button" onclick="attCheckIn()">📍 تسجيل حضوري الآن (بالموقع)</button>
+          <button class="btn secondary" type="button" onclick="attCheckOut()">🏁 تسجيل انصرافي الآن</button>
+          <span class="muted" style="font-size:.72rem" id="attGeoHint">يُلتقط الموقع من الجهاز ويُقارن بنطاق المزرعة المضبوط في بيانات الشركة</span>
         </div>
       </div>
       <div class="card table-wrap" style="margin-top:12px"><table id="tblAttSum"></table></div>
@@ -2965,6 +2972,12 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       </table>
     </div>
   </div>
+  <div class="card" style="margin-top:12px">
+    <h3>📊 مقارنة أسعار الموردين لصنف</h3>
+    <p class="muted" style="margin-bottom:8px">من فواتير الشراء الفعلية: آخر سعر وحدة لكل مورّد، ومتوسطه، وعدد مرات التوريد — الأرخص بالأخضر</p>
+    <div class="filters" style="margin-bottom:8px"><div style="max-width:320px"><label>الصنف</label><select id="spcItem" onchange="renderSupCompare()"></select></div></div>
+    <div class="table-wrap"><table id="tblSupCompare"></table></div>
+  </div>
 </div>
 
 <!-- ============ الجرد الدوري ============ -->
@@ -3406,6 +3419,13 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <div style="flex:1;min-width:120px"><label>الدولة</label><input id="coCountry" placeholder="السعودية" oninput="saveCompanyInfo()"></div>
       <div style="flex:1;min-width:120px"><label>الرمز البريدي</label><input id="coZip" inputmode="numeric" maxlength="5" oninput="saveCompanyInfo()"></div>
     </div>
+    <b style="font-size:.82rem;color:var(--muted);display:block;margin-top:14px">📍 نطاق المزرعة (للحضور من الجوال)</b>
+    <div class="row" style="margin-top:6px">
+      <div><label>خط العرض</label><input id="geoLat" type="number" step="0.000001" placeholder="24.7136" onchange="geoSave()"></div>
+      <div><label>خط الطول</label><input id="geoLng" type="number" step="0.000001" placeholder="46.6753" onchange="geoSave()"></div>
+      <div><label>نصف القطر (متر)</label><input id="geoRad" type="number" min="50" step="10" placeholder="500" onchange="geoSave()"></div>
+      <div style="display:flex;align-items:end"><button class="btn small secondary" type="button" onclick="geoUseHere()">📍 استخدم موقعي الحالي</button></div>
+    </div>
     <b style="font-size:.82rem;color:var(--muted);display:block;margin-top:14px">🏦 الحسابات البنكية (تظهر أسفل الفاتورة)</b>
     <div class="table-wrap" style="margin-top:6px"><table id="tblBankAccts"></table></div>
     <div class="row" style="flex-wrap:wrap;gap:10px;margin-top:8px">
@@ -3450,6 +3470,19 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     <div style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
       <div style="font-weight:700;margin-bottom:8px">📱 التطبيق على الجوال والعمل بلا إنترنت</div>
       <div id="ksPwaBox"></div>
+    </div>
+    <div id="notifCard" style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
+      <b>🔔 تنبيهات الجهاز</b>
+      <p class="muted" style="font-size:.74rem;margin:6px 0 8px">تنبيهات الجرس (السحب، النفوق، الصيانة، الديون المتأخرة…) تظهر كإشعار على الجهاز عند فتح التطبيق وكل ساعة ما دام مفتوحاً. لا تصل والتطبيق مغلق (يحتاج خادم دفع — مرحلة لاحقة).</p>
+      <div id="notifPermBox">—</div>
+    </div>
+    <div id="histCard" style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <b>🕘 النسخ السحابية السابقة</b>
+        <button class="btn small secondary" type="button" onclick="renderCloudHist(true)">🔄 تحديث القائمة</button>
+      </div>
+      <p class="muted" style="font-size:.74rem;margin:6px 0 8px">السحابة تحتفظ تلقائياً بالنسخة السابقة عند كل رفع يغيّر البيانات (آخر 60 نسخة أو 30 يوماً). الاستعادة تأخذ لقطة محلية أولاً، ثم تستبدل بيانات هذا الجهاز بالنسخة المختارة وترفعها كنسخة حالية — فتصير النسخة الحالية نفسها في هذه القائمة ويمكن الرجوع إليها.</p>
+      <div id="histBody" class="muted" style="font-size:.8rem">—</div>
     </div>
     <div id="archCard" style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
       <b>🗄️ أرشفة السنوات المقفلة</b>
@@ -4344,6 +4377,12 @@ Object.assign(I18N.en,{"— عميل محذوف —":"— deleted customer —",
 Object.assign(I18N.ur,{"— عميل محذوف —":"— حذف شدہ گاہک —","— موظف محذوف —":"— حذف شدہ ملازم —","المبيعات الإجمالية":"مجموعی فروخت"});
 /* i18n v12.12 — نصوص جولة الأرقام والفاعلية والقرارات الثلاثة */
 Object.assign(I18N.en,{"🏠 بدل السكن (⃁)":"🏠 Housing allowance (⃁)","🚗 بدل المواصلات (⃁)":"🚗 Transport allowance (⃁)","بدلات أخرى (⃁)":"Other allowances (⃁)","إجمالي البدلات الشهرية (⃁)":"Total monthly allowances (⃁)","السكن والمواصلات يدخلان في مكافأة نهاية الخدمة — «أخرى» لا تدخل":"Housing & transport count toward end-of-service; \"Other\" does not","خاضعة لضريبة القيمة المضافة":"Subject to VAT","نعم — فاتورة ضريبية من مورّد مسجَّل":"Yes — tax invoice from a registered supplier","لا — رسوم حكومية / تأمينات / مورّد غير مسجَّل":"No — government fees / insurance / unregistered supplier","🔍 مراجعة الضريبة الداخلة على المصروفات":"🔍 Input VAT review on expenses","↩️ مؤشر المردودات":"↩️ Returns indicator","عدد المصروفات":"Expenses count","الضريبة الداخلة المفترضة":"Assumed input VAT","التصنيف بالجملة":"Bulk classify","🚫 غير خاضعة":"🚫 Not subject","✅ خاضعة":"✅ Subject","✅ كلها خاضعة":"✅ All subject","مصروفات غير خاضعة (رسوم/تأمينات/مورّد غير مسجَّل)":"Non-taxable expenses (fees/insurance/unregistered supplier)","غير مستحق":"Not due","1–30 يوم":"1–30 days","31–60 يوم":"31–60 days","61–90 يوم":"61–90 days","أكثر من 90":"Over 90","الأسبوع":"Week","متوقع وارد":"Expected in","متوقع صادر":"Expected out","الرصيد المتوقع":"Projected balance","الرصيد الحالي":"Current balance","النقدية (صندوق + بنك)":"Cash (cash + bank)","عدد المبيعات":"Sales count","الدورات":"Cycles","الإيراد (صافي الضريبة)":"Revenue (net of VAT)","متوسط السعر":"Avg. price","متوسط الكمية للبيعة":"Avg. qty per sale","التغيّر":"Change","جديد":"New","المبيعات الإجمالية":"Gross sales","المردودات":"Returns","نسبة المردودات":"Returns rate","صافي المبيعات":"Net sales","النسبة":"Rate","رصيد افتتاحي":"Opening balance","قيمة المخزون بعده":"Stock value after","قيمة الفروقات":"Variance value","السبب":"Reason","الاسم المختصر (للتقارير)":"Short name (for reports)","مردود مبيعات":"Sales return","بيع مباشر":"Direct sale","— منتج محذوف —":"— deleted product —","— مورد محذوف —":"— deleted supplier —","— صنف محذوف —":"— deleted item —","— بلا مورد —":"— no supplier —","— موظف غير موجود —":"— employee not found —"});
+Object.assign(I18N.en,{"📊 مقارنة أسعار الموردين لصنف":"📊 Supplier price comparison per item","الاستلام":"Acknowledged","👁️ استلمت":"👁️ Acknowledged","لم تُؤكَّد":"Not acknowledged","📍 تسجيل حضوري الآن (بالموقع)":"📍 Check in now (with location)","🏁 تسجيل انصرافي الآن":"🏁 Check out now","خط العرض":"Latitude","خط الطول":"Longitude","نصف القطر (متر)":"Radius (m)","📍 استخدم موقعي الحالي":"📍 Use my current location","🔔 تنبيهات الجهاز":"🔔 Device notifications","🔔 تفعيل تنبيهات الجهاز":"🔔 Enable device notifications","الحالة":"Status","قائم":"Active","🏷️ استبعاد الأصل":"🏷️ Dispose asset","تاريخ الاستبعاد *":"Disposal date *","✅ تنفيذ الاستبعاد":"✅ Dispose"});
+Object.assign(I18N.ur,{"📊 مقارنة أسعار الموردين لصنف":"📊 فی آئٹم سپلائر قیمت موازنہ","الاستلام":"وصولی","👁️ استلمت":"👁️ موصول","لم تُؤكَّد":"تصدیق نہیں","📍 تسجيل حضوري الآن (بالموقع)":"📍 ابھی حاضری (مقام کے ساتھ)","🏁 تسجيل انصرافي الآن":"🏁 ابھی رخصتی","خط العرض":"عرض بلد","خط الطول":"طول بلد","نصف القطر (متر)":"نصف قطر (میٹر)","📍 استخدم موقعي الحالي":"📍 میرا موجودہ مقام","🔔 تنبيهات الجهاز":"🔔 ڈیوائس اطلاعات","🔔 تفعيل تنبيهات الجهاز":"🔔 اطلاعات فعال کریں","قائم":"موجود","🏷️ استبعاد الأصل":"🏷️ اثاثہ نکالنا","تاريخ الاستبعاد *":"نکالنے کی تاریخ *","✅ تنفيذ الاستبعاد":"✅ نکالیں"});
+Object.assign(I18N.en,{"انتهاء الصلاحية (أعلاف/أدوية/مبيدات)":"Expiry (feed/medicine/pesticide)","انتهاء الصلاحية (للإضافة)":"Expiry (for additions)","تاريخ الدفعة":"Lot date","الانتهاء":"Expiry","المتبقي":"Remaining","إغلاق":"Close"});
+Object.assign(I18N.ur,{"انتهاء الصلاحية (أعلاف/أدوية/مبيدات)":"میعاد ختم (چارہ/دوا/کیڑے مار)","انتهاء الصلاحية (للإضافة)":"میعاد ختم (اضافے کے لیے)","تاريخ الدفعة":"لاٹ کی تاریخ","الانتهاء":"میعاد","المتبقي":"باقی","إغلاق":"بند کریں"});
+Object.assign(I18N.en,{"🕘 النسخ السحابية السابقة":"🕘 Previous cloud versions","🔄 تحديث القائمة":"🔄 Refresh list","تاريخ النسخة":"Version date","الحجم":"Size"});
+Object.assign(I18N.ur,{"🕘 النسخ السحابية السابقة":"🕘 پچھلے کلاؤڈ ورژن","🔄 تحديث القائمة":"🔄 فہرست تازہ کریں","تاريخ النسخة":"ورژن کی تاریخ","الحجم":"حجم"});
 Object.assign(I18N.en,{"🗄️ أرشفة السنوات المقفلة":"🗄️ Archive closed years","📊 مقارنة الدفعات (الحالية والمقفلة)":"📊 Batch comparison (current & closed)","⬆️ استيراد CSV":"⬆️ Import CSV","الدفعة":"Batch","إنزال":"Stocked","نافق":"Dead","بقاء":"Survival","مباع كجم":"Sold kg","الربح":"Profit","↩️ استعادة":"↩️ Restore","🗄️ أرشفة":"🗄️ Archive","🔒 مقفلة":"🔒 Closed","الحجم التقريبي":"Approx. size"});
 Object.assign(I18N.ur,{"🗄️ أرشفة السنوات المقفلة":"🗄️ بند سالوں کا آرکائیو","📊 مقارنة الدفعات (الحالية والمقفلة)":"📊 بیچ موازنہ (موجودہ اور بند)","⬆️ استيراد CSV":"⬆️ CSV درآمد","الدفعة":"بیچ","إنزال":"ڈالی گئی","نافق":"مردہ","بقاء":"بقا","مباع كجم":"فروخت کلو","الربح":"منافع","↩️ استعادة":"↩️ بحال کریں","🗄️ أرشفة":"🗄️ آرکائیو","🔒 مقفلة":"🔒 بند","الحجم التقريبي":"تخمینی حجم"});
 Object.assign(I18N.en,{"فترة السحب (يوم)":"Withdrawal (days)","🏚️ تقرير الحظائر (تكلفة الرأس)":"🏚️ Barn report (cost per head)","📊 مقارنة الدورات لنفس المنتج — تكلفة الكيلو":"📊 Cycle comparison per product — cost per kg","⏱️ تكلفة ساعة العمل وتوزيع الرواتب من الواقع":"⏱️ Labor cost per hour & real salary allocation","✅ تطبيق النسب المقترحة على توزيع الرواتب":"✅ Apply suggested salary allocation","الشهر":"Month","الأجر الشهري":"Monthly pay","أيام الحضور":"Days present","الساعات":"Hours","تكلفة الساعة":"Cost per hour","أعمال الشهر":"Tasks this month","التوزيع المقترح":"Suggested allocation","المنتج / الدورة":"Product / cycle","الأيام":"Days","الإنتاج (كجم)":"Output (kg)","تكلفة الكيلو":"Cost per kg","الهامش":"Margin"});
@@ -4566,8 +4605,45 @@ function fishSaleAllowed(name){ const u=fishWithdrawalUntil(name); if(u && u>=to
 const GLIM = {temp:[15,32], hum:[40,85]};
 
 /* ====== التخزين ====== */
-const KEY = "khayratSayaFarm";
-const KS_VER="v12.44-A";
+/* ═══ 🗝️ v12.45-A — مفتاح تخزين لكل مزرعة ═══
+   كان مفتاحاً واحداً «khayratSayaFarm» تتشاركه كل المزارع على الجهاز نفسه، والعزل يعتمد على ختم الملكية والحراس (خمس جولات تدقيق سدّت ثقوباً فيه).
+   الآن: KEY = khayratSayaFarm::<farmId> يُربط عند الإقلاع وعند كل تغيير جلسة ⇒ بيانات مزرعة لا تُرى أصلاً بمفتاح مزرعة أخرى.
+   الترحيل: المفتاح القديم يُنقل إلى مفتاح المزرعة إذا كان ختمه = المزرعة الداخلة؛ وإلا يبقى مجهول الملكية فيُمسح بالمسار المعتاد. الختم يبقى طبقة ثانية. */
+const KEY_BASE = "khayratSayaFarm";
+let KEY = KEY_BASE;
+function ksKeyFor(fid){ return fid ? KEY_BASE+"::"+fid : KEY_BASE; }
+function ksOtherFarmKeys(fid){ const out=[]; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && k.indexOf(KEY_BASE+"::")===0 && k!==ksKeyFor(fid)) out.push(k); } }catch(e){} return out; }
+function ksPendKey(fid){ const f=fid!==undefined?fid:((typeof cloudFarmId==="function")?(cloudFarmId()||""):""); return f?"ksPend::"+f:"ksPend"; }
+/* 🧹 تقليم بقايا المزارع الأخرى على الجهاز: يُستدعى فقط بعد أن تملك المزرعة الداخلة نسخة صالحة (محلية قائمة أو جُلبت بنجاح).
+   المرفوع يُحذف (نسخته في السحابة)؛ غير المرفوع (ksPend::<farm>=1) يبقى تحت مفتاحه ولا يُعرض حتى تدخل مزرعته وترفعه. ولقطات المزرعة المحذوفة تُحذف معها. */
+function ksPruneOtherFarms(fid){
+  const gone=[];
+  try{ ksOtherFarmKeys(fid).forEach(ok=>{ const of=ok.slice((KEY_BASE+"::").length); if(localStorage.getItem(ksPendKey(of))!=="1"){ localStorage.removeItem(ok); gone.push(of); } }); }catch(e){}
+  if(gone.length){ try{ const raw=localStorage.getItem("ksFarmSnaps"); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)){ const kept=arr.filter(x=>!(x&&x.farm&&gone.includes(x.farm))); if(kept.length!==arr.length) localStorage.setItem("ksFarmSnaps", JSON.stringify(kept)); } } }catch(e){} }
+  return gone;
+}
+function ksKeyBind(){
+  let fid=""; try{ fid=(typeof cloudFarmId==="function")?(cloudFarmId()||""):""; }catch(e){}
+  const k=ksKeyFor(fid);
+  try{
+    if(fid){
+      const stamp=localStorage.getItem("ksDataOwner")||"";
+      const legacy=localStorage.getItem(KEY_BASE);
+      /* ترحيل المفتاح القديم: إلى مفتاح المزرعة التي يحمل ختمها (هذه أو غيرها) — بلا ختم = ملكية مجهولة تبقى حيث هي حتى يمسحها المسار المعتاد */
+      if(legacy && stamp){ const tk=ksKeyFor(stamp); if(!localStorage.getItem(tk)) localStorage.setItem(tk, legacy); localStorage.removeItem(KEY_BASE); if(localStorage.getItem("ksPend")==="1") localStorage.setItem(ksPendKey(stamp),"1"); }
+      if(stamp!==fid){   /* يشمل الختم الغائب: بقايا مجهولة الملكية لا تُعرض ومفاتيح تنبيهاتها تُمسح */
+        /* 🔁 تبديل مزرعة على الجهاز نفسه: بقايا المزرعة السابقة لا تُعرض أبداً (مفتاحها غير مفتاحنا). مفاتيح التنبيهات تُمسح فوراً */
+        try{ localStorage.removeItem("ksNotifMuted"); localStorage.removeItem("ksNotifSeen"); }catch(e){}
+      }
+      /* البيانات تحت مفتاح المزرعة ملكها بالبنية (لا يُكتب فيه إلا بجلستها) ⇒ الختم يتبع المفتاح.
+         ومتى كانت بيانات المزرعة الداخلة موجودة (لا جلب مطلوب) تُقلَّم بقايا المزارع الأخرى المرفوعة — لا نحذف قبل أن نملك نسخة صالحة (عقيدة v12.10-A) */
+      if(localStorage.getItem(k)){ localStorage.setItem("ksDataOwner", fid); ksPruneOtherFarms(fid); }
+    }
+  }catch(e){}
+  KEY=k; return k;
+}
+ksKeyBind();
+const KS_VER="v12.45-B";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4616,7 +4692,9 @@ function defAccounts(){
     ["5107","شراء مواشي","مصروفات",0],
     ["5306","مصروف مكافأة نهاية الخدمة","مصروفات",0],
     ["2105","مخصص مكافأة نهاية الخدمة","خصوم",0],
-    ["5309","تغيّر المخزون (بضاعة آخر المدة)","مصروفات",0]
+    ["5309","تغيّر المخزون (بضاعة آخر المدة)","مصروفات",0],
+    ["4108","أرباح استبعاد أصول ثابتة","إيرادات",0],
+    ["5308","خسائر استبعاد أصول ثابتة","مصروفات",0]
   ];
   return base.map(a=>({code:a[0], name:a[1], type:a[2], header:!!a[3]}));
 }
@@ -4747,6 +4825,8 @@ function load(){
       try{ (d.employees||[]).forEach(e2=>{ if(!e2.hireDate){
         const c2=(d.contracts||[]).find(c3=>c3.empId===e2.id && c3.start); if(c2) e2.hireDate=c2.start; } }); }catch(e3){}
       if(!d.accounts.some(a=>a.code==="5309")) d.accounts.push({code:"5309", name:"تغيّر المخزون (بضاعة آخر المدة)", type:"مصروفات", header:false});
+      if(!d.accounts.some(a=>a.code==="4108")) d.accounts.push({code:"4108", name:"أرباح استبعاد أصول ثابتة", type:"إيرادات", header:false});
+      if(!d.accounts.some(a=>a.code==="5308")) d.accounts.push({code:"5308", name:"خسائر استبعاد أصول ثابتة", type:"مصروفات", header:false});
       /* مزامنة رجعية: دفعات مسير الرواتب المدفوعة سابقاً → سجل الرواتب المصروفة */
       d.salaryPays=d.salaryPays||[];
       (d.payrollRuns||[]).forEach(r=>(r.rows||[]).forEach(row=>{
@@ -4941,9 +5021,9 @@ function ksStampOwner(){ /* 🏷️ ختم ملكية بيانات الجهاز 
 }
 function ksWipeFarmData(){ /* مسح كامل لأثر المزرعة السابقة من الجهاز + من ذاكرة الصفحة */
   try{ if(typeof DB!=="undefined" && typeof blank==="function") DB=blank(); }catch(e){}
-  try{ localStorage.removeItem(KEY); localStorage.removeItem("ksFarmSnaps");
+  try{ localStorage.removeItem(KEY); localStorage.removeItem(KEY_BASE); localStorage.removeItem("ksFarmSnaps");
        localStorage.removeItem("ksFarmPlan"); localStorage.removeItem("ksDataOwner");
-       localStorage.removeItem("ksPend");
+       localStorage.removeItem(ksPendKey()); localStorage.removeItem("ksPend");
        /* بصمة كلمة مرور المستخدم السابق: الجهاز يُسلَّم لغيره، ولا مستهلك لها بعد المسح
           (الدخول المحلي يشترط وجود بيانات المزرعة وقد مُسحت) — فلا تُترك أثراً قابلاً للكسر */
        localStorage.removeItem("ksCredHash");
@@ -4964,7 +5044,7 @@ function __persistNow(){
   if(typeof ksTabAllowed==="function" && !ksTabAllowed()) return;   /* 🛑 نافذة يتيمة: لا تكتب على بيانات مزرعة أخرى */
   if(ksDataDriftBlock("حفظ")) return;   /* 🛑 الذاكرة تحمل مزرعة أخرى: لا كتابة ولا إعادة ختم */
   ksStampOwner();
-  window.__ksDirty=true; try{ localStorage.setItem("ksPend","1"); }catch(e){} /* تغيّر محلي بانتظار الرفع (ksPend يصمد بعد إعادة التحميل) */
+  window.__ksDirty=true; try{ localStorage.setItem("ksPend","1"); localStorage.setItem(ksPendKey(),"1"); }catch(e){} /* تغيّر محلي بانتظار الرفع (ksPend يصمد بعد إعادة التحميل) */
   const json=JSON.stringify(DB);
   try{ localStorage.setItem(KEY, json); }
   catch(e){ /* امتلاء مساحة المتصفح: نضحي باللقطات القديمة قبل أن نفقد الحفظ الرئيسي */
@@ -4983,7 +5063,7 @@ function cloudUid(){ const s=cloudSess(); return (s&&s.uid)||""; }
 function cloudFarmId(){ const s=cloudSess(); return (s&&(s.farmId||s.uid))||""; }
 function cloudIsFarmOwner(){ const s=cloudSess(); return !!s && (!s.farmId || s.farmId===s.uid); }
 function cloudSess(){ try{ return JSON.parse(localStorage.getItem("ksCloudSess")||"null"); }catch(e){ return null; } }
-function cloudSetSess(s){ if(s) localStorage.setItem("ksCloudSess",JSON.stringify(s)); else localStorage.removeItem("ksCloudSess"); try{ if(s&&s.uid) ksNoteIdentity(s.uid); }catch(e){} cloudStatusUI(); }
+function cloudSetSess(s){ if(s) localStorage.setItem("ksCloudSess",JSON.stringify(s)); else localStorage.removeItem("ksCloudSess"); try{ ksKeyBind(); }catch(e){} try{ if(s&&s.uid) ksNoteIdentity(s.uid); }catch(e){} cloudStatusUI(); }
 function cloudOn(){ return !!cloudSess(); }
 async function cloudAuthFetch(path,opts){
   opts=opts||{}; opts.headers=Object.assign({apikey:SUPA_KEY,"Content-Type":"application/json"},opts.headers||{});
@@ -5173,7 +5253,7 @@ async function cloudPush(__preAuth, __force){
       r=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+encodeURIComponent(__fid),{method:"PATCH",
         body:JSON.stringify({data:DB,updated_at:now})});
     }
-    if(r.ok && __ok()){ DB.settings.lastCloudSync=now; localStorage.setItem(KEY,JSON.stringify(DB)); window.__ksDirty=false; try{ localStorage.removeItem("ksPend"); }catch(e){} try{ planStatsPush(now); }catch(e){} cloudStatusUI(); }
+    if(r.ok && __ok()){ DB.settings.lastCloudSync=now; localStorage.setItem(KEY,JSON.stringify(DB)); window.__ksDirty=false; try{ localStorage.removeItem("ksPend"); localStorage.removeItem(ksPendKey()); }catch(e){} try{ planStatsPush(now); }catch(e){} cloudStatusUI(); }
     else{
       let __m="⚠️ تعذر الرفع ("+r.status+")";
       try{ const __tx=await r.text();
@@ -5212,7 +5292,9 @@ function ksApplyRow(expectFid, row){
     if(row && row.id && String(row.id)!==String(expectFid)) return false;
     const d=(row&&row.data)||{}; d.settings=d.settings||{}; d.settings.lastCloudSync=(row&&row.updated_at)||"";
     localStorage.setItem(KEY, JSON.stringify(d));
+    try{ ksPruneOtherFarms(expectFid); }catch(e){}   /* 🧹 نسخة صالحة وصلت ⇒ تقليم بقايا المزارع الأخرى المرفوعة */
     ksStampOwner();
+    try{ if(KEY!==KEY_BASE) localStorage.removeItem(KEY_BASE); }catch(e){}   /* 🗝️ أي نسخة قديمة بلا ختم صارت لاغية بعد جلب سحابي ناجح */
     return true;
   }catch(e){ return false; }
 }
@@ -5847,6 +5929,65 @@ function ksHelpShow(key, title){
 /* ═══ 🗄️ v12.44-A — أرشفة السنوات المقفلة ═══
    القاعدة: يُؤرشف فقط ما (١) وقع كاملاً داخل سنة مقفلة، (٢) وسُدِّد بالكامل، (٣) ولا يحكم أي رصيد جارٍ (حوض/قطيع/مخزون/سلفة/تسلسل فاتورة).
    والرصيد المحاسبي يُحفظ بالضبط: نحسب أرصدة كل الحسابات حتى 31/12 قبل النقل وبعده ونقيّد الفرق قيداً افتتاحياً واحداً (archiveOf=السنة). */
+/* ═══ 🕘 v12.45-A — تاريخ النسخ السحابية ═══
+   السحابة تحفظ النسخة السابقة تلقائياً (تريغر farm_state_hist_tg). العميل يقرأ القائمة ويستعيد فقط — لا يكتب في الجدول أبداً.
+   الاستعادة = لقطة محلية + استبدال بيانات الجهاز + رفع فوري كنسخة حالية (فتُحفظ النسخة المستبدَلة بدورها في التاريخ). */
+function histGuard(what){
+  if(!ksOwnerOnly(what||"النسخ السحابية")) return false;
+  if(!cloudOn() || !cloudIsFarmOwner()){ toast("☁️ تحتاج جلسة سحابية لصاحب المزرعة"); return false; }
+  if(!ksOutAllowed()){ toast("⛔ هوية النافذة لا تطابق بيانات الجهاز"); return false; }
+  return true;
+}
+async function cloudHistList(){
+  const fid=cloudFarmId(); if(!fid) return {rows:[],err:"no-session"};
+  try{ const r=await cloudAuthFetch("/rest/v1/farm_state_hist?farm_id=eq."+encodeURIComponent(fid)+"&select=id,saved_at,size_kb&order=saved_at.desc&limit=60");
+    if(!r||!r.ok){ let t=""; try{ t=await r.text(); }catch(e){} return {rows:[],err:(/farm_state_hist/.test(t)&&/does not exist|relation/.test(t))?"no-table":("http-"+(r?r.status:"net"))}; }
+    const rows=await r.json(); return {rows:Array.isArray(rows)?rows.filter(x=>x&&x.id):[],err:""};
+  }catch(e){ return {rows:[],err:"net"}; }
+}
+async function renderCloudHist(force){
+  const card=document.getElementById("histCard"), el=document.getElementById("histBody"); if(!card||!el) return;
+  const show=cloudOn() && cloudIsFarmOwner() && (typeof isOwner!=="function" || isOwner()) && !(DB.settings&&DB.settings.demo);
+  card.style.display=show?"":"none"; if(!show) return;
+  if(!force && card.dataset.loaded==="1") return;
+  el.innerHTML='⏳ يجلب القائمة…';
+  const {rows,err}=await cloudHistList(); card.dataset.loaded="1";
+  if(err==="no-table"){ el.innerHTML='⚠️ جدول التاريخ غير مُركَّب في السحابة بعد — نفّذ ملف farm_state_hist.sql في Supabase.'; return; }
+  if(err){ el.innerHTML='📴 تعذّر جلب القائمة ('+escH(err)+') — حاول لاحقاً.'; return; }
+  if(!rows.length){ el.innerHTML='لا نسخ سابقة بعد — تُحفظ النسخة السابقة تلقائياً مع أول رفع يغيّر البيانات.'; return; }
+  const cur=(DB.settings||{}).lastCloudSync||"";
+  el.innerHTML='<table style="width:100%;font-size:.8rem"><tr><th>#</th><th>تاريخ النسخة</th><th>الحجم</th><th></th></tr>'+rows.map((h,i)=>{
+    const d=String(h.saved_at||"").replace("T"," ").slice(0,16);
+    return '<tr><td>'+(i+1)+'</td><td>'+escH(d)+(cur&&String(h.saved_at||"").slice(0,19)===String(cur).slice(0,19)?' <span class="muted">(الحالية على هذا الجهاز)</span>':'')+'</td><td>'+fmt(+h.size_kb||0)+' ك.ب</td><td><button class="btn small secondary" type="button" onclick="cloudHistRestore('+(+h.id)+')">↩️ استعادة</button></td></tr>';
+  }).join("")+'</table>';
+}
+async function cloudHistRestore(id){
+  id=+id; if(!(id>0)) return false;
+  if(!histGuard("استعادة نسخة سحابية")) return false;
+  if(window.__ksReadOnly){ toast("🔒 الاشتراك في وضع القراءة فقط"); return false; }
+  if(DB.settings&&DB.settings.demo){ toast("🧪 البيانات التجريبية — لا استعادة"); return false; }
+  const fid=cloudFarmId();
+  if(!confirm("↩️ استبدال بيانات هذا الجهاز بالنسخة السحابية المختارة؟\nستُؤخذ لقطة محلية أولاً، وتُرفع النسخة المستعادة كنسخة حالية (والحالية تُحفظ في التاريخ).")) return false;
+  let hist=null, curUp="";
+  try{
+    const r=await cloudAuthFetch("/rest/v1/farm_state_hist?id=eq."+id+"&select=id,farm_id,data,saved_at"); if(!r||!r.ok){ toast("❌ تعذّر جلب النسخة — لم يتغيّر شيء"); return false; }
+    const rows=await r.json(); hist=Array.isArray(rows)?rows[0]:null;
+    if(!hist||!hist.data||String(hist.farm_id)!==String(fid)){ toast("⛔ النسخة لا تخص هذه المزرعة — لم يتغيّر شيء"); return false; }
+    const rc=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+encodeURIComponent(fid)+"&select=updated_at"); const cr=rc&&rc.ok?await rc.json():[]; curUp=(cr[0]&&cr[0].updated_at)||"";
+  }catch(e){ toast("📴 تعذّر الاتصال — لم يتغيّر شيء"); return false; }
+  if(!ksOutAllowed() || cloudFarmId()!==fid){ toast("⛔ تغيّرت هوية الجلسة — أُلغيت الاستعادة"); return false; }
+  try{ takeSnap(false); }catch(e){}
+  cancelPendingSave();
+  const row={id:fid, data:hist.data, updated_at:curUp||((DB.settings||{}).lastCloudSync||"")};
+  if(!ksApplyRow(fid,row)){ __skipPersist=false; toast("⛔ تعذّرت الكتابة — لم يتغيّر شيء"); return false; }
+  try{ DB=load(); }catch(e){}
+  try{ logEdit("🕘 استعادة نسخة سحابية", String(hist.saved_at||"").slice(0,16)); }catch(e){}
+  window.__ksDirty=true; try{ localStorage.setItem("ksPend","1"); localStorage.setItem(ksPendKey(),"1"); }catch(e){}
+  try{ await cloudPush(); }catch(e){}
+  toast("✅ استُعيدت نسخة "+String(hist.saved_at||"").replace("T"," ").slice(0,16)+" — سيُعاد التحميل");
+  if(!window.__ksNoReload) setTimeout(()=>location.reload(), 900);
+  return true;
+}
 const ARCH_DB=["expenses","harvests","purchases","payments","supPayments","deferredPayments","invMoves","tasks","attendance","salaryPays","payrollRuns","waterLogs","recons","journals"];
 const ARCH_LV=["milkLogs","feedLogs","weightLogs","healthLogs","dailyReports"];
 function archYearOf(r,coll){ if(coll==="payrollRuns") return String(r.month||"").slice(0,4); return String(r.date||"").slice(0,4); }
@@ -6693,6 +6834,26 @@ function renderApv(){
 
 
 /* ===== Notification Bell ===== */
+/* 🔔 v12.45-B — تنبيهات على مستوى الجهاز (Notification API): تُطلب الصلاحية من الإعدادات، وتُعرض التنبيهات الجديدة عند الإقلاع وكل ساعة والتطبيق مفتوح.
+   حدّ معروف: بلا خادم دفع (Web Push) لا تصل التنبيهات والتطبيق مغلق — موثّق للمالك. */
+function ksNotifSupported(){ return typeof Notification!=="undefined"; }
+function ksNotifAsk(){ if(!ksNotifSupported()){ toast("⚠️ هذا المتصفح لا يدعم التنبيهات"); return; } Notification.requestPermission().then(p=>{ toast(p==="granted"?"🔔 التنبيهات مفعّلة على هذا الجهاز":"🔕 لم تُمنح الصلاحية"); try{ ksNotifUI(); }catch(e){} if(p==="granted") ksNotifyNew(true); }); }
+function ksNotifUI(){ const el=document.getElementById("notifPermBox"); if(!el) return; if(!ksNotifSupported()){ el.innerHTML='<span class="muted">المتصفح لا يدعم التنبيهات</span>'; return; }
+  el.innerHTML=Notification.permission==="granted"?'<span class="badge active">🔔 مفعّلة على هذا الجهاز</span> <span class="muted" style="font-size:.72rem">تظهر التنبيهات الجديدة عند فتح التطبيق وكل ساعة والتطبيق مفتوح</span>':Notification.permission==="denied"?'<span class="badge danger">🔕 مرفوضة من المتصفح</span> <span class="muted" style="font-size:.72rem">فعّلها من إعدادات الموقع في المتصفح</span>':'<button class="btn small" type="button" onclick="ksNotifAsk()">🔔 تفعيل تنبيهات الجهاز</button>'; }
+function ksNotifyNew(force){
+  try{
+    if(!ksNotifSupported() || Notification.permission!=="granted") return 0;
+    const items=(typeof getAlerts==="function")?getAlerts().map(String):[]; if(!items.length) return 0;
+    let shown=[]; try{ shown=JSON.parse(localStorage.getItem("ksNotifPushed")||"[]"); }catch(e){ shown=[]; }
+    const key=x=>x.replace(/<[^>]+>/g,"").slice(0,120); const fresh=items.map(key).filter(k=>!shown.includes(k)); if(!fresh.length&&!force) return 0;
+    const list=fresh.length?fresh:items.map(key); const body=list.slice(0,4).join("\n")+(list.length>4?"\n… و"+(list.length-4)+" تنبيهات أخرى":"");
+    const show=()=>{ try{ if(navigator.serviceWorker&&navigator.serviceWorker.controller&&navigator.serviceWorker.ready){ navigator.serviceWorker.ready.then(r=>r.showNotification("🔔 "+(ksCoName()||"المزرعة")+" — "+fmt(list.length)+" تنبيه", {body, tag:"ks-alerts", renotify:true, icon:"icon.svg"})).catch(()=>{ new Notification("🔔 "+fmt(list.length)+" تنبيه",{body}); }); } else new Notification("🔔 "+fmt(list.length)+" تنبيه",{body}); }catch(e){} };
+    show();
+    localStorage.setItem("ksNotifPushed", JSON.stringify(items.map(key).slice(0,200)));
+    return list.length;
+  }catch(e){ return 0; }
+}
+try{ setInterval(()=>{ try{ ksNotifyNew(false); }catch(e){} }, 3600e3); }catch(e){}
 function buildNotifications(){
   const alerts = [];
   const d = today();
@@ -6916,6 +7077,8 @@ function faDepInfo(a, atISO){
   if(!(cost>salv) || !(life>0)) return dep0;
   const st=String(a.date||"");
   if(!/^\d{4}-\d{2}-\d{2}$/.test(st) || !/^\d{4}-\d{2}-\d{2}$/.test(at)) return dep0;   /* تاريخ غير صالح ⇒ صفر لا NaN */
+  /* 🏷️ v12.45-B: أصل مستبعد — يتوقف الإهلاك عند تاريخ الاستبعاد (لا شهر بعده) */
+  if(a.disposed && a.disposed.date && at>a.disposed.date){ return faDepInfo(Object.assign({},a,{disposed:null}), a.disposed.date); }
   /* v12.41-A — الأشهر **المكتملة بعد شهر الشراء**: شهر الشراء لا يُهلَك، والشهر الجاري لا يُحسب إلا في آخر يوم منه.
      (كانت تطابق يوم الشهر بيوم الشراء، فأصل مؤرَّخ 31 يُهلَك صفراً في أشهر الثلاثين يوماً وضِعفاً في التالية —
      المجموع صحيح لكن قائمة الدخل الشهرية والربعية مشوّهة. الآن القسط الثابت ثابت فعلاً: نفس المبلغ كل شهر.) */
@@ -7150,7 +7313,8 @@ function applyRole(){
   try{ ksNoVatUI(); }catch(e){}   /* 🏷️ إخفاء شاشة الضريبة لغير المسجَّل عند كل تطبيق للدور */
   try{ ksHelpInject(); }catch(e){}     /* ❓ v12.44-A: زر الشرح على كل بطاقة لها مدخل في الدليل */
   try{ ksDemoBanner(); }catch(e){}     /* 🧪 شريط البيانات التجريبية */
-  try{ setTimeout(ksOnboardMaybe, 300); }catch(e){}   /* 🚀 معالج البدء للمزرعة الفارغة */
+  try{ setTimeout(ksOnboardMaybe, 300); }catch(e){}
+  try{ setTimeout(()=>{ try{ ksNotifyNew(false); }catch(e){} }, 4000); }catch(e){}   /* 🔔 تنبيهات الجهاز بعد الإقلاع */   /* 🚀 معالج البدء للمزرعة الفارغة */
 }
 function cloudGateNeeded(){
   try{
@@ -7635,6 +7799,15 @@ function delAssign(id){
   const a=DB.assigns.find(x=>x.id===id);
   if(a && confirm("حذف المهمة؟")){ trashIt("assigns","مهمة مسندة",a.desc,a); DB.assigns=DB.assigns.filter(x=>x.id!==id); save(); renderAssigns(); }
 }
+/* 👁️ v12.45-B — تأكيد استلام المهمة من الموظف المسنَد إليه (يوقف «هل رآها؟») */
+function ksIsMyAssign(a){ if(!CURRENT_USER||!a) return false; return isOwner()?false:(CURRENT_USER.id===a.empId || empName2(a.empId)===CURRENT_USER.name); }
+function ackAssign(id){
+  const a=(DB.assigns||[]).find(x=>x.id===id); if(!a) return false;
+  if(!ksIsMyAssign(a)){ toast("⚠️ التأكيد للموظف المسنَد إليه فقط"); return false; }
+  if(a.ack){ toast("✔️ مؤكَّدة مسبقاً"); return false; }
+  a.ack={by:CURRENT_USER.name, at:new Date().toISOString().slice(0,16).replace("T"," ")};
+  save(); try{ renderAssigns(); }catch(e){} toast("👁️ أُبلغ المشرف باستلامك المهمة"); return true;
+}
 function renderAssigns(){
   // بطاقة الدورات — للمشرف والمالك فقط
   if(typeof assignForm!=="undefined"){
@@ -7645,15 +7818,16 @@ function renderAssigns(){
     }
     const list = DB.assigns.slice()
       .sort((a,b)=> (a.status==="معلقة"?0:1)-(b.status==="معلقة"?0:1) || a.due.localeCompare(b.due));
-    tblAssigns.innerHTML = `<tr><th>المهمة</th><th>الموظف</th><th>القسم</th><th>الموعد</th><th>الأولوية</th><th>الحالة</th><th></th></tr>`
+    tblAssigns.innerHTML = `<tr><th>المهمة</th><th>الموظف</th><th>القسم</th><th>الموعد</th><th>الأولوية</th><th>الاستلام</th><th>الحالة</th><th></th></tr>`
       + (list.slice(0,50).map(a=>{
         const late = a.status==="معلقة" && a.due<today();
         return `<tr><td><b>${ksTxt(a.desc)}</b></td><td>${empName2(a.empId)}</td><td>${a.section||"—"}</td>
           <td class="${late?"neg":""}">${a.due}${late?" ⚠️":""}</td>
           <td>${a.pr==="عاجلة"?'<span class="badge danger">عاجلة</span>':"عادية"}</td>
+          <td>${a.ack?`<span class="badge active" title="${escH(a.ack.by||"")}">👁️ ${escH(String(a.ack.at||"").slice(0,16))}</span>`:(ksIsMyAssign(a)&&a.status==="معلقة"?`<button class="btn small secondary" onclick="ackAssign('${a.id}')">👁️ استلمت</button>`:'<span class="muted">لم تُؤكَّد</span>')}</td>
           <td>${a.status==="منجزة"?`<span class="badge active">منجزة ${a.doneDate||""}</span>`:late?'<span class="badge danger">متأخرة</span>':'<span class="badge warn">معلقة</span>'}</td>
           <td>${a.status==="معلقة"?`<button class="btn small" onclick="doneAssign('${a.id}')">✅ إنجاز</button>`:""}${isOwner()?`<button class="del" onclick="delAssign('${a.id}')">🗑️</button>`:""}</td></tr>`;
-      }).join("") || `<tr><td colspan="7" class="muted">لا توجد مهام مسندة بعد</td></tr>`);
+      }).join("") || `<tr><td colspan="8" class="muted">لا توجد مهام مسندة بعد</td></tr>`);
   }
   renderMyTasks();
   if(ASSIGN_VIEW==="kanban") renderKanban();
@@ -8153,12 +8327,12 @@ function addSpray(e){
     if(__nq>0){
       const __ni=(DB.inventory||[]).find(x=>(x.cat==="مبيدات"||x.cat==="أسمدة")&&(x.name||"").trim()===rec.name);
       if(__ni){
-        if(__nq<=__ni.qty){
+        if(__nq<=invUsable(__ni, rec.date||today())){
           rec.itemId=__ni.id;
-          __ni.qty=+(__ni.qty-__nq).toFixed(2);
+          __ni.qty=+(__ni.qty-__nq).toFixed(2); invConsumeLots(__ni,__nq,rec.date||today());
           DB.invMoves.push({id:uid(), date:rec.date||today(), itemId:__ni.id, type:"صرف", qty:__nq, sprayId:EDIT.spray,
             employee:(rec.employee||""), notes:"رش (بعد التعديل) — "+(rec.section||"")});
-        } else { rec.qty=0; toast("⚠️ الكمية أكبر من المتوفر ("+__ni.qty+") — حُفظ التعديل بدون خصم"); }
+        } else { rec.qty=0; toast("⚠️ الكمية أكبر من المتوفر الصالح ("+fmt(invUsable(__ni, rec.date||today()))+(invExpiredQty(__ni, rec.date||today())>0?" — منتهي الصلاحية "+fmt(invExpiredQty(__ni, rec.date||today())):"")+") — حُفظ التعديل بدون خصم"); }
       } else { rec.qty=0; toast("ℹ️ «"+rec.name+"» غير موجود بالمخزون — حُفظ التعديل بدون خصم"); }
     }
     Object.assign(__old, rec);
@@ -8172,14 +8346,14 @@ function addSpray(e){
     if(q>0){
       const p=(DB.inventory||[]).find(x=>(x.cat==="مبيدات"||x.cat==="أسمدة")&&(x.name||"").trim()===rec.name);
       if(p){
-        if(q<=p.qty){
+        if(q<=invUsable(p, rec.date||today())){
           rec.itemId=p.id;
-          p.qty=+(p.qty-q).toFixed(2);
+          p.qty=+(p.qty-q).toFixed(2); invConsumeLots(p,q,rec.date||today());
           DB.invMoves.push({id:uid(),date:rec.date||today(),itemId:p.id,type:"صرف",qty:q,sprayId:__sid,
             employee:(rec.employee||""),notes:"رش — "+(rec.section||"")});
           try{renderInv();}catch(e){}
           toast("📦 خُصم "+q+" "+(p.unit||"")+" من مخزون «"+p.name+"»");
-        } else { rec.qty=0; toast("⚠️ الكمية أكبر من المتوفر ("+p.qty+") — سُجل الرش بدون خصم"); }
+        } else { rec.qty=0; toast("⚠️ الكمية أكبر من المتوفر الصالح ("+fmt(invUsable(p, rec.date||today()))+(invExpiredQty(p, rec.date||today())>0?" — منتهي الصلاحية "+fmt(invExpiredQty(p, rec.date||today())):"")+") — سُجل الرش بدون خصم"); }
       } else { rec.qty=0; toast("ℹ️ «"+rec.name+"» غير موجود بالمخزون (فئة مبيدات/أسمدة) — سُجل الرش بدون خصم"); }
     }
     DB.sprays.push({id:__sid, ...rec});
@@ -8210,7 +8384,7 @@ function delSpray(id){
   if(__q>0){
     const it=(DB.inventory||[]).find(x=>x.id===s.itemId)
       || (DB.inventory||[]).find(x=>(x.cat==="مبيدات"||x.cat==="أسمدة")&&(x.name||"").trim()===(s.name||"").trim());
-    if(it){ it.qty=+((+it.qty||0)+__q).toFixed(2);
+    if(it){ it.qty=+((+it.qty||0)+__q).toFixed(2); try{ invReturnLots(it,__q,""); }catch(e){}
       DB.invMoves.push({id:uid(), date:today(), itemId:it.id, type:"إضافة (شراء/توريد)", qty:__q,
         employee:(CURRENT_USER||{}).name||"", notes:"عكس حذف سجل رش — "+(s.section||"")}); }
   }
@@ -8774,7 +8948,8 @@ function addFish(e){
         let _m=(rec.feedType?_fs.find(i=>i.name.includes(rec.feedType)):null); if(!_m&&_fs.length===1)_m=_fs[0]; if(_m)__fid=_m.id; }
       if(__fid){ const it=DB.inventory.find(x=>x.id===__fid);
         if(it){ if(__delta>0 && __delta>it.qty){ toast("❌ العلف بالمخزون غير كافٍ لفرق التعديل (متوفر "+fmt(it.qty)+" "+it.unit+")"); return; }
-          it.qty-=__delta; rec.itemId=it.id;
+          if(__delta>0 && !invTakeAllowed(it, __delta, rec.date, "تغذية الأسماك")) return;
+          it.qty-=__delta; rec.itemId=it.id; if(__delta>0) invConsumeLots(it,__delta,rec.date); else invReturnLots(it,-__delta,"");
           DB.invMoves.push({id:uid(), date:rec.date, itemId:it.id, type:__delta>0?"صرف":"إضافة (شراء/توريد)", qty:Math.abs(__delta), employee:rec.employee, notes:"تسوية تعديل سجل تغذية "+rec.tank}); } } }
     { const __sn=+rec.soldNew||0; delete rec.soldNew;
       const __h=(DB.harvests||[]).find(x=>x.fishLogId===__old.id && x.unpriced);
@@ -8793,7 +8968,8 @@ function addFish(e){
       const it = DB.inventory.find(x=>x.id===_feedItemId);
       if(it){
         if(rec.feed>it.qty){ toast("❌ العلف بالمخزون غير كافي (متوفر "+fmt(it.qty)+" "+it.unit+")"); return; }
-        it.qty -= rec.feed;
+        if(!invTakeAllowed(it, rec.feed, rec.date, "تغذية الأسماك")) return;
+        it.qty -= rec.feed; invConsumeLots(it, rec.feed, rec.date);
         rec.itemId=it.id;   /* 🎯 الصنف المختار فعلاً — البحث بالملاحظة عند الحذف كان يفشل دائماً فيُخمَّن صنف آخر */
         DB.invMoves.push({id:uid(), date:rec.date, itemId:it.id, type:"صرف", qty:rec.feed, employee:rec.employee, notes:"تغذية "+rec.tank+(rec.feedType?" ("+rec.feedType+")":"")});
       }
@@ -8850,7 +9026,7 @@ function delFish(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ م�
         if(mv) it=(DB.inventory||[]).find(x=>x.id===mv.itemId); }
       if(!it){ const fs=(DB.inventory||[]).filter(i=>i.cat==="أعلاف");
         it=(f.feedType?fs.find(i=>i.name.includes(f.feedType)):null)||(fs.length===1?fs[0]:null); }
-      if(it){ it.qty=+((+it.qty||0)+(+f.feed||0)).toFixed(2);
+      if(it){ it.qty=+((+it.qty||0)+(+f.feed||0)).toFixed(2); try{ invReturnLots(it,(+f.feed||0),""); }catch(e){}
         DB.invMoves.push({id:uid(), date:today(), itemId:it.id, type:"إضافة (شراء/توريد)", qty:+f.feed||0,
           employee:(CURRENT_USER||{}).name||"", notes:"عكس حذف سجل تغذية أسماك — "+f.tank}); } }
     }catch(e){}
@@ -10432,11 +10608,77 @@ function addInvMove(e){
   if(!it){ toast("⚠️ أضف صنف أولاً"); return; }
   const q = +mvQty.value, out = mvType.value==="صرف";
   if(out && q>it.qty){ toast("❌ الكمية أكبر من المتوفر ("+fmt(it.qty)+" "+it.unit+")"); return; }
+  if(out && !invTakeAllowed(it, q, mvDate.value, "الصرف")) return;
   it.qty += out ? -q : q;
+  if(out) invConsumeLots(it, q, mvDate.value); else invAddLot(it, q, (document.getElementById("mvExp")||{}).value||"", mvDate.value, "move");
   DB.invMoves.push({id:uid(), date:mvDate.value, itemId:it.id, type:mvType.value, qty:q, employee:(mvEmp.value.trim()||(CURRENT_USER?CURRENT_USER.name:'')), notes:mvNotes.value});
   save(); e.target.reset(); mvDate.value=today(); fillSelects(); renderInv(); toast("✅ تم تسجيل الحركة");
 }
 function invValue(){ return DB.inventory.reduce((s,i)=>s+(i.qty*(i.cost||0)),0); }
+/* ═══ 📦 v12.45-A — دفعات المخزون بتاريخ صلاحية (lots) ═══
+   it.lots=[{id,date,exp,qty,left,ref}] · الخصم FIFO بالأقرب انتهاءً · المنتهي لا يُصرف · it.exp = أقرب انتهاء لدفعة فيها رصيد (وإلا القيمة اليدوية).
+   القاعدة: الكمية بلا دفعة (رصيد قديم/تسوية) تُعامل «بلا صلاحية» — لا تخمين. */
+function invLots(it){ return (it&&Array.isArray(it.lots))?it.lots:[]; }
+function invLotsHeal(it){
+  /* اتساق دفاعي: مجموع أرصدة الدفعات لا يتجاوز رصيد الصنف (بعد حذف/تعديل لا يمرّ بالدفعات) — يُقصّ من الأحدث */
+  const L=invLots(it); if(!L.length) return; let sum=L.reduce((a,l)=>a+(+l.left||0),0); const q=+it.qty||0;
+  if(sum>q+0.0001){ let over=sum-q; for(let i=L.length-1;i>=0&&over>0.0001;i--){ const t=Math.min(+L[i].left||0, over); L[i].left=+((+L[i].left||0)-t).toFixed(4); over-=t; } }
+}
+function invRefreshExp(it){
+  if(!it) return; invLotsHeal(it);
+  const live=invLots(it).filter(l=>(+l.left||0)>0.0001 && l.exp);
+  if(live.length){ it.exp=live.map(l=>l.exp).sort()[0]; it.expAuto=true; }
+  else if(it.expAuto){ it.exp=""; it.expAuto=false; }
+}
+function invAddLot(it, qty, exp, date, ref){
+  if(!it || !(qty>0)) return null;
+  it.lots=invLots(it).slice();
+  const lot={id:uid(), date:date||today(), exp:exp||"", qty:+(+qty).toFixed(4), left:+(+qty).toFixed(4), ref:ref||""};
+  it.lots.push(lot); invRefreshExp(it); return lot;
+}
+function invExpiredQty(it, onDate){
+  const d=onDate||today(); invLotsHeal(it);
+  let exp=invLots(it).filter(l=>l.exp && l.exp<d).reduce((a,l)=>a+(+l.left||0),0);
+  /* صنف بلا دفعات لكن له تاريخ انتهاء يدوي منتهٍ ⇒ كل رصيده منتهٍ */
+  if(!invLots(it).length && it.exp && it.exp<d) exp=+it.qty||0;
+  return +Math.min(exp, +it.qty||0).toFixed(4);
+}
+function invUsable(it, onDate){ return +Math.max(0, (+it.qty||0) - invExpiredQty(it,onDate)).toFixed(4); }
+/* ✅ true = مسموح الصرف (تُستدعى منفيةً) — تمنع فقط ما يتجاوز الرصيد الصالح وتسمّي المنتهي */
+function invTakeAllowed(it, qty, onDate, what){
+  if(!it) return true; const ex=invExpiredQty(it,onDate), use=invUsable(it,onDate);
+  if(qty>use+0.0001){
+    toast("❌ "+(what||"الصرف")+": المتوفر الصالح "+fmt(use)+" "+(it.unit||"")+(ex>0?" (منتهي الصلاحية "+fmt(ex)+" "+(it.unit||"")+" — لا يُصرف)":"")); return false;
+  }
+  return true;
+}
+function invConsumeLots(it, qty, onDate){
+  /* FIFO بالأقرب انتهاءً بين الدفعات الصالحة؛ ما لا تغطيه الدفعات يُعدّ من الرصيد غير الموسوم */
+  if(!it) return; const d=onDate||today(); let rem=+qty||0;
+  invLots(it).filter(l=>(+l.left||0)>0.0001 && !(l.exp && l.exp<d)).sort((a,b)=>String(a.exp||"9999").localeCompare(String(b.exp||"9999"))||String(a.date).localeCompare(String(b.date)))
+    .forEach(l=>{ if(rem<=0.0001) return; const t=Math.min(+l.left||0, rem); l.left=+((+l.left||0)-t).toFixed(4); rem-=t; });
+  invRefreshExp(it);
+}
+function invReturnLots(it, qty, ref){
+  /* عكس صرف: يُعاد إلى دفعة المرجع إن وُجدت وإلا إلى أحدث دفعة لها سعة، وإلا يبقى رصيداً بلا دفعة */
+  if(!it) return; let rem=+qty||0; const L=invLots(it);
+  const order=L.slice().sort((a,b)=>(a.ref===ref?-1:b.ref===ref?1:0)||String(b.date).localeCompare(String(a.date)));
+  order.forEach(l=>{ if(rem<=0.0001) return; const cap=Math.max(0,(+l.qty||0)-(+l.left||0)); const t=Math.min(cap,rem); l.left=+((+l.left||0)+t).toFixed(4); rem-=t; });
+  invRefreshExp(it);
+}
+function invLotsShow(id){
+  const it=(DB.inventory||[]).find(x=>x.id===id); if(!it) return; invLotsHeal(it);
+  const L=invLots(it).slice().sort((a,b)=>String(a.exp||"9999").localeCompare(String(b.exp||"9999")));
+  const t=today(), s30=ksISO(new Date(Date.now()+30*864e5));
+  const rows=L.length?L.map(l=>{ const st=l.exp?(l.exp<t?'<span class="badge danger">منتهية</span>':l.exp<=s30?'<span class="badge warn">قرب الانتهاء</span>':'<span class="badge active">صالحة</span>'):'<span class="muted">بلا تاريخ</span>';
+      return '<tr><td>'+escH(l.date||"")+'</td><td>'+escH(l.exp||"—")+'</td><td>'+fmt(l.qty)+'</td><td>'+fmt(l.left)+'</td><td>'+st+'</td></tr>'; }).join(""):'<tr><td colspan="5" class="muted">لا دفعات موسومة — الرصيد كله بلا تاريخ صلاحية (سجّل تاريخ الانتهاء في فاتورة الشراء القادمة)</td></tr>';
+  const untracked=+Math.max(0,(+it.qty||0)-L.reduce((a,l)=>a+(+l.left||0),0)).toFixed(2);
+  let m=document.getElementById("invLotsModal"); if(m) m.remove();
+  m=document.createElement("div"); m.id="invLotsModal"; m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99990;display:flex;align-items:center;justify-content:center;padding:16px";
+  m.innerHTML='<div class="card" style="max-width:640px;width:100%;max-height:85vh;overflow:auto"><h3>📦 دفعات «'+escH(it.name)+'»</h3><p class="muted" style="font-size:.74rem">الرصيد '+fmt(it.qty)+' '+escH(it.unit||"")+' · الصالح للصرف '+fmt(invUsable(it))+' · منتهٍ '+fmt(invExpiredQty(it))+(untracked>0?' · بلا دفعة '+fmt(untracked):'')+'</p><div class="table-wrap"><table><tr><th>تاريخ الدفعة</th><th>الانتهاء</th><th>الكمية</th><th>المتبقي</th><th>الحالة</th></tr>'+rows+'</table></div><div style="text-align:left;margin-top:8px"><button class="btn small secondary" type="button" onclick="document.getElementById(\'invLotsModal\').remove()">إغلاق</button></div></div>';
+  m.addEventListener("click",e=>{ if(e.target===m) m.remove(); });
+  document.body.appendChild(m);
+}
 function renderInv(){
   try{ prUnitFill(); }catch(e){}   /* ضمان امتلاء «الوحدة *» متى فُتحت شاشة المخزون */
   const exp30 = ksISO(new Date(Date.now()+30*864e5));
@@ -10446,7 +10688,11 @@ function renderInv(){
        وصنف يحمل minQty دون min يظهر «متوفر» والبطاقة تعدّه ناقصاً. */
     const __m = +i.min || +i.minQty || +i.minStock || 0;
     const low = __m>0 && (+i.qty||0)<=__m;
-    const expSt = !i.exp ? "—" : i.exp<today() ? '<span class="badge danger">منتهي!</span>' : i.exp<=exp30 ? `<span class="badge warn">${i.exp}</span>` : i.exp;
+    try{ invRefreshExp(i); }catch(e){}
+    const __exq=invExpiredQty(i);
+    const expSt = (!i.exp ? "—" : i.exp<today() ? '<span class="badge danger">منتهي!</span>' : i.exp<=exp30 ? `<span class="badge warn">${i.exp}</span>` : i.exp)
+      + (__exq>0 ? ` <span class="neg" style="font-size:.7rem">(${fmt(__exq)} منتهٍ)</span>` : "")
+      + (invLots(i).length ? ` <button class="edt" style="font-size:.7rem" title="دفعات الصنف وصلاحيتها" onclick="invLotsShow('${i.id}')">📦 ${invLots(i).filter(l=>(+l.left||0)>0.0001).length}</button>` : "");
     return `<tr><td style="font-size:.72rem;color:var(--muted)">${i.itemNo||"—"}</td><td><b>${ksNm(i.name)}</b>${i.section?`<br><span class="muted" style="font-size:.68rem">🏡 ${ksTxt(i.section)}</span>`:""}${i.acc?`<br><span class="muted" style="font-size:.68rem">🌳 ${i.acc}</span>`:""}</td><td>${ksTxt(i.cat)}</td>
       <td class="${low?"neg":"pos"}">${fmt(i.qty)} ${ksTxt(i.unit)}</td>
       <td>${i.cost?fmtSR(i.cost):"—"}</td><td>${i.cost?fmtSR(i.qty*i.cost):"—"}</td>
@@ -11963,7 +12209,7 @@ function addPurchase(e){
   const __docTotal=Math.max(0,__docNet-__docDisc)+__docVat;
   if(__cur!=="SAR"){ DB.settings.fxRates=DB.settings.fxRates||{}; DB.settings.fxRates[__cur]=+__rate; }
   const rec = {date:puDate.value, supplierId:puSupplier.value, cat:puCat.value, desc:puDesc.value,
-    itemId:puItem.value||"", unit:document.getElementById("puUnit")?.value||"", qty:puQty.value===""?0:+puQty.value,
+    itemId:puItem.value||"", unit:document.getElementById("puUnit")?.value||"", qty:puQty.value===""?0:+puQty.value, exp:(document.getElementById("puExp")||{}).value||"",
     net:__k(__docNet), discEarned:__k(__docDisc), vat:__k(__docVat),
     amount:Math.max(0,__k(__docNet)-__k(__docDisc)),
     total:Math.max(0,__k(__docNet)-__k(__docDisc))+__k(__docVat),
@@ -12023,7 +12269,9 @@ function addPurchase(e){
         rec.stockQty=addQ;
       }
     }
-    DB.purchases.push({id:uid(), expId, ...rec});
+    const __pid=uid();
+    if(rec.itemId && (+rec.stockQty||0)>0){ try{ invAddLot(DB.inventory.find(x=>x.id===rec.itemId), +rec.stockQty, rec.exp||"", rec.date, __pid); }catch(e){} }
+    DB.purchases.push({id:__pid, expId, ...rec});
   }
   /* 🔗 إقفال طلب الشراء المرتبط — الربط مخزَّن على الطلب فلا يسقط بمرور الوقت */
   {
@@ -12062,6 +12310,7 @@ function delPurchase(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️
     if(p.itemId && __sq>0){ const oi=DB.inventory.find(x=>x.id===p.itemId);
       if(oi){ if(oi.qty-__sq<-0.001){ toast("⚠️ لا يمكن الحذف: صُرف من كمية الفاتورة ("+fmt(oi.qty)+" متبقٍ من "+fmt(__sq)+") — الرصيد سيصبح سالباً"); return; }
         oi.qty-=__sq;
+        try{ oi.lots=invLots(oi).filter(l=>l.ref!==p.id); invRefreshExp(oi); }catch(e){}   /* 📦 تُزال دفعة هذه الفاتورة */
         /* 💰 متوسط التكلفة كان يبقى مرتفعاً بعد الحذف ⇒ قيمة مخزون منتفخة وتسوية 5309 وهمية */
         if(p.prevCost!==undefined && p.prevCost!==null) oi.cost=+p.prevCost;
         DB.invMoves.push({id:uid(), date:today(), itemId:oi.id, type:"صرف", qty:__sq, employee:(CURRENT_USER||{}).name||"", notes:"عكس حذف فاتورة شراء"}); } }
@@ -12423,9 +12672,14 @@ function getAlerts(){
   const lateA = DB.assigns.filter(a=>a.status==="معلقة" && a.due<today());
   if(lateA.length) items.push(`📌 مهام مسندة متأخرة: <b>${lateA.length}</b> — ${lateA.slice(0,3).map(a=>a.desc+" ("+empName2(a.empId)+")").join("، ")}`);
   const exp30b = ksISO(new Date(Date.now()+30*864e5));
-  DB.inventory.filter(i=>i.exp).forEach(i=>{
-    if(i.exp<today()) items.push(`⏰ <b>${ksNm(i.name)}</b> منتهي الصلاحية منذ ${i.exp} — لا تستخدمه`);
-    else if(i.exp<=exp30b) items.push(`⏰ <b>${ksNm(i.name)}</b> تنتهي صلاحيته ${i.exp}`);
+  DB.inventory.forEach(i=>{
+    try{ invRefreshExp(i); }catch(e){}
+    const __exq=(typeof invExpiredQty==="function")?invExpiredQty(i):0;
+    if(__exq>0) items.push(`⏰ <b>${ksNm(i.name)}</b>: ${fmt(__exq)} ${ksTxt(i.unit)} منتهية الصلاحية (≈ ${fmtSR(__exq*(+i.cost||0))}) — لا تُصرف؛ سجّل إتلافها`);
+    else if(i.exp && i.exp<today()) items.push(`⏰ <b>${ksNm(i.name)}</b> منتهي الصلاحية منذ ${i.exp} — لا تستخدمه`);
+    const __soon=invLots(i).filter(l=>l.exp && l.exp>=today() && l.exp<=exp30b && (+l.left||0)>0.0001).reduce((a,l)=>a+(+l.left||0),0);
+    if(__soon>0) items.push(`⏰ <b>${ksNm(i.name)}</b>: ${fmt(__soon)} ${ksTxt(i.unit)} تنتهي خلال 30 يوماً (أقربها ${i.exp}) — استهلكها أولاً`);
+    else if(!invLots(i).length && i.exp && i.exp>=today() && i.exp<=exp30b) items.push(`⏰ <b>${ksNm(i.name)}</b> تنتهي صلاحيته ${i.exp}`);
   });
   /* طلبات الشراء: تنبيه حسب المرحلة والدور */
   (DB.purchaseRequests||[]).forEach(r=>{
@@ -14139,7 +14393,7 @@ function delAccount(code){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠�
   /* 🛡️ حساب مربوط ببند مصروف كان يُحذف وهو فارغ، ثم أول مصروف على بنده يكسر توازن الميزان للأبد */
   const __catUse=Object.keys(CAT_ACC||{}).filter(k=>CAT_ACC[k]===code);
   if(__catUse.length){ toast("⚠️ الحساب مربوط ببند «"+__catUse.join("، ")+"» — أول مصروف عليه يكسر الميزان. لا يُحذف"); return; }
-  if(["1101","1102","1103","1104","1105","1201","1202","2101","2102","2103","2105","3101","3102","4101","4109","5301","5306","5309"].includes(code)){
+  if(["1101","1102","1103","1104","1105","1201","1202","2101","2102","2103","2105","3101","3102","4101","4108","4109","5301","5306","5308","5309"].includes(code)){
     toast("⚠️ حساب أساسي يستخدمه السستم في القيود التلقائية — لا يُحذف"); return; }
   if(confirm("حذف الحساب؟")){ DB.accounts=DB.accounts.filter(a=>a.code!==code); save(); renderAccounts(); renderAcctSelects(); }
 }
@@ -14285,6 +14539,56 @@ function delFA(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ ما 
   try{ renderJournals(); renderTrial(); }catch(e){}
   toast("🗑️ حُذف الأصل"+(__js.length?" وقيد اقتنائه":""));
 }
+/* 🏷️ v12.45-B — استبعاد الأصل (بيع/إعدام) بقيد: نقد (إن وُجد) + مجمع الإهلاك مدين · الأصل دائن · الفرق ربح 4108 أو خسارة 5308 */
+function faDispose(id){
+  const a=(DB.fixedAssets||[]).find(x=>x.id===id); if(!a) return;
+  if(!isOwner() && !(typeof canSettle==="function" && canSettle())){ toast("⚠️ استبعاد الأصل للمالك أو المخوّل بالتسوية"); return; }
+  if(a.disposed){ toast("ℹ️ الأصل مستبعد بالفعل منذ "+a.disposed.date); return; }
+  let m=document.getElementById("faDispModal"); if(m) m.remove();
+  const di=faDepInfo(a,today());
+  m=document.createElement("div"); m.id="faDispModal"; m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99990;display:flex;align-items:center;justify-content:center;padding:16px";
+  m.innerHTML='<div class="card" style="max-width:520px;width:100%"><h3>🏷️ استبعاد الأصل «'+escH(a.name)+'»</h3>'
+    +'<p class="muted" style="font-size:.74rem">التكلفة '+fmtSR(a.cost)+' · الإهلاك المتراكم حتى اليوم '+fmtSR(di.accDep)+' · القيمة الدفترية '+fmtSR(di.nbv)+'</p>'
+    +'<div class="row"><div><label>تاريخ الاستبعاد *</label><input type="date" id="fdDate" value="'+today()+'"></div>'
+    +'<div><label>سعر البيع (⃁) — 0 = إعدام/تكهين</label><input type="number" id="fdPrice" min="0" step="0.01" value="0"></div>'
+    +'<div><label>القبض في</label><select id="fdAcc"><option value="1101">الصندوق</option><option value="1102">البنك</option></select></div>'
+    +'<div><label>السبب / ملاحظة</label><input id="fdNote" placeholder="مثال: بيع للخردة"></div></div>'
+    +'<p class="muted" id="fdPreview" style="font-size:.74rem"></p>'
+    +'<div style="display:flex;gap:8px;justify-content:flex-start"><button class="btn" type="button" onclick="faDisposeApply(\''+a.id+'\')">✅ تنفيذ الاستبعاد</button><button class="btn secondary" type="button" onclick="document.getElementById(\'faDispModal\').remove()">إلغاء</button></div></div>';
+  m.addEventListener("click",e=>{ if(e.target===m) m.remove(); });
+  document.body.appendChild(m);
+  const prev=()=>{ const d=(document.getElementById("fdDate")||{}).value||today(); const p=+(document.getElementById("fdPrice")||{}).value||0; const x=faDepInfo(Object.assign({},a,{disposed:null}),d); const gl=+(p-x.nbv).toFixed(2);
+    const el=document.getElementById("fdPreview"); if(el) el.textContent="القيمة الدفترية بتاريخ الاستبعاد "+fmtSR(x.nbv)+" ⇒ "+(gl>=0?"ربح استبعاد "+fmtSR(gl):"خسارة استبعاد "+fmtSR(-gl)); };
+  ["fdDate","fdPrice"].forEach(i=>{ const el=document.getElementById(i); if(el) el.addEventListener("input",prev); }); prev();
+}
+function faDisposeApply(id, __date, __price, __acc, __note){
+  const a=(DB.fixedAssets||[]).find(x=>x.id===id); if(!a||a.disposed) return false;
+  if(!isOwner() && !(typeof canSettle==="function" && canSettle())){ toast("⚠️ استبعاد الأصل للمالك أو المخوّل بالتسوية"); return false; }
+  const g=i=>(document.getElementById(i)||{}).value;
+  const date=__date||g("fdDate")||today(), price=+(__price!==undefined?__price:(g("fdPrice")||0))||0, acc=__acc||g("fdAcc")||"1101", note=(__note!==undefined?__note:(g("fdNote")||""));
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){ toast("⚠️ تاريخ غير صالح"); return false; }
+  if(date<String(a.date||"")){ toast("⚠️ تاريخ الاستبعاد قبل تاريخ الشراء"); return false; }
+  if(price<0){ toast("⚠️ سعر البيع لا يكون سالباً"); return false; }
+  if(typeof ksDateAllowed==="function" && !ksDateAllowed(date,"تاريخ الاستبعاد")) return false;
+  const x=faDepInfo(Object.assign({},a,{disposed:null}),date); const cost=+a.cost||0, accDep=+x.accDep.toFixed(2), nbv=+(cost-accDep).toFixed(2); const gl=+(price-nbv).toFixed(2);
+  const lines=[]; if(price>0) lines.push({a:acc,debit:price,credit:0}); if(accDep>0) lines.push({a:"1202",debit:accDep,credit:0});
+  lines.push({a:"1201",debit:0,credit:cost}); if(gl>0) lines.push({a:"4108",debit:0,credit:gl}); else if(gl<0) lines.push({a:"5308",debit:-gl,credit:0});
+  const jid=uid();
+  DB.journals=DB.journals||[]; DB.journals.push({id:jid, date, desc:"استبعاد أصل ثابت — "+a.name+(note?" ("+note+")":""), faId:a.id, faDisposal:true, lines, employee:(CURRENT_USER||{}).name||""});
+  a.disposed={date, price, acc, note, by:(CURRENT_USER||{}).name||"", journalId:jid, accDep, nbv, gainLoss:gl};
+  try{ logEdit("🏷️ استبعاد أصل ثابت", a.name+" — "+date+" — "+(gl>=0?"ربح ":"خسارة ")+fmtSR(Math.abs(gl))); }catch(e){}
+  save(); const m=document.getElementById("faDispModal"); if(m) m.remove(); try{ renderFA(); acctRenderAll(); }catch(e){}
+  toast("✅ استُبعد الأصل — "+(gl>=0?"ربح استبعاد "+fmtSR(gl):"خسارة استبعاد "+fmtSR(-gl))); return true;
+}
+function faUndispose(id){
+  const a=(DB.fixedAssets||[]).find(x=>x.id===id); if(!a||!a.disposed) return false;
+  if(!isOwner()){ toast("⚠️ التراجع للمالك فقط"); return false; }
+  if(typeof ksDateAllowed==="function" && !ksDateAllowed(a.disposed.date,"تاريخ الاستبعاد")) return false;
+  if(!confirm("التراجع عن استبعاد «"+a.name+"»؟ يُحذف قيد الاستبعاد ويعود الأصل للإهلاك.")) return false;
+  DB.journals=(DB.journals||[]).filter(j=>j.id!==a.disposed.journalId); delete a.disposed;
+  try{ logEdit("↩️ تراجع عن استبعاد أصل", a.name); }catch(e){}
+  save(); try{ renderFA(); acctRenderAll(); }catch(e){} toast("↩️ عاد الأصل"); return true;
+}
 function renderFA(){
   const tblFA=document.getElementById("tblFA"); if(!tblFA) return;
   const yr = new Date().getFullYear();
@@ -14293,10 +14597,11 @@ function renderFA(){
     const accDep = __di.accDep, nbv = __di.nbv;
     return `<tr><td>${ksTxt(a.date)}</td><td><b>${ksNm(a.name)}</b></td><td>${fmtSR(a.cost)}</td>
       <td>${a.life} سنة</td><td class="neg">${fmtSR(accDep)}</td><td class="${nbv>0?"pos":"muted"}">${fmtSR(nbv)}</td>
-      <td><button class="del" onclick="delFA('${a.id}')">🗑️</button></td></tr>`;
+      <td>${a.disposed?`<span class="badge danger" title="${escH(a.disposed.note||"")}">مستبعد ${a.disposed.date}</span><div class="muted" style="font-size:.68rem">بيع ${fmtSR(a.disposed.price)} · ${a.disposed.gainLoss>=0?"ربح":"خسارة"} ${fmtSR(Math.abs(a.disposed.gainLoss||0))}</div>`:'<span class="badge active">قائم</span>'}</td>
+      <td>${a.disposed?(isOwner()?`<button class="edt" title="تراجع عن الاستبعاد" onclick="faUndispose('${a.id}')">↩️</button>`:""):`<button class="edt" title="بيع / إعدام الأصل" onclick="faDispose('${a.id}')">🏷️</button>`}<button class="del" onclick="delFA('${a.id}')">🗑️</button></td></tr>`;
   }).join("");
-  tblFA.innerHTML = `<tr><th>تاريخ الشراء</th><th>الأصل</th><th>التكلفة</th><th>العمر الإنتاجي</th><th>الإهلاك المتراكم</th><th>القيمة الدفترية</th><th></th></tr>`
-    + (rows || `<tr><td colspan="7" class="muted">لا أصول ثابتة مسجلة</td></tr>`);
+  tblFA.innerHTML = `<tr><th>تاريخ الشراء</th><th>الأصل</th><th>التكلفة</th><th>العمر الإنتاجي</th><th>الإهلاك المتراكم</th><th>القيمة الدفترية</th><th>الحالة</th><th></th></tr>`
+    + (rows || `<tr><td colspan="8" class="muted">لا أصول ثابتة مسجلة</td></tr>`);
 }
 function saveVat(){
   const vatRate=document.getElementById("vatRate"), vatPeriod=document.getElementById("vatPeriod");
@@ -14768,7 +15073,7 @@ function fillCompanyInfo(){
   try{ renderCompanySummary(); renderBankAccts(); }catch(e){}
   const s=DB.settings, g=id=>document.getElementById(id);
   const _an=g("adminNameInp"); if(_an && !_an.matches(":focus")) _an.value=s.adminName||s.ownerName||"";
-  try{ ksNoVatUI(); }catch(e){}
+  try{ ksNoVatUI(); }catch(e){} try{ geoLoadUI(); }catch(e){}
   const map={companyNameInp:s.companyName, companyNameEnInp:s.companyNameEn, taxNoInp:s.taxNo, unifiedNoInp:(s.unifiedNo||s.crNo), coPhone:s.coPhone, agrNoInp:s.agrNo,
     coStreet:(s.coStreet||s.nationalAddress||""), coBldg:s.coBldg, coAddl:s.coAddl, coCity:s.coCity,
     coRegion:s.coRegion, coProv:s.coProv, coCountry:s.coCountry, coZip:s.coZip};
@@ -16022,7 +16327,7 @@ function stView(k){
     if(k==="company"){ try{ fillCompanyInfo(); }catch(e){} }
     if(k==="perms"){ try{ permFillSelect(); }catch(e){} }
     if(k==="log"){ try{ empMovesInit(); }catch(e){} }
-    if(k==="backup"){ try{ cloudStatusUI(); }catch(e){} try{ ksStoreUI(); }catch(e){} try{ ctrlUI(); }catch(e){} try{ renderArchive(); }catch(e){} }
+    if(k==="backup"){ try{ cloudStatusUI(); }catch(e){} try{ ksStoreUI(); }catch(e){} try{ ctrlUI(); }catch(e){} try{ renderArchive(); }catch(e){} try{ renderCloudHist(); }catch(e){} try{ ksNotifUI(); }catch(e){} }
   }
   try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(e){}
 }
@@ -16233,7 +16538,7 @@ function renderHrAll(){
   }
   const tat=document.getElementById("tblAtt");
   if(tat) tat.innerHTML=`<tr><th>التاريخ</th><th>الموظف</th><th>الحالة</th><th>دخول</th><th>انصراف</th><th></th></tr>`
-    +([...(DB.attendance||[])].reverse().slice(0,30).map(a=>`<tr><td>${ksTxt(a.date)}</td><td><b>${N(a.empId)}</b></td><td>${a.status==="حاضر"?'<span class="badge active">حاضر</span>':a.status==="غائب"?'<span class="badge danger">غائب</span>':a.status}</td><td>${a.inT||"—"}</td><td>${a.outT||"—"}</td><td><button class="del" onclick="delHrRow('attendance','${a.id}')">🗑️</button></td></tr>`).join("")
+    +([...(DB.attendance||[])].reverse().slice(0,30).map(a=>`<tr><td>${ksTxt(a.date)}</td><td><b>${N(a.empId)}</b>${attGeoTxt(a)}</td><td>${a.status==="حاضر"?'<span class="badge active">حاضر</span>':a.status==="غائب"?'<span class="badge danger">غائب</span>':a.status}</td><td>${a.inT||"—"}</td><td>${a.outT||"—"}</td><td><button class="del" onclick="delHrRow('attendance','${a.id}')">🗑️</button></td></tr>`).join("")
     ||`<tr><td colspan="6" class="muted">📅 لا سجلات حضور — تُخصم الغيابات تلقائياً من كشف الرواتب</td></tr>`);
   try{ const um=document.getElementById("upMonth"); if(um&&!um.value) um.value=today().slice(0,7); renderUserProd(); }catch(e){}
   const tcon=document.getElementById("tblCon");
@@ -16257,6 +16562,38 @@ function renderUserProd(){
       .map(([e,v])=>`<tr><td>${e}</td><td>${fmt(v.qty)}</td><td>${fmtSR(v.rev)}</td></tr>`).join("")
     || `<tr><td colspan="3" class="muted">لا توجد بيانات</td></tr>`;
 }
+/* 📍 v12.45-B — الحضور من الجوال: الموقع يُلتقط من الجهاز ويُقارن بنطاق المزرعة؛ خارج النطاق يُسجَّل موسوماً لا مرفوضاً (المشرف يحكم) */
+function geoSave(){
+  if(!ksOwnerOnly("نطاق المزرعة")) return;
+  const g=i=>document.getElementById(i); DB.settings.geo={lat:+(g("geoLat")||{}).value||0,lng:+(g("geoLng")||{}).value||0,rad:+(g("geoRad")||{}).value||500}; save();
+}
+function geoLoadUI(){ const g=DB.settings.geo||{}; ["Lat","Lng","Rad"].forEach(k=>{ const el=document.getElementById("geo"+k); if(el&&!el.matches(":focus")) el.value=g[k.toLowerCase()]||""; }); }
+function geoDistM(a,b,c,d){ const R=6371000, t=x=>x*Math.PI/180; const dLat=t(c-a), dLng=t(d-b); const h=Math.sin(dLat/2)**2+Math.cos(t(a))*Math.cos(t(c))*Math.sin(dLng/2)**2; return 2*R*Math.asin(Math.sqrt(h)); }
+function geoGet(){ return new Promise(res=>{ if(!navigator.geolocation){ res(null); return; } navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude,acc:p.coords.accuracy}), ()=>res(null), {enableHighAccuracy:true, timeout:10000, maximumAge:30000}); }); }
+function geoUseHere(){ geoGet().then(p=>{ if(!p){ toast("⚠️ تعذّر قراءة الموقع — اسمح للمتصفح بالوصول للموقع"); return; } const g=i=>document.getElementById(i); if(g("geoLat")) g("geoLat").value=p.lat.toFixed(6); if(g("geoLng")) g("geoLng").value=p.lng.toFixed(6); if(g("geoRad")&&!g("geoRad").value) g("geoRad").value=500; geoSave(); toast("📍 ضُبط مركز المزرعة على موقعك"); }); }
+function attMyEmp(){ if(!CURRENT_USER) return null; if(CURRENT_USER.id) return (DB.employees||[]).find(e=>e.id===CURRENT_USER.id)||null; return (DB.employees||[]).find(e=>e.name===CURRENT_USER.name)||null; }
+async function attCheckIn(){
+  const em=attMyEmp(); if(!em){ toast("⚠️ حسابك غير مربوط بسجل موظف — يسجّل المشرف حضورك من النموذج"); return false; }
+  const pos=await geoGet(); const d=today(), t=new Date().toTimeString().slice(0,5);
+  DB.attendance=DB.attendance||[]; let a=DB.attendance.find(x=>x.empId===em.id&&x.date===d);
+  if(a && a.inT){ toast("✔️ حضورك مسجَّل اليوم "+a.inT); return false; }
+  const rec=a||{id:uid(),date:d,empId:em.id,status:"حاضر",inT:"",outT:""}; if(!a) DB.attendance.push(rec);
+  rec.status="حاضر"; rec.inT=t; rec.self=true;
+  if(pos){ rec.lat=+pos.lat.toFixed(6); rec.lng=+pos.lng.toFixed(6); rec.acc=Math.round(pos.acc||0); const g=DB.settings.geo||{};
+    if(g.lat&&g.lng){ const dist=Math.round(geoDistM(pos.lat,pos.lng,g.lat,g.lng)); rec.dist=dist; rec.outside=dist>(+g.rad||500); } }
+  else rec.noGeo=true;
+  save(); try{ renderHrAll(); }catch(e){}
+  toast(rec.outside?"⚠️ سُجّل حضورك "+t+" — لكنك خارج نطاق المزرعة ("+fmt(rec.dist)+" م)":(rec.noGeo?"✅ سُجّل حضورك "+t+" (بلا موقع)":"✅ سُجّل حضورك "+t+" داخل نطاق المزرعة")); return true;
+}
+async function attCheckOut(){
+  const em=attMyEmp(); if(!em){ toast("⚠️ حسابك غير مربوط بسجل موظف"); return false; }
+  const d=today(), t=new Date().toTimeString().slice(0,5); const a=(DB.attendance||[]).find(x=>x.empId===em.id&&x.date===d);
+  if(!a||!a.inT){ toast("⚠️ لا حضور مسجَّل اليوم — سجّل الحضور أولاً"); return false; }
+  if(a.outT){ toast("✔️ انصرافك مسجَّل "+a.outT); return false; }
+  const pos=await geoGet(); a.outT=t; if(pos){ a.outLat=+pos.lat.toFixed(6); a.outLng=+pos.lng.toFixed(6); }
+  save(); try{ renderHrAll(); }catch(e){} toast("✅ سُجّل انصرافك "+t); return true;
+}
+function attGeoTxt(a){ if(!a) return ""; if(a.outside) return ' <span class="badge danger" title="'+fmt(a.dist||0)+' م من المركز">⚠️ خارج النطاق</span>'; if(a.lat) return ' <span class="badge active" title="'+(a.dist!==undefined?fmt(a.dist)+' م':'')+'">📍</span>'; if(a.self) return ' <span class="muted" style="font-size:.68rem">(بلا موقع)</span>'; return ""; }
 function addAtt(){
   const d=document.getElementById("atDate")?.value;
   const emp=document.getElementById("atEmp")?.value;
@@ -17258,6 +17595,7 @@ function addLivestockHealth(e){
     const _m=(lv.medicines||[]).find(x=>x.id===_mid);
     if(_m){
       if(_mq>_m.qty){ toast("❌ كمية الدواء غير متوفرة (متوفر "+fmt(_m.qty)+")"); return; }
+      if(_m.exp && _m.exp<(r.date||today())){ toast("⛔ الدواء «"+_m.name+"» منتهي الصلاحية منذ "+_m.exp+" — لا يُستعمل؛ سجّل إتلافه وأضف دفعة صالحة"); return; }
       _m.qty=+(_m.qty-_mq).toFixed(2);
       lv.medUses=lv.medUses||[];
       lv.medUses.push({id:uid(), healthId:r.id, date:r.date, medId:_mid, name:_m.name, qty:_mq, unit:_m.unit, tag:r.animal||"", employee:(CURRENT_USER?CURRENT_USER.name:"")});
@@ -17387,7 +17725,8 @@ function addLvFeed(e){
   const it=DB.inventory.find(x=>x.id===itemId);
   if(it){
     if(qty>it.qty){ toast("❌ العلف غير كافٍ (متوفر "+fmt(it.qty)+" "+it.unit+")"); return; }
-    it.qty=+(it.qty-qty).toFixed(2);
+    if(!invTakeAllowed(it, qty, g("lvFdDate").value||today(), "تغذية المواشي")) return;
+    it.qty=+(it.qty-qty).toFixed(2); invConsumeLots(it, qty, g("lvFdDate").value||today());
     DB.invMoves.push({id:uid(), date:g("lvFdDate").value||today(), itemId:it.id, type:"صرف", qty, employee:(CURRENT_USER?CURRENT_USER.name:""), notes:"تغذية مواشي"});
     /* ⚠️ لا مصروف هنا: قيمة العلف سُجّلت مصروفاً عند فاتورة الشراء — إنشاء مصروف ثانٍ عند الاستهلاك
        كان يضاعف التكلفة ويضخّم ضريبة المدخلات (يطابق سلوك الأسماك والرش). */
@@ -17399,7 +17738,7 @@ function delLvFeed(id){ if(!canDelete((CURRENT_USER||{}).name)){ toast("⚠️ �
   if(!confirm("حذف سجل التغذية؟ (تُعاد الكمية للمخزون)"))return;
   const lv=getLivestock(); const f=(lv.feedLogs||[]).find(x=>x.id===id);
   try{ if(f && f.itemId && (+f.qty||0)>0){ const it=(DB.inventory||[]).find(x=>x.id===f.itemId);
-    if(it){ it.qty=+((+it.qty||0)+(+f.qty||0)).toFixed(2);
+    if(it){ it.qty=+((+it.qty||0)+(+f.qty||0)).toFixed(2); try{ invReturnLots(it,(+f.qty||0),""); }catch(e){}
       DB.invMoves.push({id:uid(), date:today(), itemId:it.id, type:"إضافة (شراء/توريد)", qty:+f.qty||0,
         employee:(CURRENT_USER||{}).name||"", notes:"عكس حذف سجل تغذية مواشي"}); } } }catch(e){}
   lv.feedLogs=(lv.feedLogs||[]).filter(x=>x.id!==id); save(); renderLivestock(); try{ renderInv(); }catch(e){} }
@@ -18137,7 +18476,29 @@ function prFillUnit(){
   el.innerHTML=invUnitOpts();
   if(v&&v!=="__new"&&[...el.options].some(o=>o.value===v)) el.value=v;
 }
+/* 📊 v12.45-B — مقارنة أسعار الموردين: سعر الوحدة = صافي الفاتورة ÷ الكمية المحوَّلة لوحدة الصنف (stockQty) */
+function supCompareRows(itemId){
+  const by={};
+  (DB.purchases||[]).filter(p=>p.itemId===itemId && !p.voided && (+p.stockQty||+p.qty||0)>0).forEach(p=>{
+    const q=+p.stockQty||+p.qty||0, unit=(+p.amount||0)/q; if(!(unit>0)) return;
+    const k=p.supplierId||"—"; const o=by[k]=by[k]||{supId:k,name:supName(p.supplierId),n:0,sum:0,last:null,lastDate:"",min:null};
+    o.n++; o.sum+=unit; if(!o.lastDate||String(p.date)>o.lastDate){ o.lastDate=String(p.date); o.last=unit; } o.min=o.min===null?unit:Math.min(o.min,unit);
+  });
+  return Object.values(by).map(o=>Object.assign(o,{avg:o.sum/o.n})).sort((a,b)=>a.last-b.last);
+}
+function renderSupCompare(){
+  const sel=document.getElementById("spcItem"), t=document.getElementById("tblSupCompare"); if(!sel||!t) return;
+  const cur=sel.value; sel.innerHTML='<option value="">— اختر صنفاً —</option>'+(DB.inventory||[]).map(i=>'<option value="'+i.id+'">'+ksNm(i.name)+'</option>').join(""); if(cur) sel.value=cur;
+  const rows=sel.value?supCompareRows(sel.value):[];
+  if(!sel.value){ t.innerHTML='<tr><td class="muted">اختر صنفاً لعرض أسعار مورّديه</td></tr>'; return; }
+  if(!rows.length){ t.innerHTML='<tr><td class="muted">لا فواتير شراء لهذا الصنف بعد</td></tr>'; return; }
+  const best=rows[0].last; const it=(DB.inventory||[]).find(x=>x.id===sel.value)||{};
+  t.innerHTML='<tr><th>المورّد</th><th>آخر سعر / '+ksTxt(it.unit||"وحدة")+'</th><th>تاريخه</th><th>متوسط السعر</th><th>أدنى سعر</th><th>مرات التوريد</th></tr>'
+    +rows.map(r=>'<tr><td><b>'+ksNm(r.name)+'</b></td><td><b style="color:'+(r.last===best?"var(--green)":"inherit")+'">'+fmtSR(r.last)+'</b>'+(r.last===best&&rows.length>1?' <span class="badge active">الأرخص</span>':'')+'</td><td>'+escH(r.lastDate)+'</td><td>'+fmtSR(r.avg)+'</td><td>'+fmtSR(r.min)+'</td><td>'+fmt(r.n)+'</td></tr>').join("")
+    +(rows.length>1?'<tr><td colspan="6" class="muted">فرق آخر سعر بين الأرخص والأغلى: '+fmtSR(rows[rows.length-1].last-best)+' لكل '+ksTxt(it.unit||"وحدة")+'</td></tr>':'');
+}
 function renderPurchaseReqs(){
+  try{ renderSupCompare(); }catch(e){}
   prFillUnit();
   const secs=SECTIONS;
   ["prEmp","prReqSec"].forEach(id=>{

@@ -726,6 +726,12 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       </div>
       <button class="btn" style="width:100%;margin-top:12px" onclick="cloudGateLogin()">☁️ دخول وجلب البيانات</button>
       <p id="cgMsg" class="muted" style="font-size:.72rem;margin-top:10px;min-height:1em"></p>
+      <div id="cgMfaWrap" style="display:none;text-align:right;border:1px solid var(--border);border-radius:10px;padding:10px;margin-top:6px">
+        <label style="font-size:.75rem">🔐 رمز التحقق من تطبيق المصادقة (6 أرقام)</label>
+        <input id="cgMfaCode" inputmode="numeric" maxlength="6" style="direction:ltr;width:100%;box-sizing:border-box;letter-spacing:.3em;text-align:center;font-size:1.1rem" placeholder="123456" onkeydown="if(event.key==='Enter')cloudGateMfa()">
+        <button class="btn" style="width:100%;margin-top:8px" onclick="cloudGateMfa()">✔️ تحقق ودخول</button>
+        <p id="cgMfaMsg" class="muted" style="font-size:.72rem;margin-top:6px;min-height:1em"></p>
+      </div>
       <div style="margin-top:10px;border-top:1px solid #eee;padding-top:10px;display:flex;flex-direction:column;gap:6px">
         <a href="#" onclick="cgShow('join');return false" style="font-size:.74rem;color:#065f46">👷 موظف جديد؟ اطلب الانضمام لمزرعتك</a>
         <a href="#" onclick="cgShow('new');return false" style="font-size:.74rem;color:#065f46">🏡 مزرعة جديدة؟ اطلب اشتراكك</a>
@@ -3485,6 +3491,16 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <p class="muted" style="font-size:.74rem;margin:6px 0 8px">تنبيهات الجرس (السحب، النفوق، الصيانة، الديون المتأخرة…) تظهر كإشعار على الجهاز عند فتح التطبيق وكل ساعة ما دام مفتوحاً. لا تصل والتطبيق مغلق (يحتاج خادم دفع — مرحلة لاحقة).</p>
       <div id="notifPermBox">—</div>
     </div>
+    <div id="mfaCard" style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:none">
+      <b>🔐 التحقق بخطوتين لحسابك</b>
+      <p class="muted" style="font-size:.74rem;margin:6px 0 8px">لكل حساب سحابي (المالك والموظف) على حدة. بعد التفعيل لا تُقرأ بيانات المزرعة من السحابة إلا بجلسة تحقّقت بالرمز — حتى لو عرف أحدهم كلمة المرور.</p>
+      <div id="mfaBody">—</div>
+    </div>
+    <div id="devCard" style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><b>📱 الأجهزة المسجَّلة على المزرعة</b><button class="btn small secondary" type="button" onclick="renderDevices(true)">🔄</button></div>
+      <p class="muted" style="font-size:.74rem;margin:6px 0 8px">كل جهاز دخل بحساب مالك أو موظف. «⛔ إخراج» يمسح بيانات المزرعة من ذلك الجهاز ويعيده لبوابة الدخول عند أول اتصال، ويمنعه من القراءة قبل ذلك.</p>
+      <div id="devBody" class="table-wrap">—</div>
+    </div>
     <div id="histCard" style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:none">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
         <b>🕘 النسخ السحابية السابقة</b>
@@ -4386,6 +4402,8 @@ Object.assign(I18N.en,{"— عميل محذوف —":"— deleted customer —",
 Object.assign(I18N.ur,{"— عميل محذوف —":"— حذف شدہ گاہک —","— موظف محذوف —":"— حذف شدہ ملازم —","المبيعات الإجمالية":"مجموعی فروخت"});
 /* i18n v12.12 — نصوص جولة الأرقام والفاعلية والقرارات الثلاثة */
 Object.assign(I18N.en,{"🏠 بدل السكن (⃁)":"🏠 Housing allowance (⃁)","🚗 بدل المواصلات (⃁)":"🚗 Transport allowance (⃁)","بدلات أخرى (⃁)":"Other allowances (⃁)","إجمالي البدلات الشهرية (⃁)":"Total monthly allowances (⃁)","السكن والمواصلات يدخلان في مكافأة نهاية الخدمة — «أخرى» لا تدخل":"Housing & transport count toward end-of-service; \"Other\" does not","خاضعة لضريبة القيمة المضافة":"Subject to VAT","نعم — فاتورة ضريبية من مورّد مسجَّل":"Yes — tax invoice from a registered supplier","لا — رسوم حكومية / تأمينات / مورّد غير مسجَّل":"No — government fees / insurance / unregistered supplier","🔍 مراجعة الضريبة الداخلة على المصروفات":"🔍 Input VAT review on expenses","↩️ مؤشر المردودات":"↩️ Returns indicator","عدد المصروفات":"Expenses count","الضريبة الداخلة المفترضة":"Assumed input VAT","التصنيف بالجملة":"Bulk classify","🚫 غير خاضعة":"🚫 Not subject","✅ خاضعة":"✅ Subject","✅ كلها خاضعة":"✅ All subject","مصروفات غير خاضعة (رسوم/تأمينات/مورّد غير مسجَّل)":"Non-taxable expenses (fees/insurance/unregistered supplier)","غير مستحق":"Not due","1–30 يوم":"1–30 days","31–60 يوم":"31–60 days","61–90 يوم":"61–90 days","أكثر من 90":"Over 90","الأسبوع":"Week","متوقع وارد":"Expected in","متوقع صادر":"Expected out","الرصيد المتوقع":"Projected balance","الرصيد الحالي":"Current balance","النقدية (صندوق + بنك)":"Cash (cash + bank)","عدد المبيعات":"Sales count","الدورات":"Cycles","الإيراد (صافي الضريبة)":"Revenue (net of VAT)","متوسط السعر":"Avg. price","متوسط الكمية للبيعة":"Avg. qty per sale","التغيّر":"Change","جديد":"New","المبيعات الإجمالية":"Gross sales","المردودات":"Returns","نسبة المردودات":"Returns rate","صافي المبيعات":"Net sales","النسبة":"Rate","رصيد افتتاحي":"Opening balance","قيمة المخزون بعده":"Stock value after","قيمة الفروقات":"Variance value","السبب":"Reason","الاسم المختصر (للتقارير)":"Short name (for reports)","مردود مبيعات":"Sales return","بيع مباشر":"Direct sale","— منتج محذوف —":"— deleted product —","— مورد محذوف —":"— deleted supplier —","— صنف محذوف —":"— deleted item —","— بلا مورد —":"— no supplier —","— موظف غير موجود —":"— employee not found —"});
+Object.assign(I18N.en,{"👑 شريك مالك":"👑 Co-owner","👑 ترقية لشريك مالك":"👑 Promote to co-owner","👑 اعتماد كشريك مالك":"👑 Approve as co-owner","👷 تنزيل لموظف":"👷 Demote to employee","🔐 التحقق بخطوتين لحسابك":"🔐 Two-factor authentication","🔐 تفعيل":"🔐 Enable","🔐 مفعّل":"🔐 Enabled","غير مفعّل":"Not enabled","إيقاف":"Disable","📱 الأجهزة المسجَّلة على المزرعة":"📱 Devices registered on this farm","⛔ إخراج":"⛔ Sign out device","↩️ إعادة السماح":"↩️ Allow again","هذا الجهاز":"This device","⛔ مُخرَج":"⛔ Signed out","نشط":"Active","الجهاز":"Device","الحساب":"Account","آخر ظهور":"Last seen","✔️ تحقق ودخول":"✔️ Verify & sign in","🔐 رمز التحقق من تطبيق المصادقة (6 أرقام)":"🔐 Code from your authenticator app (6 digits)"});
+Object.assign(I18N.ur,{"👑 شريك مالك":"👑 شریک مالک","👑 ترقية لشريك مالك":"👑 شریک مالک بنائیں","👑 اعتماد كشريك مالك":"👑 بطور شریک مالک منظور","👷 تنزيل لموظف":"👷 ملازم بنائیں","🔐 التحقق بخطوتين لحسابك":"🔐 دو مرحلہ تصدیق","🔐 تفعيل":"🔐 فعال کریں","🔐 مفعّل":"🔐 فعال","غير مفعّل":"غیر فعال","إيقاف":"بند کریں","📱 الأجهزة المسجَّلة على المزرعة":"📱 فارم پر رجسٹرڈ ڈیوائسز","⛔ إخراج":"⛔ ڈیوائس نکالیں","↩️ إعادة السماح":"↩️ دوبارہ اجازت","هذا الجهاز":"یہ ڈیوائس","⛔ مُخرَج":"⛔ نکالا گیا","نشط":"فعال","الجهاز":"ڈیوائس","الحساب":"اکاؤنٹ","آخر ظهور":"آخری بار","✔️ تحقق ودخول":"✔️ تصدیق اور لاگ ان","🔐 رمز التحقق من تطبيق المصادقة (6 أرقام)":"🔐 تصدیقی ایپ کا کوڈ (6 ہندسے)"});
 Object.assign(I18N.en,{"📄 أوامر الشراء للموردين":"📄 Purchase orders to suppliers","➕ أمر شراء جديد":"➕ New purchase order","📄 أمر شراء":"📄 Purchase order","📥 استلام":"📥 Receive","التوريد المتوقع":"Expected delivery","التقديري":"Estimated","البنود":"Lines","الباركود / QR":"Barcode / QR","الباركود / QR (اختياري)":"Barcode / QR (optional)","📷 ابحث بالباركود":"📷 Find by barcode","📷 مسح الباركود / QR":"📷 Scan barcode / QR","🗂️ إجمالي السجلات":"🗂️ Total records","📴 بلا مزامنة >7 أيام":"📴 No sync >7 days","⬆️ على إصدار أقدم":"⬆️ On older version","💾 قرب سقف التخزين":"💾 Near storage cap","مرسول":"Sent","مستلم":"Received","ملغى":"Cancelled"});
 Object.assign(I18N.ur,{"📄 أوامر الشراء للموردين":"📄 سپلائرز کو خریداری آرڈر","➕ أمر شراء جديد":"➕ نیا خریداری آرڈر","📄 أمر شراء":"📄 خریداری آرڈر","📥 استلام":"📥 وصولی","التوريد المتوقع":"متوقع ترسیل","التقديري":"تخمینی","البنود":"آئٹمز","الباركود / QR":"بارکوڈ / QR","الباركود / QR (اختياري)":"بارکوڈ / QR (اختیاری)","📷 ابحث بالباركود":"📷 بارکوڈ سے تلاش","📷 مسح الباركود / QR":"📷 بارکوڈ / QR اسکین","🗂️ إجمالي السجلات":"🗂️ کل ریکارڈز","📴 بلا مزامنة >7 أيام":"📴 7 دن سے ہم آہنگی نہیں","⬆️ على إصدار أقدم":"⬆️ پرانا ورژن","💾 قرب سقف التخزين":"💾 اسٹوریج حد کے قریب","مرسول":"بھیجا گیا","مستلم":"موصول","ملغى":"منسوخ"});
 Object.assign(I18N.en,{"📊 مقارنة أسعار الموردين لصنف":"📊 Supplier price comparison per item","الاستلام":"Acknowledged","👁️ استلمت":"👁️ Acknowledged","لم تُؤكَّد":"Not acknowledged","📍 تسجيل حضوري الآن (بالموقع)":"📍 Check in now (with location)","🏁 تسجيل انصرافي الآن":"🏁 Check out now","خط العرض":"Latitude","خط الطول":"Longitude","نصف القطر (متر)":"Radius (m)","📍 استخدم موقعي الحالي":"📍 Use my current location","🔔 تنبيهات الجهاز":"🔔 Device notifications","🔔 تفعيل تنبيهات الجهاز":"🔔 Enable device notifications","الحالة":"Status","قائم":"Active","🏷️ استبعاد الأصل":"🏷️ Dispose asset","تاريخ الاستبعاد *":"Disposal date *","✅ تنفيذ الاستبعاد":"✅ Dispose"});
@@ -4654,7 +4672,7 @@ function ksKeyBind(){
   KEY=k; return k;
 }
 ksKeyBind();
-const KS_VER="v12.46-A";
+const KS_VER="v12.47-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -4862,6 +4880,71 @@ const KS_BEAT_MS=5000, KS_BEAT_TTL=90000;   /* أطول من خنق المتصف
 const KS_STALE_MS=30*60000;   /* غياب أطول من نصف ساعة بين إغلاق وفتح ⇒ جلسة جديدة تتطلب دخولاً */
 function __ksHash(x){ let h=5381; x=String(x||""); for(let i=0;i<x.length;i++) h=((h<<5)+h+x.charCodeAt(i))>>>0; return h.toString(36); }
 /* ── هوية الجهاز: اكتشاف تلقائي للجهاز المشترك ── */
+/* ═══ 📱 v12.47-A — سجل الأجهزة: معرّف عشوائي ثابت للجهاز (لا بصمة شخصية) يُسجَّل في farm_devices مع كل دخول، ويُفحص عند كل إقلاع متصل وكل ساعة؛
+   «⛔ إخراج» من المالك ⇒ الجهاز يمسح بيانات المزرعة ويخرج فوراً عند أول فحص. الطبقة الثانية: ks_device_ok في السيرفر. */
+function ksDevId(){ try{ let v=localStorage.getItem("ksDevId"); if(!v){ const a=new Uint8Array(12); (crypto&&crypto.getRandomValues)?crypto.getRandomValues(a):a.forEach((_,i)=>a[i]=Math.floor(Math.random()*256)); v=Array.from(a).map(b=>b.toString(16).padStart(2,"0")).join(""); localStorage.setItem("ksDevId",v); } return v; }catch(e){ return "nodev"; } }
+function ksDevLabel(){ const u=navigator.userAgent||""; const os=/iPhone|iPad/.test(u)?"iOS":/Android/.test(u)?"Android":/Windows/.test(u)?"Windows":/Mac/.test(u)?"Mac":/Linux/.test(u)?"Linux":"جهاز"; const br=/Edg\//.test(u)?"Edge":/Chrome\//.test(u)?"Chrome":/Safari\//.test(u)?"Safari":/Firefox\//.test(u)?"Firefox":""; const st=(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)?" · تطبيق":""; return os+(br?" · "+br:"")+st; }
+async function devRegister(){
+  try{
+    if(!cloudOn()) return false; const s=cloudSess(); const fid=cloudFarmId(); if(!s||!s.uid||!fid) return false;
+    if(fid!==s.uid && s.memberStatus!=="approved") return false;
+    if(DB&&DB.settings&&DB.settings.demo) return false;
+    const r=await cloudAuthFetch("/rest/v1/farm_devices?on_conflict=farm_id,member_uid,dev_hash",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},
+      body:JSON.stringify({farm_id:fid, member_uid:s.uid, dev_hash:ksDevId(), label:ksDevLabel(), ua:String(navigator.userAgent||"").slice(0,160), last_seen:new Date().toISOString()})});
+    localStorage.setItem("ksDevRegAt", String(Date.now()));
+    return r.ok;
+  }catch(e){ return false; }
+}
+async function devCheck(){
+  /* true = هذا الجهاز مُخرَج ⇒ تم المسح والخروج */
+  try{
+    if(!cloudOn()) return false; const s=cloudSess(); const fid=cloudFarmId(); if(!s||!s.uid||!fid) return false;
+    const r=await cloudAuthFetch("/rest/v1/farm_devices?farm_id=eq."+encodeURIComponent(fid)+"&member_uid=eq."+encodeURIComponent(s.uid)+"&dev_hash=eq."+encodeURIComponent(ksDevId())+"&select=revoked");
+    if(!r.ok) return false; const rows=await r.json(); const row=rows[0];
+    if(row && row.revoked===true){
+      try{ alert("⛔ أُخرج هذا الجهاز من المزرعة بواسطة المالك — تُمسح بيانات المزرعة من الجهاز"); }catch(e){}
+      ksWipeFarmData(); try{ localStorage.removeItem("ksCredHash"); }catch(e){}
+      cloudSetSess(null); try{ sessionStorage.removeItem("ksUser"); sessionStorage.removeItem("ksAuthed"); }catch(e){}
+      location.reload(); return true;
+    }
+    if(row){ const at=+(localStorage.getItem("ksDevRegAt")||0); if(Date.now()-at>3600e3){ cloudAuthFetch("/rest/v1/farm_devices?farm_id=eq."+encodeURIComponent(fid)+"&member_uid=eq."+encodeURIComponent(s.uid)+"&dev_hash=eq."+encodeURIComponent(ksDevId()),{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({last_seen:new Date().toISOString()})}).catch(()=>{}); localStorage.setItem("ksDevRegAt",String(Date.now())); } }
+    else devRegister();
+    return false;
+  }catch(e){ return false; }
+}
+try{ setInterval(()=>{ try{ if(sessionStorage.getItem("ksAuthed")==="1") devCheck(); }catch(e){} }, 3600e3); }catch(e){}
+async function renderDevices(force){
+  const el=document.getElementById("devCard"), body=document.getElementById("devBody"); if(!el||!body) return;
+  const s=cloudSess(); const show=cloudOn() && s && s.uid && (cloudIsFarmOwner()||ksIsCoOwner()) && isOwner() && !(DB.settings&&DB.settings.demo);
+  el.style.display=show?"":"none"; if(!show) return;
+  if(el.style.display!=="" && !force) return;
+  body.innerHTML='<span class="muted">⏳ جارٍ الجلب…</span>';
+  let rows=[];
+  try{ const r=await cloudAuthFetch("/rest/v1/farm_devices?farm_id=eq."+encodeURIComponent(cloudFarmId())+"&select=id,member_uid,dev_hash,label,ua,first_seen,last_seen,revoked&order=last_seen.desc");
+    if(r.status===404||r.status===400){ body.innerHTML='<span class="muted">نفّذ ملف <b>الملّاك-والأجهزة-والتحقق.sql</b> في السحابة لتفعيل سجل الأجهزة</span>'; return; }
+    if(!r.ok) throw new Error(r.status); rows=await r.json();
+  }catch(e){ body.innerHTML='<span class="muted">❌ تعذر الجلب</span>'; return; }
+  window.__ksDevRows=rows;
+  if(!rows.length){ body.innerHTML='<span class="muted">لا أجهزة مسجَّلة بعد — يُسجَّل كل جهاز عند أول دخول متصل</span>'; return; }
+  const me=ksDevId(), fid=cloudFarmId(), uid=s.uid;
+  const who=r=>r.member_uid===fid?"المالك":(r.member_uid===uid?"أنت":"عضو "+escH(String(r.member_uid).slice(0,8)));
+  const ago=t=>{ const d=(Date.now()-new Date(t).getTime())/864e5; return d<1?"اليوم":d<2?"أمس":"قبل "+fmt(Math.floor(d))+" يوم"; };
+  body.innerHTML='<table><tr><th>الجهاز</th><th>الحساب</th><th>آخر ظهور</th><th>الحالة</th><th></th></tr>'+rows.map(r=>'<tr'+(r.revoked?' style="opacity:.6"':'')+'><td><b>'+escH(r.label||"جهاز")+'</b>'+(r.dev_hash===me?' <span class="badge active">هذا الجهاز</span>':'')+'<div class="muted" style="font-size:.66rem" dir="ltr">'+escH(String(r.ua||"").slice(0,60))+'</div></td><td>'+who(r)+'</td><td title="'+escH(r.last_seen||"")+'">'+ago(r.last_seen)+'</td><td>'+(r.revoked?'<span class="badge danger">⛔ مُخرَج</span>':'<span class="badge active">نشط</span>')+'</td>'
+    +'<td>'+(r.revoked?'<button class="btn small secondary" onclick="devRevoke('+r.id+',false)">↩️ إعادة السماح</button> <button class="del" onclick="devDelete('+r.id+')">🗑️</button>':(r.dev_hash===me&&r.member_uid===uid?'<span class="muted" style="font-size:.7rem">—</span>':'<button class="btn small secondary" style="border-color:#c66;color:#791F1F" onclick="devRevoke('+r.id+',true)">⛔ إخراج</button>'))+'</td></tr>').join("")+'</table>';
+}
+async function devRevoke(id,on){
+  if(!isOwner()){ toast("⚠️ للمالك فقط"); return false; }
+  const r0=(window.__ksDevRows||[]).find(x=>x.id===id)||{};
+  if(on && r0.dev_hash===ksDevId() && r0.member_uid===(cloudSess()||{}).uid){ toast("⚠️ لا تُخرج الجهاز الذي تعمل منه الآن"); return false; }
+  if(on && !confirm("⛔ إخراج الجهاز «"+(r0.label||"")+"»؟\nسيمسح بيانات المزرعة ويعود لبوابة الدخول عند أول اتصال، ولا يستطيع القراءة من السحابة قبل ذلك.")) return false;
+  try{ const r=await cloudAuthFetch("/rest/v1/farm_devices?id=eq."+id,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({revoked:!!on})});
+    if(r.ok){ try{ logEdit(on?"⛔ إخراج جهاز":"↩️ إعادة السماح لجهاز",(r0.label||"")+" — "+(r0.member_uid||"")); }catch(e){} toast(on?"⛔ أُخرج الجهاز":"↩️ أُعيد السماح"); renderDevices(true); return true; }
+    toast("⚠️ تعذر ("+r.status+")"); return false; }catch(e){ toast("📴 تعذر الاتصال"); return false; }
+}
+async function devDelete(id){
+  if(!isOwner()) return false; if(!confirm("حذف سجل الجهاز؟")) return false;
+  try{ const r=await cloudAuthFetch("/rest/v1/farm_devices?id=eq."+id,{method:"DELETE"}); if(r.ok){ renderDevices(true); return true; } toast("⚠️ تعذر ("+r.status+")"); return false; }catch(e){ return false; }
+}
 function ksDevIds(){ try{ const a=JSON.parse(localStorage.getItem("ksDevIds")||"[]"); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
 function ksNoteIdentity(u){
   try{
@@ -5147,7 +5230,8 @@ async function cloudRefresh(){
 async function cloudResolveFarm(){
   const s=cloudSess(); if(!s||!s.uid) return null;
   try{
-    const r=await cloudAuthFetch("/rest/v1/farm_members?member_uid=eq."+s.uid+"&select=farm_id,status,emp_id");
+    let r=await cloudAuthFetch("/rest/v1/farm_members?member_uid=eq."+s.uid+"&select=farm_id,status,emp_id,role");
+    if(r.status===400) r=await cloudAuthFetch("/rest/v1/farm_members?member_uid=eq."+s.uid+"&select=farm_id,status,emp_id");   /* عمود role غير منفَّذ بعد */
     if(!r.ok) return null;
     const rows=await r.json(); const m=rows[0]||null;
     if(!m && s.farmId && s.farmId!==s.uid){
@@ -5155,7 +5239,7 @@ async function cloudResolveFarm(){
       s.memberStatus="rejected"; localStorage.setItem("ksCloudSess",JSON.stringify(s));
       return {farm_id:s.farmId, status:"rejected", emp_id:""};
     }
-    s.farmId=m?m.farm_id:s.uid; s.memberStatus=m?(m.status||""):""; s.empId=(m&&m.emp_id)||"";
+    s.farmId=m?m.farm_id:s.uid; s.memberStatus=m?(m.status||""):""; s.empId=(m&&m.emp_id)||""; s.role=(m&&m.role)||"employee";
     localStorage.setItem("ksCloudSess",JSON.stringify(s));
     return m;
   }catch(e){ return null; }
@@ -5294,6 +5378,8 @@ async function cloudPull(silent){
     return rows[0];
   }catch(e){ if(!silent) toast("📴 تعذر الاتصال بالسحابة"); return null; }
 }
+/* 👑 v12.47-A — الشريك المالك: عضوية معتمدة بدور owner ⇒ يدخل بصلاحيات المالك كاملة (الحارس السيرفري يمرّره كالمالك) */
+function ksIsCoOwner(){ const s=cloudSess(); return !!s && !!s.uid && !!s.farmId && s.farmId!==s.uid && s.memberStatus==="approved" && s.role==="owner"; }
 function ksApplyRow(expectFid, row){
   /* 🛡️ نقطة الكتابة الوحيدة لأي نسخة سحابية: هوية النافذة + هوية الجلسة + معرّف الصف، ثم ختم الملكية */
   try{
@@ -5320,6 +5406,7 @@ async function cloudPullApply(){
 }
 async function cloudBootCheck(){
   if(!cloudOn()) return;
+  try{ if(await devCheck()) return; }catch(e){}   /* 📱 جهاز مُخرَج ⇒ مسح وخروج قبل أي شيء */
   const __s=cloudSess();
   if(__s&&__s.uid&&__s.farmId&&__s.farmId!==__s.uid){
     const m=await cloudResolveFarm();
@@ -7380,7 +7467,16 @@ async function cloudGateLogin(){
   if(msg)msg.textContent="⏳ جارٍ الاتصال...";
   window.__ksPrevSess=cloudSess();
   try{
-    await cloudLogin(em,pw);
+    const __j=await cloudLogin(em,pw);
+    /* 🔐 حساب مفعِّل للتحقق بخطوتين: الجلسة الآن aal1 ولا تقرأ بيانات المزرعة (سياسة fs_mfa_restrict) — نطلب الرمز قبل أي شيء */
+    const __f=mfaVerifiedFactor(__j&&__j.user);
+    if(__f){
+      window.__ksMfa={factorId:__f.id, em, pw};
+      const w=document.getElementById("cgMfaWrap"); if(w) w.style.display="";
+      if(msg) msg.textContent="🔐 أدخل رمز التحقق من تطبيق المصادقة";
+      try{ document.getElementById("cgMfaCode").value=""; document.getElementById("cgMfaCode").focus(); }catch(e){}
+      return;
+    }
     await __credStore(em,pw);
     sessionStorage.setItem("ksAuthed","1");
     ksSeenNow();
@@ -7400,6 +7496,73 @@ async function cloudGateLogin(){
       ?"أول دخول لهذه المزرعة على هذا الجهاز يحتاج إنترنت (الجهاز يحمل بيانات مزرعة أخرى محفوظة ولن تُعرض)"
       :"لا يوجد اتصال، وتعذر التحقق المحلي"):__ksAuthMsg(e)), true);
   }
+}
+/* ═══ 🔐 v12.47-A — التحقق بخطوتين (TOTP عبر Supabase MFA) ═══
+   التفعيل: تسجيل عامل ⇒ QR + سر ⇒ رمز أول ⇒ الجلسة تصير aal2. الدخول: كلمة المرور ⇒ (إن وُجد عامل موثَّق) رمز ⇒ تحدٍّ وتحقق ⇒ جلسة aal2.
+   الإنفاذ الحقيقي في السيرفر: fs_mfa_restrict تمنع جلسة aal1 من قراءة/كتابة farm_state لمن فعّل. */
+function mfaVerifiedFactor(user){ try{ return ((user&&user.factors)||[]).find(f=>f.status==="verified" && (f.factor_type==="totp"||!f.factor_type))||null; }catch(e){ return null; } }
+async function mfaUser(){ try{ const r=await cloudAuthFetch("/auth/v1/user"); if(!r.ok) return null; return await r.json(); }catch(e){ return null; } }
+async function mfaChallengeVerify(factorId, code){
+  const c=await cloudAuthFetch("/auth/v1/factors/"+encodeURIComponent(factorId)+"/challenge",{method:"POST",body:"{}"});
+  const cj=await c.json(); if(!c.ok||!cj.id) throw new Error(cj.msg||cj.message||cj.error_description||"تعذر إنشاء التحدي");
+  const v=await cloudAuthFetch("/auth/v1/factors/"+encodeURIComponent(factorId)+"/verify",{method:"POST",body:JSON.stringify({challenge_id:cj.id, code:String(code||"").replace(/\D/g,"")})});
+  const vj=await v.json(); if(!v.ok||!vj.access_token) throw new Error(vj.msg||vj.message||vj.error_description||"رمز غير صحيح");
+  return vj;
+}
+async function cloudGateMfa(){
+  const st=window.__ksMfa; const msg=document.getElementById("cgMfaMsg"); const code=(document.getElementById("cgMfaCode")||{}).value||"";
+  if(!st||!st.factorId){ if(msg) msg.textContent="⚠️ أعد الدخول بكلمة المرور أولاً"; return false; }
+  if(!/^\d{6}$/.test(String(code).replace(/\D/g,""))){ if(msg) msg.textContent="⚠️ الرمز 6 أرقام"; return false; }
+  if(msg) msg.textContent="⏳ جارٍ التحقق…";
+  try{
+    const vj=await mfaChallengeVerify(st.factorId, code);
+    __cloudStoreTok(vj, st.em);
+    await __credStore(st.em, st.pw);
+    window.__ksMfa=null; const w=document.getElementById("cgMfaWrap"); if(w) w.style.display="none";
+    sessionStorage.setItem("ksAuthed","1"); ksSeenNow();
+    await cloudGateCheck(); return true;
+  }catch(e){ if(msg) msg.textContent="❌ "+(e.message||"رمز غير صحيح — جرّب مرة أخرى"); return false; }
+}
+async function renderMfa(){
+  const el=document.getElementById("mfaCard"), body=document.getElementById("mfaBody"); if(!el||!body) return;
+  const show=cloudOn() && !(DB.settings&&DB.settings.demo); el.style.display=show?"":"none"; if(!show) return;
+  body.innerHTML='<span class="muted">⏳ …</span>';
+  const u=await mfaUser(); if(!u){ body.innerHTML='<span class="muted">📴 يحتاج اتصالاً بالسحابة</span>'; return; }
+  const f=mfaVerifiedFactor(u); window.__ksMfaFactor=f;
+  body.innerHTML=f
+    ?'<span class="badge active">🔐 مفعّل</span> <span class="muted" style="font-size:.74rem">الدخول يتطلب كلمة المرور + رمزاً من تطبيق المصادقة على جوالك</span> <button class="btn small secondary" type="button" style="margin-inline-start:8px;border-color:#c66;color:#791F1F" onclick="mfaDisable()">إيقاف</button>'
+    :'<span class="badge warn">غير مفعّل</span> <span class="muted" style="font-size:.74rem">يحمي حسابك لو تسرّبت كلمة المرور — يحتاج تطبيق مصادقة (Google Authenticator / Microsoft Authenticator / Authy)</span> <button class="btn small" type="button" style="margin-inline-start:8px" onclick="mfaEnroll()">🔐 تفعيل</button><div id="mfaEnrollBox" style="margin-top:8px"></div>';
+}
+async function mfaEnroll(){
+  const box=document.getElementById("mfaEnrollBox"); if(!box) return false;
+  box.innerHTML='<span class="muted">⏳ جارٍ التجهيز…</span>';
+  try{
+    const r=await cloudAuthFetch("/auth/v1/factors",{method:"POST",body:JSON.stringify({factor_type:"totp", friendly_name:"خيرات سايه "+today(), issuer:"Khayrat Saya"})});
+    const j=await r.json(); if(!r.ok||!j.id) throw new Error(j.msg||j.message||j.error_description||"تعذر التفعيل ("+r.status+")");
+    const qr=(j.totp&&j.totp.qr_code)||"", secret=(j.totp&&j.totp.secret)||"";
+    box.innerHTML='<div class="row" style="align-items:flex-start"><div>'+(qr?'<img src="'+(qr.indexOf("data:")===0?qr:"data:image/svg+xml;utf8,"+encodeURIComponent(qr))+'" alt="QR" style="width:160px;height:160px;border:1px solid var(--border);border-radius:8px;background:#fff">':'')+'</div>'
+      +'<div style="flex:1;min-width:220px"><p class="muted" style="font-size:.76rem;margin:0 0 6px">1) امسح الرمز بتطبيق المصادقة، أو أدخل السر يدوياً:</p><code dir="ltr" style="user-select:all;font-size:.8rem;word-break:break-all">'+escH(secret)+'</code>'
+      +'<p class="muted" style="font-size:.76rem;margin:8px 0 4px">2) اكتب الرمز الظاهر في التطبيق (6 أرقام):</p><div style="display:flex;gap:6px"><input id="mfaCode" inputmode="numeric" maxlength="6" style="direction:ltr;letter-spacing:.3em;text-align:center;flex:1" placeholder="123456"><button class="btn small" type="button" onclick="mfaVerifyEnroll(\''+j.id+'\')">✔️ تأكيد</button><button class="btn small secondary" type="button" onclick="mfaAbort(\''+j.id+'\')">إلغاء</button></div><p id="mfaEnrollMsg" class="muted" style="font-size:.72rem;margin-top:6px"></p></div></div>';
+    return j.id;
+  }catch(e){ box.innerHTML='<span class="neg">❌ '+escH(e.message||"تعذر التفعيل")+'</span>'; return false; }
+}
+async function mfaVerifyEnroll(factorId){
+  const msg=document.getElementById("mfaEnrollMsg"); const code=(document.getElementById("mfaCode")||{}).value||"";
+  if(!/^\d{6}$/.test(String(code).replace(/\D/g,""))){ if(msg) msg.textContent="⚠️ الرمز 6 أرقام"; return false; }
+  try{
+    const vj=await mfaChallengeVerify(factorId, code); __cloudStoreTok(vj,(cloudSess()||{}).email);
+    try{ logEdit("🔐 تفعيل التحقق بخطوتين",(cloudSess()||{}).email||""); }catch(e){}
+    toast("🔐 فُعّل التحقق بخطوتين — الدخول القادم يطلب الرمز"); renderMfa(); return true;
+  }catch(e){ if(msg) msg.textContent="❌ "+(e.message||"رمز غير صحيح"); return false; }
+}
+async function mfaAbort(factorId){ try{ await cloudAuthFetch("/auth/v1/factors/"+encodeURIComponent(factorId),{method:"DELETE"}); }catch(e){} renderMfa(); }
+async function mfaDisable(){
+  const f=window.__ksMfaFactor; if(!f) return false;
+  if(!confirm("إيقاف التحقق بخطوتين؟ سيكفي بعدها كلمة المرور وحدها للدخول.")) return false;
+  try{ const r=await cloudAuthFetch("/auth/v1/factors/"+encodeURIComponent(f.id),{method:"DELETE"});
+    if(!r.ok){ const j=await r.json().catch(()=>({})); toast("⚠️ "+(j.msg||j.message||"تعذر الإيقاف — قد يلزم دخول حديث بالرمز")); return false; }
+    try{ logEdit("🔓 إيقاف التحقق بخطوتين",(cloudSess()||{}).email||""); }catch(e){} toast("🔓 أُوقف التحقق بخطوتين"); renderMfa(); return true;
+  }catch(e){ toast("📴 تعذر الاتصال"); return false; }
 }
 async function cloudGateNewReq(){
   const g=id=>(document.getElementById(id)||{}).value||"";
@@ -7492,6 +7655,7 @@ async function cloudGateCheck(){
       cgShow("pend");
       if(pm)pm.textContent="✅ تم الاعتماد — جارٍ تجهيز الدخول...";
       try{ ksTabBind(); }catch(e){}
+      if(m.role==="owner" && localStorage.getItem(KEY) && cloudFarmId() && ksDataOwner()===cloudFarmId()){ ksStampOwner(); location.reload(); return; }   /* 👑 شريك مالك وبياناته موجودة */
       if(m.emp_id && localStorage.getItem(KEY)){
         const __o=ksDataOwner(), __c=cloudFarmId();
         if(__c && __o===__c){
@@ -7509,7 +7673,7 @@ async function cloudGateCheck(){
         cgShow("pend"); return;
       }
       const d2=row.data||{};
-      if(!m.emp_id || !(d2.employees||[]).some(e=>e.id===m.emp_id)){
+      if(m.role!=="owner" && (!m.emp_id || !(d2.employees||[]).some(e=>e.id===m.emp_id))){
         if(pm)pm.textContent="⚠️ حسابك معتمد لكن غير مربوط بموظف مسجل — كلم صاحب المزرعة";
         return;
       }
@@ -7578,6 +7742,14 @@ function bootLogin(){
   try{ ksTabBind(); }catch(e){}
   try{
     if(cs.uid&&cs.farmId&&cs.farmId!==cs.uid){
+      /* 👑 شريك مالك: صلاحيات المالك كاملة (اسمه من سجل الموظف إن رُبط وإلا من إيميله) */
+      if(cs.memberStatus==="approved"&&cs.role==="owner"){
+        const __em=cs.empId?DB.employees.find(e=>e.id===cs.empId):null;
+        CURRENT_USER={type:"owner", coOwner:true, name:(__em&&__em.name)||String(cs.email||"").split("@")[0]||"شريك"};
+        sessionStorage.setItem("ksUser",JSON.stringify(CURRENT_USER));
+        try{ cloudStatusUI(); setTimeout(cloudBootCheck,1200); }catch(e){}
+        applyRole(); return;
+      }
       /* حساب موظف */
       if(cs.memberStatus==="approved"&&cs.empId){
         const emp=DB.employees.find(e=>e.id===cs.empId);
@@ -11808,18 +11980,25 @@ async function renderJoinReqs(){
   if(!s||!s.uid||!cloudIsFarmOwner()||!isOwner()){ el.style.display="none"; return; }
   let rows=[];
   try{
-    const r=await cloudAuthFetch("/rest/v1/farm_members?farm_id=eq."+s.uid+"&select=id,email,name,status,emp_id&order=created_at.desc");
-    if(r.ok) rows=await r.json();
+    let r=await cloudAuthFetch("/rest/v1/farm_members?farm_id=eq."+s.uid+"&select=id,email,name,status,emp_id,role&order=created_at.desc");
+    if(r.status===400) r=await cloudAuthFetch("/rest/v1/farm_members?farm_id=eq."+s.uid+"&select=id,email,name,status,emp_id&order=created_at.desc");
+    if(r.ok) rows=await r.json(); window.__ksRoleCol=(r.status!==400);
   }catch(e){}
   if(!rows.length){ el.style.display="none"; return; }
   el.style.display="";
   const badge=st=>st==="approved"?'<span class="badge active">معتمد</span>':st==="rejected"?'<span class="badge danger">موقوف</span>':'<span class="badge warn">بانتظار الاعتماد</span>';
+  const roleB=m=>m.role==="owner"?' <span class="badge" style="background:#7c3aed;color:#fff" title="شريك مالك: كل صلاحيات المالك على البيانات">👑 شريك مالك</span>':'';
   const opts=DB.employees.map(e=>'<option value="'+e.id+'">'+e.name+'</option>').join("");
   window.__ksJoinRows=rows;
   el.innerHTML='<h3>☁️ طلبات انضمام الموظفين للسحابة</h3>'+rows.map(m=>{
     const linked=m.emp_id?((DB.employees.find(e=>e.id===m.emp_id)||{}).name||"— موظف غير موجود —"):"";
     let html='<div class="row" style="align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding:8px 0">';
-    html+='<div style="flex:1;min-width:180px"><b>'+escH(m.name||"—")+'</b> <span class="muted" dir="ltr" style="font-size:.75rem">'+escH(m.email||"")+'</span> '+badge(m.status)+(linked?' <span class="muted">↔ '+linked+'</span>':'')+'</div>';
+    html+='<div style="flex:1;min-width:180px"><b>'+escH(m.name||"—")+'</b> <span class="muted" dir="ltr" style="font-size:.75rem">'+escH(m.email||"")+'</span> '+badge(m.status)+roleB(m)+(linked?' <span class="muted">↔ '+linked+'</span>':'')+'</div>';
+    if(m.status!=="rejected" && window.__ksRoleCol!==false){
+      html+=m.role==="owner"
+        ?'<button class="btn small secondary" type="button" onclick="setMemberRole('+JSON.stringify(m.id)+',\'employee\')" title="يعود موظفاً بصلاحياته المخزَّنة">👷 تنزيل لموظف</button>'
+        :'<button class="btn small secondary" type="button" style="border-color:#7c3aed;color:#5b21b6" onclick="setMemberRole('+JSON.stringify(m.id)+',\'owner\')" title="شريك مالك: كل صلاحيات المالك على البيانات (بلا ربط بموظف)">👑 '+(m.status==="approved"?"ترقية لشريك مالك":"اعتماد كشريك مالك")+'</button>';
+    }
     if(m.status!=="approved") html+='<select id="jr_'+m.id+'" style="min-width:150px"><option value="">اربطه بموظف…</option><option value="__new__">➕ سجله كموظف جديد باسم «'+escH(m.name||"بدون اسم")+'»</option>'+opts+'</select><button class="btn small" type="button" onclick="approveJoin('+JSON.stringify(m.id)+')">✅ اعتماد</button>';
     if(m.status!=="rejected") html+='<button class="btn small secondary" type="button" style="border-color:#c66;color:#791F1F" onclick="rejectJoin('+JSON.stringify(m.id)+')">⛔ '+(m.status==="approved"?"إيقاف":"رفض")+'</button>';
     else html+='<button class="btn small secondary" type="button" onclick="deleteJoin('+JSON.stringify(m.id)+')">🗑️ حذف الطلب</button>';
@@ -11843,6 +12022,20 @@ async function approveJoin(id,reqName){
     const r=await cloudAuthFetch("/rest/v1/farm_members?id=eq."+id,{method:"PATCH",body:JSON.stringify({status:"approved",emp_id:empId})});
     if(r.ok){ toast("✅ اعتُمد الطلب"); try{ cloudSyncPerms(empId); }catch(e){} renderJoinReqs(); } else toast("⚠️ تعذر الاعتماد ("+r.status+")");
   }catch(e){ toast("📴 تعذر الاتصال"); }
+}
+/* 👑 v12.47-A — تغيير دور العضو (المالك الأصلي فقط): owner = شريك مالك · employee = موظف */
+async function setMemberRole(id,role){
+  if(!isOwner() || !cloudIsFarmOwner()){ toast("⚠️ تغيير الأدوار للمالك الأصلي فقط"); return false; }
+  if(role!=="owner" && role!=="employee") return false;
+  const row=(window.__ksJoinRows||[]).find(x=>String(x.id)===String(id))||{};
+  if(role==="owner" && !confirm("👑 اعتماد «"+(row.name||row.email||"هذا الحساب")+"» شريكاً مالكاً؟\nسيملك كل صلاحيات المالك على بيانات المزرعة (الإعدادات، الرواتب، الحسابات، الحذف) من أي جهاز.\nإدارة العضويات والأجهزة تبقى لك.")) return false;
+  if(role==="employee" && !confirm("👷 تنزيل «"+(row.name||row.email||"هذا الحساب")+"» إلى موظف؟ سيعود لصلاحياته المخزَّنة في شاشة الصلاحيات (اربطه بموظف إن لم يكن).")) return false;
+  try{
+    const body=role==="owner"?{role:"owner",status:"approved"}:{role:"employee"};
+    const r=await cloudAuthFetch("/rest/v1/farm_members?id=eq."+encodeURIComponent(id),{method:"PATCH",body:JSON.stringify(body)});
+    if(r.ok){ try{ logEdit(role==="owner"?"👑 اعتماد شريك مالك":"👷 تنزيل شريك لموظف", (row.email||row.name||String(id))); }catch(e){} toast(role==="owner"?"👑 صار شريكاً مالكاً":"👷 صار موظفاً"); renderJoinReqs(); return true; }
+    toast("⚠️ تعذر ("+r.status+") — نفّذ ملف الملّاك-والأجهزة-والتحقق.sql في السحابة أولاً"); return false;
+  }catch(e){ toast("📴 تعذر الاتصال"); return false; }
 }
 async function rejectJoin(id){
   if(!confirm("إيقاف وصول هذا الحساب للسحابة؟")) return;
@@ -16398,7 +16591,7 @@ function stView(k){
     if(k==="company"){ try{ fillCompanyInfo(); }catch(e){} }
     if(k==="perms"){ try{ permFillSelect(); }catch(e){} }
     if(k==="log"){ try{ empMovesInit(); }catch(e){} }
-    if(k==="backup"){ try{ cloudStatusUI(); }catch(e){} try{ ksStoreUI(); }catch(e){} try{ ctrlUI(); }catch(e){} try{ renderArchive(); }catch(e){} try{ renderCloudHist(); }catch(e){} try{ ksNotifUI(); }catch(e){} }
+    if(k==="backup"){ try{ cloudStatusUI(); }catch(e){} try{ ksStoreUI(); }catch(e){} try{ ctrlUI(); }catch(e){} try{ renderArchive(); }catch(e){} try{ renderCloudHist(); }catch(e){} try{ ksNotifUI(); }catch(e){} try{ renderMfa(); }catch(e){} try{ renderDevices(true); }catch(e){} }
   }
   try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(e){}
 }

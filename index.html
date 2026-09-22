@@ -3246,6 +3246,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
   <div class="card" id="zkCard">
     <div class="invHead"><span class="invHeadIco">🧾</span><div><h3 style="margin:0">الفوترة الإلكترونية — المرحلة الثانية</h3><div class="muted" style="font-size:.72rem;margin-top:2px">حالة تسجيل منشأتك لدى هيئة الزكاة والضريبة</div></div></div>
     <div id="zkStatusBox"></div>
+    <div id="zkSignBox" style="margin-top:10px"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
       <button class="btn secondary" onclick="zkShowChain()">🔗 فحص سلسلة الفواتير</button>
       <button class="btn secondary" onclick="zkShowQueue()">📤 طابور الإبلاغ</button>
@@ -3480,6 +3481,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
     <div id="shDevCard" style="display:none;background:var(--green-light);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
       <div style="font-weight:700">🔐 جهاز مشترك — يُنظَّف تلقائياً</div>
       <p class="muted" style="font-size:.75rem;margin:6px 0 0">لاحظ السستم أن أكثر من حساب استُخدم على هذا الجهاز، فصار يمسح بيانات المزرعة عنه تلقائياً عند إغلاق السستم (التبويب أو النافذة أو المتصفح) — بعد التأكد من رفعها للسحابة. قفل الشاشة وتبديل التطبيقات لا يقطعان عملك. لا يلزمك أي إعداد، وبياناتك في السحابة لا تُمس.</p>
+      <p id="shDevEnc" class="muted" style="display:none;font-size:.72rem;margin:6px 0 0">🔐 تبقى على هذا الجهاز نسخة <b>مشفّرة بكلمة مرورك</b> فتدخل بلا إنترنت بعد التنظيف؛ لا تُقرأ بدون كلمة المرور. اجعل كلمة مرورك 10 أحرف فأكثر على الأجهزة المشتركة.</p>
       <a href="#" id="shDevMine" style="display:none;font-size:.72rem;color:#065f46;margin-top:8px" onclick="if(confirm('تأكيد: هذا جهازك الشخصي ولا يستخدمه أحد غيرك؟')){ksMarkPersonal();toast('✅ اعتُبر جهازاً شخصياً');}return false">هذا جهازي الشخصي — أوقف التنظيف التلقائي</a>
     </div>
     <div style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
@@ -3513,6 +3515,16 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <b>🗄️ أرشفة السنوات المقفلة</b>
       <p class="muted" style="font-size:.74rem;margin:6px 0 8px">تنقل السجلات اليومية المسدَّدة لسنة <b>مُقفلة</b> إلى أرشيف سحابي مستقل وتخفّف مساحة الجهاز، ويبقى رصيد كل حساب في نهاية السنة بقيد افتتاحي واحد — فلا يتغيّر ميزان أي سنة لاحقة. <b>لا تُؤرشف</b>: الفواتير الإلكترونية (تسلسل زاتكا)، ومبيعات الأسماك والمواشي (تحكم أعداد الأحواض والقطيع)، وأي بيع أو شراء أو مصروف لم يُسدَّد بعد، وقيود الإهلاك ونهاية الخدمة والسلف. الأرشفة <b>قابلة للعكس</b> بزر الاستعادة.</p>
       <div id="archBody" class="muted" style="font-size:.8rem">—</div>
+    </div>
+    <div id="attCard" style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:none">
+      <b>📎 المرفقات في السحابة</b>
+      <p class="muted" style="font-size:.74rem;margin:6px 0 8px">فواتير المصروفات ووثائق الموظفين تُرفع إلى مساحة خاصة بمزرعتك في السحابة (لا يراها إلا حسابات مزرعتك) بدل أن تشغل مساحة المتصفح، وتُفتح من سجلها كما كانت.</p>
+      <div id="attBody">—</div>
+    </div>
+    <div id="benchCard" style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><b>📊 المقارنة المجهولة مع مزارع أخرى</b><label style="font-size:.78rem;display:flex;gap:6px;align-items:center"><input type="checkbox" id="benchChk" onchange="benchSet(this.checked)"> مشاركة مؤشرات مزرعتي</label></div>
+      <p class="muted" style="font-size:.74rem;margin:6px 0 8px">اختيارية. تُرسل <b>نِسَباً فقط</b> (معامل التحويل، البقاء، تكلفة الكيلو، النفوق، نسب المصروفات) — بلا مبالغ ولا أسماء ولا عملاء. ولا يظهر متوسط لأي مؤشر إلا إذا شاركت 5 مزارع فأكثر، فلا يُستدل على مزرعة بعينها.</p>
+      <div id="benchBody" class="table-wrap">—</div>
     </div>
     <div id="stgCard" style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
@@ -4402,6 +4414,8 @@ Object.assign(I18N.en,{"— عميل محذوف —":"— deleted customer —",
 Object.assign(I18N.ur,{"— عميل محذوف —":"— حذف شدہ گاہک —","— موظف محذوف —":"— حذف شدہ ملازم —","المبيعات الإجمالية":"مجموعی فروخت"});
 /* i18n v12.12 — نصوص جولة الأرقام والفاعلية والقرارات الثلاثة */
 Object.assign(I18N.en,{"🏠 بدل السكن (⃁)":"🏠 Housing allowance (⃁)","🚗 بدل المواصلات (⃁)":"🚗 Transport allowance (⃁)","بدلات أخرى (⃁)":"Other allowances (⃁)","إجمالي البدلات الشهرية (⃁)":"Total monthly allowances (⃁)","السكن والمواصلات يدخلان في مكافأة نهاية الخدمة — «أخرى» لا تدخل":"Housing & transport count toward end-of-service; \"Other\" does not","خاضعة لضريبة القيمة المضافة":"Subject to VAT","نعم — فاتورة ضريبية من مورّد مسجَّل":"Yes — tax invoice from a registered supplier","لا — رسوم حكومية / تأمينات / مورّد غير مسجَّل":"No — government fees / insurance / unregistered supplier","🔍 مراجعة الضريبة الداخلة على المصروفات":"🔍 Input VAT review on expenses","↩️ مؤشر المردودات":"↩️ Returns indicator","عدد المصروفات":"Expenses count","الضريبة الداخلة المفترضة":"Assumed input VAT","التصنيف بالجملة":"Bulk classify","🚫 غير خاضعة":"🚫 Not subject","✅ خاضعة":"✅ Subject","✅ كلها خاضعة":"✅ All subject","مصروفات غير خاضعة (رسوم/تأمينات/مورّد غير مسجَّل)":"Non-taxable expenses (fees/insurance/unregistered supplier)","غير مستحق":"Not due","1–30 يوم":"1–30 days","31–60 يوم":"31–60 days","61–90 يوم":"61–90 days","أكثر من 90":"Over 90","الأسبوع":"Week","متوقع وارد":"Expected in","متوقع صادر":"Expected out","الرصيد المتوقع":"Projected balance","الرصيد الحالي":"Current balance","النقدية (صندوق + بنك)":"Cash (cash + bank)","عدد المبيعات":"Sales count","الدورات":"Cycles","الإيراد (صافي الضريبة)":"Revenue (net of VAT)","متوسط السعر":"Avg. price","متوسط الكمية للبيعة":"Avg. qty per sale","التغيّر":"Change","جديد":"New","المبيعات الإجمالية":"Gross sales","المردودات":"Returns","نسبة المردودات":"Returns rate","صافي المبيعات":"Net sales","النسبة":"Rate","رصيد افتتاحي":"Opening balance","قيمة المخزون بعده":"Stock value after","قيمة الفروقات":"Variance value","السبب":"Reason","الاسم المختصر (للتقارير)":"Short name (for reports)","مردود مبيعات":"Sales return","بيع مباشر":"Direct sale","— منتج محذوف —":"— deleted product —","— مورد محذوف —":"— deleted supplier —","— صنف محذوف —":"— deleted item —","— بلا مورد —":"— no supplier —","— موظف غير موجود —":"— employee not found —"});
+Object.assign(I18N.en,{"📎 المرفقات في السحابة":"📎 Attachments in the cloud","☁️ نقل المرفقات إلى السحابة الآن":"☁️ Move attachments to the cloud now","📊 المقارنة المجهولة مع مزارع أخرى":"📊 Anonymous benchmarking with other farms","مشاركة مؤشرات مزرعتي":"Share my farm's indicators","المؤشر":"Indicator","مزرعتك":"Your farm","المتوسط":"Average","عدد المزارع":"Farms","لا متوسط بعد":"No average yet","🔏 خدمة التوقيع والإبلاغ":"🔏 Signing & reporting service","عنوان الخدمة (Edge Function)":"Service URL (Edge Function)","🔌 فحص":"🔌 Test","معامل التحويل الغذائي (FCR)":"Feed conversion ratio (FCR)","بقاء الأسماك":"Fish survival","تكلفة كيلو السمك":"Cost per kg of fish","نفوق المواشي":"Livestock mortality","المصروفات ÷ الإيراد":"Expenses ÷ revenue","نسبة المردودات":"Returns rate","حصة الأعلاف من المصروفات":"Feed share of expenses","حصة العمالة من المصروفات":"Labor share of expenses"});
+Object.assign(I18N.ur,{"📎 المرفقات في السحابة":"📎 کلاؤڈ میں منسلکات","☁️ نقل المرفقات إلى السحابة الآن":"☁️ منسلکات ابھی کلاؤڈ پر منتقل کریں","📊 المقارنة المجهولة مع مزارع أخرى":"📊 دوسرے فارمز سے گمنام موازنہ","مشاركة مؤشرات مزرعتي":"میرے فارم کے اشاریے شیئر کریں","المؤشر":"اشاریہ","مزرعتك":"آپ کا فارم","المتوسط":"اوسط","عدد المزارع":"فارمز","لا متوسط بعد":"ابھی اوسط نہیں","🔏 خدمة التوقيع والإبلاغ":"🔏 دستخط اور رپورٹنگ سروس","عنوان الخدمة (Edge Function)":"سروس ایڈریس (Edge Function)","🔌 فحص":"🔌 جانچ","معامل التحويل الغذائي (FCR)":"خوراک تبدیلی تناسب (FCR)","بقاء الأسماك":"مچھلی کی بقا","تكلفة كيلو السمك":"فی کلو مچھلی لاگت","نفوق المواشي":"مویشیوں کی اموات","المصروفات ÷ الإيراد":"اخراجات ÷ آمدنی","نسبة المردودات":"واپسی کی شرح","حصة الأعلاف من المصروفات":"اخراجات میں چارے کا حصہ","حصة العمالة من المصروفات":"اخراجات میں مزدوری کا حصہ"});
 Object.assign(I18N.en,{"👑 شريك مالك":"👑 Co-owner","👑 ترقية لشريك مالك":"👑 Promote to co-owner","👑 اعتماد كشريك مالك":"👑 Approve as co-owner","👷 تنزيل لموظف":"👷 Demote to employee","🔐 التحقق بخطوتين لحسابك":"🔐 Two-factor authentication","🔐 تفعيل":"🔐 Enable","🔐 مفعّل":"🔐 Enabled","غير مفعّل":"Not enabled","إيقاف":"Disable","📱 الأجهزة المسجَّلة على المزرعة":"📱 Devices registered on this farm","⛔ إخراج":"⛔ Sign out device","↩️ إعادة السماح":"↩️ Allow again","هذا الجهاز":"This device","⛔ مُخرَج":"⛔ Signed out","نشط":"Active","الجهاز":"Device","الحساب":"Account","آخر ظهور":"Last seen","✔️ تحقق ودخول":"✔️ Verify & sign in","🔐 رمز التحقق من تطبيق المصادقة (6 أرقام)":"🔐 Code from your authenticator app (6 digits)"});
 Object.assign(I18N.ur,{"👑 شريك مالك":"👑 شریک مالک","👑 ترقية لشريك مالك":"👑 شریک مالک بنائیں","👑 اعتماد كشريك مالك":"👑 بطور شریک مالک منظور","👷 تنزيل لموظف":"👷 ملازم بنائیں","🔐 التحقق بخطوتين لحسابك":"🔐 دو مرحلہ تصدیق","🔐 تفعيل":"🔐 فعال کریں","🔐 مفعّل":"🔐 فعال","غير مفعّل":"غیر فعال","إيقاف":"بند کریں","📱 الأجهزة المسجَّلة على المزرعة":"📱 فارم پر رجسٹرڈ ڈیوائسز","⛔ إخراج":"⛔ ڈیوائس نکالیں","↩️ إعادة السماح":"↩️ دوبارہ اجازت","هذا الجهاز":"یہ ڈیوائس","⛔ مُخرَج":"⛔ نکالا گیا","نشط":"فعال","الجهاز":"ڈیوائس","الحساب":"اکاؤنٹ","آخر ظهور":"آخری بار","✔️ تحقق ودخول":"✔️ تصدیق اور لاگ ان","🔐 رمز التحقق من تطبيق المصادقة (6 أرقام)":"🔐 تصدیقی ایپ کا کوڈ (6 ہندسے)"});
 Object.assign(I18N.en,{"📄 أوامر الشراء للموردين":"📄 Purchase orders to suppliers","➕ أمر شراء جديد":"➕ New purchase order","📄 أمر شراء":"📄 Purchase order","📥 استلام":"📥 Receive","التوريد المتوقع":"Expected delivery","التقديري":"Estimated","البنود":"Lines","الباركود / QR":"Barcode / QR","الباركود / QR (اختياري)":"Barcode / QR (optional)","📷 ابحث بالباركود":"📷 Find by barcode","📷 مسح الباركود / QR":"📷 Scan barcode / QR","🗂️ إجمالي السجلات":"🗂️ Total records","📴 بلا مزامنة >7 أيام":"📴 No sync >7 days","⬆️ على إصدار أقدم":"⬆️ On older version","💾 قرب سقف التخزين":"💾 Near storage cap","مرسول":"Sent","مستلم":"Received","ملغى":"Cancelled"});
@@ -4648,6 +4662,7 @@ function ksPendKey(fid){ const f=fid!==undefined?fid:((typeof cloudFarmId==="fun
 function ksPruneOtherFarms(fid){
   const gone=[];
   try{ ksOtherFarmKeys(fid).forEach(ok=>{ const of=ok.slice((KEY_BASE+"::").length); if(localStorage.getItem(ksPendKey(of))!=="1"){ localStorage.removeItem(ok); gone.push(of); } }); }catch(e){}
+  try{ for(let i=localStorage.length-1;i>=0;i--){ const k=localStorage.key(i); if(k&&k.indexOf("ksEnc::")===0&&k!=="ksEnc::"+fid&&(gone.includes(k.slice(7))||!localStorage.getItem(ksKeyFor(k.slice(7))))) { localStorage.removeItem(k); localStorage.removeItem("ksEncSalt::"+k.slice(7)); } } }catch(e){}
   if(gone.length){ try{ const raw=localStorage.getItem("ksFarmSnaps"); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)){ const kept=arr.filter(x=>!(x&&x.farm&&gone.includes(x.farm))); if(kept.length!==arr.length) localStorage.setItem("ksFarmSnaps", JSON.stringify(kept)); } } }catch(e){} }
   return gone;
 }
@@ -4672,7 +4687,7 @@ function ksKeyBind(){
   KEY=k; return k;
 }
 ksKeyBind();
-const KS_VER="v12.47-A";
+const KS_VER="v12.48-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -5053,6 +5068,48 @@ function ksIsDirty(){
     return false;
   }catch(e){ return true; }
 }
+/* ═══ 🔐 v12.48-A — نسخة محلية مشفّرة للجهاز المشترك (الخيار ٣ الذي أُجّل في v12.09-C) ═══
+   المشكلة: الجهاز المشترك يمسح بيانات المزرعة عند كل جلسة جديدة ⇒ الدخول التالي يحتاج إنترنت. الحل: إلى جانب النسخة الصريحة (التي تُمسح)
+   تُكتب نسخة مشفّرة AES-GCM-256 بمفتاح مشتق من كلمة مرور المستخدم (PBKDF2-SHA256 · 150,000 دورة · ملح عشوائي لكل جهاز/مزرعة).
+   الدخول بلا إنترنت = فكّ التشفير بكلمة المرور (الخطأ يفشل بوسم المصادقة). مادة المفتاح تعيش في sessionStorage (تنتهي بإغلاق التبويب).
+   تُحذف النسخة المشفّرة عند الخروج الصريح والإخراج عن بُعد وتبديل المزرعة — وتبقى فقط عبر التنظيف التلقائي بين الجلسات. */
+function ksEncBlobKey(fid){ return "ksEnc::"+(fid||cloudFarmId()); }
+function ksEncSaltKey(fid){ return "ksEncSalt::"+(fid||cloudFarmId()); }
+function __ksB64(u8){ let s=""; u8.forEach(b=>s+=String.fromCharCode(b)); return btoa(s); }
+function __ksU8(b64){ const s=atob(b64); const u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; }
+async function ksEncDerive(pw, fid, create){
+  if(!(crypto&&crypto.subtle)) return null;
+  let salt=localStorage.getItem(ksEncSaltKey(fid));
+  if(!salt){ if(!create) return null; const u=new Uint8Array(16); crypto.getRandomValues(u); salt=__ksB64(u); localStorage.setItem(ksEncSaltKey(fid), salt); }
+  const base=await crypto.subtle.importKey("raw", new TextEncoder().encode(String(pw||"")), "PBKDF2", false, ["deriveBits"]);
+  const bits=await crypto.subtle.deriveBits({name:"PBKDF2", salt:__ksU8(salt), iterations:150000, hash:"SHA-256"}, base, 256);
+  return new Uint8Array(bits);
+}
+async function ksEncArm(pw){
+  try{ const fid=cloudFarmId(); if(!fid||!pw) return false; const raw=await ksEncDerive(pw, fid, true); if(!raw) return false; sessionStorage.setItem("ksEncK", __ksB64(raw)); window.__ksEncRaw=raw; return true; }catch(e){ return false; }
+}
+function ksEncRaw(){ try{ if(window.__ksEncRaw) return window.__ksEncRaw; const b=sessionStorage.getItem("ksEncK"); if(!b) return null; window.__ksEncRaw=__ksU8(b); return window.__ksEncRaw; }catch(e){ return null; } }
+async function __ksAesKey(raw, usage){ return crypto.subtle.importKey("raw", raw, {name:"AES-GCM"}, false, usage); }
+let __ksEncT=null;
+function ksEncWrite(json){
+  /* تُكتب فقط على الجهاز المشترك ومعنا مادة المفتاح — بلا مفتاح لا نسخة مشفّرة (ولا خطأ) */
+  try{ if(!ksSharedDev()) return false; const raw=ksEncRaw(); const fid=cloudFarmId(); if(!raw||!fid||!(crypto&&crypto.subtle)) return false;
+    clearTimeout(__ksEncT); __ksEncT=setTimeout(async()=>{ try{ const key=await __ksAesKey(raw,["encrypt"]); const iv=new Uint8Array(12); crypto.getRandomValues(iv); const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv}, key, new TextEncoder().encode(json)); localStorage.setItem(ksEncBlobKey(fid), __ksB64(iv)+"."+__ksB64(new Uint8Array(ct))); }catch(e){} }, 1500);
+    return true; }catch(e){ return false; }
+}
+async function ksEncTry(pw, fid){
+  /* true=فُكّت وكُتبت النسخة الصريحة؛ false=لا نسخة أو كلمة مرور خاطئة */
+  try{ const blob=localStorage.getItem(ksEncBlobKey(fid)); if(!blob||!(crypto&&crypto.subtle)) return false;
+    const raw=await ksEncDerive(pw, fid, false); if(!raw) return false;
+    const [ivB,ctB]=blob.split("."); const key=await __ksAesKey(raw,["decrypt"]);
+    const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:__ksU8(ivB)}, key, __ksU8(ctB));
+    const json=new TextDecoder().decode(pt); const d=JSON.parse(json); if(!d||!d.settings) return false;
+    localStorage.setItem(ksKeyFor(fid), json); localStorage.setItem("ksDataOwner", fid);
+    sessionStorage.setItem("ksEncK", __ksB64(raw)); window.__ksEncRaw=raw; return true;
+  }catch(e){ return false; }
+}
+function ksEncHas(fid){ try{ return !!localStorage.getItem(ksEncBlobKey(fid)); }catch(e){ return false; } }
+function ksEncDrop(fid){ try{ const f=fid||cloudFarmId(); if(f){ localStorage.removeItem(ksEncBlobKey(f)); localStorage.removeItem(ksEncSaltKey(f)); } sessionStorage.removeItem("ksEncK"); window.__ksEncRaw=null; }catch(e){} }
 function ksSafeWipe(reason){
   try{
     if(ksIsDirty()){ try{ toast("⏳ تعديلات لم تُرفع بعد — أُجّل تنظيف الجهاز حتى تكتمل المزامنة"); }catch(e){} return false; }
@@ -5108,12 +5165,14 @@ function ksSharedUI(){
   const mine=document.getElementById("shDevMine");
   if(mine) mine.style.display=(ksSharedDev() && typeof isOwner==="function" && isOwner())?"inline-block":"none";
   const b=document.getElementById("shDevBadge"); if(b) b.style.display=ksSharedDev()?"":"none";
+  const en=document.getElementById("shDevEnc"); if(en) en.style.display=(ksSharedDev()&&(ksEncHas(cloudFarmId())||!!ksEncRaw()))?"":"none";
 }
 function ksDataOwner(){ try{ return localStorage.getItem("ksDataOwner")||""; }catch(e){ return ""; } }
 function ksStampOwner(){ /* 🏷️ ختم ملكية بيانات الجهاز بمعرّف المزرعة — يمنع أي تداخل بين مزرعتين على جهاز واحد */
   try{ const f=(typeof cloudFarmId==="function")?cloudFarmId():""; if(f) localStorage.setItem("ksDataOwner", f); }catch(e){}
 }
-function ksWipeFarmData(){ /* مسح كامل لأثر المزرعة السابقة من الجهاز + من ذاكرة الصفحة */
+function ksWipeFarmData(keepEnc){ /* مسح كامل لأثر المزرعة السابقة من الجهاز + من ذاكرة الصفحة — keepEnc=true (التنظيف التلقائي فقط) يُبقي النسخة المشفّرة للدخول بلا إنترنت */
+  try{ if(!keepEnc){ const __f=cloudFarmId()||ksDataOwner()||String(KEY).split("::")[1]||""; ksEncDrop(__f); } }catch(e){}   /* الجلسة قد تكون مُسحت قبل المسح (logout) — نشتق المزرعة من الختم أو المفتاح */
   try{ if(typeof DB!=="undefined" && typeof blank==="function") DB=blank(); }catch(e){}
   try{ localStorage.removeItem(KEY); localStorage.removeItem(KEY_BASE); localStorage.removeItem("ksFarmSnaps");
        localStorage.removeItem("ksFarmPlan"); localStorage.removeItem("ksDataOwner");
@@ -5146,6 +5205,7 @@ function __persistNow(){
       toast("⚠️ مساحة المتصفح امتلأت — حُذفت اللقطات القديمة وتم الحفظ"); }
     catch(e2){ try{ toast("❌ فشل الحفظ: مساحة المتصفح ممتلئة — صدّر نسخة واحذف بيانات متصفح قديمة"); }catch(e3){} return; }
   }
+  try{ ksEncWrite(json); }catch(e){}   /* 🔐 نسخة مشفّرة للجهاز المشترك */
   try{ if(typeof autoSnap==="function") autoSnap(json); }catch(e){}
   try{ cloudQueuePush(); }catch(e){}
 }
@@ -5348,7 +5408,7 @@ async function cloudPush(__preAuth, __force){
       r=await cloudAuthFetch("/rest/v1/farm_state?id=eq."+encodeURIComponent(__fid),{method:"PATCH",
         body:JSON.stringify({data:DB,updated_at:now})});
     }
-    if(r.ok && __ok()){ DB.settings.lastCloudSync=now; localStorage.setItem(KEY,JSON.stringify(DB)); window.__ksDirty=false; try{ localStorage.removeItem("ksPend"); localStorage.removeItem(ksPendKey()); }catch(e){} try{ planStatsPush(now); }catch(e){} cloudStatusUI(); }
+    if(r.ok && __ok()){ DB.settings.lastCloudSync=now; localStorage.setItem(KEY,JSON.stringify(DB)); window.__ksDirty=false; try{ localStorage.removeItem("ksPend"); localStorage.removeItem(ksPendKey()); }catch(e){} try{ benchPush(false); }catch(e){} try{ setTimeout(()=>ksAttSync(false),1500); }catch(e){} try{ planStatsPush(now); }catch(e){} cloudStatusUI(); }
     else{
       let __m="⚠️ تعذر الرفع ("+r.status+")";
       try{ const __tx=await r.text();
@@ -6586,7 +6646,7 @@ function __ksSanStr(v){ return typeof v==="string" ? v.replace(/</g,"\u2039").re
 function __ksSanDeep(o,depth){ if(depth>8||o==null) return o;
   if(typeof o==="string") return __ksSanStr(o);
   if(Array.isArray(o)){ for(let i=0;i<o.length;i++) o[i]=__ksSanDeep(o[i],(depth||0)+1); return o; }
-  if(typeof o==="object"){ for(const k of Object.keys(o)){ if(k==="logo") continue; o[k]=__ksSanDeep(o[k],(depth||0)+1); } return o; }
+  if(typeof o==="object"){ for(const k of Object.keys(o)){ if(k==="logo"||k==="zkSignedXml") continue; o[k]=__ksSanDeep(o[k],(depth||0)+1); } return o; }   /* 🔏 XML موقّع من الهيئة لا يُمسّ (تعقيم <> يكسره) */
   return o; }
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.style.display="block"; setTimeout(()=>t.style.display="none",2200); }
 function today(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
@@ -7478,6 +7538,7 @@ async function cloudGateLogin(){
       return;
     }
     await __credStore(em,pw);
+    try{ if(ksSharedDev()) await ksEncArm(pw); }catch(e){}   /* 🔐 مفتاح النسخة المشفّرة لهذه الجلسة */
     sessionStorage.setItem("ksAuthed","1");
     ksSeenNow();
     await cloudGateCheck();
@@ -7485,6 +7546,11 @@ async function cloudGateLogin(){
     /* انقطاع شبكة → تحقق محلي بالبصمة المشفرة */
     const isNet=(e instanceof TypeError)||!navigator.onLine;
     const s=cloudSess();
+    /* 🔐 جهاز مشترك نُظّف: النسخة المشفّرة تُفكّ بكلمة المرور ⇒ دخول بلا إنترنت (الخطأ في كلمة المرور يفشل بوسم المصادقة) */
+    if(isNet && s && s.email && s.email.toLowerCase()===em.toLowerCase() && !localStorage.getItem(KEY) && ksEncHas(cloudFarmId())){
+      if(await ksEncTry(pw, cloudFarmId())){ sessionStorage.setItem("ksAuthed","1"); if(msg)msg.textContent="📴 دخول محلي من النسخة المشفّرة — ستتم المزامنة عند عودة الاتصال"; setTimeout(()=>location.reload(),600); return; }
+      __ksGateMsg("cgMsg","❌ لا يوجد اتصال، وكلمة المرور لا تفكّ النسخة المحلية المشفّرة", true); return;
+    }
     /* 🛡️ الدخول المحلي مسموح فقط إذا كانت بيانات الجهاز تخص هذه المزرعة نفسها */
     const __localOwn = ksDataOwner() && cloudFarmId() && ksDataOwner()===cloudFarmId();
     if(isNet && s && s.email && s.email.toLowerCase()===em.toLowerCase() && localStorage.getItem(KEY) && __localOwn && await __credMatch(em,pw)){
@@ -7518,6 +7584,7 @@ async function cloudGateMfa(){
     const vj=await mfaChallengeVerify(st.factorId, code);
     __cloudStoreTok(vj, st.em);
     await __credStore(st.em, st.pw);
+    try{ if(ksSharedDev()) await ksEncArm(st.pw); }catch(e){}
     window.__ksMfa=null; const w=document.getElementById("cgMfaWrap"); if(w) w.style.display="none";
     sessionStorage.setItem("ksAuthed","1"); ksSeenNow();
     await cloudGateCheck(); return true;
@@ -7719,11 +7786,11 @@ function bootLogin(){
     }else{
       if(ksStale()){ try{ sessionStorage.removeItem("ksAuthed"); }catch(e){} }  /* تبويب مستعاد بعد غياب طويل = جلسة جديدة */
       if(ksSharedDev() && sessionStorage.getItem("ksAuthed")!=="1" && localStorage.getItem(KEY)){
-        if(!ksIsDirty()){ try{ localStorage.removeItem("ksCloudSess"); }catch(e){} ksWipeFarmData(); }
+        if(!ksIsDirty()){ try{ localStorage.removeItem("ksCloudSess"); }catch(e){} ksWipeFarmData(true); }
         else if(cloudOn()){
           /* بقايا لم تُرفع: ارفعها أولاً ثم نظّف — لا نفقد عملاً ولا نترك أثراً */
           try{ ksTabBind(); Promise.resolve(cloudPush(true)).then(function(){
-                 if(!ksIsDirty()){ try{ localStorage.removeItem("ksCloudSess"); }catch(e){} ksWipeFarmData(); }
+                 if(!ksIsDirty()){ try{ localStorage.removeItem("ksCloudSess"); }catch(e){} ksWipeFarmData(true); }
                }).catch(function(){}); }catch(e){}
         }
       }
@@ -10458,11 +10525,116 @@ function expFilePick(ev,slot){
   };
   r.readAsDataURL(f);
 }
+/* ═══ 📊 v12.48-A — المقارنة المجهولة بين المزارع (اختيارية) ═══
+   تُرسل نِسَباً فقط (بلا مبالغ ولا أسماء): FCR، البقاء، تكلفة الكيلو، نفوق المواشي، نسبة المصروفات للإيراد، نسبة المردودات، حصة العلف والعمالة.
+   المتوسطات لا تُحسب إلا بـ5 مزارع فأكثر (k-anonymity في bench_avg) — والحارس السيرفري يرفض أي مفتاح خارج القائمة. */
+const BENCH_KEYS=[["fish_fcr","معامل التحويل الغذائي (FCR)","x"],["fish_survival","بقاء الأسماك","%"],["fish_cost_kg","تكلفة كيلو السمك","⃁"],["lv_mortality","نفوق المواشي","%"],["expense_ratio","المصروفات ÷ الإيراد","%"],["returns_rate","نسبة المردودات","%"],["feed_share","حصة الأعلاف من المصروفات","%"],["labor_share","حصة العمالة من المصروفات","%"]];
+function benchOn(){ return !!(DB.settings&&DB.settings.benchOptIn); }
+function benchSet(on){ if(!ksOwnerOnly("المقارنة المجهولة")) return false; DB.settings.benchOptIn=!!on; save(); try{ logEdit(on?"📊 تفعيل المقارنة المجهولة":"📊 إيقاف المقارنة المجهولة",""); }catch(e){} if(on) benchPush(true); renderBench(); return true; }
+function benchMetrics(month){
+  const m=month||today().slice(0,7); const inM=d=>String(d||"").slice(0,7)===m; const out={};
+  try{ let feed=0,kg=0,cost=0,init=0,alive=0; (DB.tanks||[]).filter(t=>!t.closedAt).forEach(t=>{ const b=batchStats(t); if(!b) return; if((+b.soldKg||0)>0){ feed+=+b.feed||0; kg+=+b.soldKg||0; cost+=+b.cost||0; } if((+b.init||0)>0){ init+=+b.init; alive+=(+b.init)-(+b.dead||0); } });
+    if(kg>0&&feed>0) out.fish_fcr=+(feed/kg).toFixed(3); if(kg>0&&cost>0) out.fish_cost_kg=+(cost/kg).toFixed(2); if(init>0) out.fish_survival=+(100*alive/init).toFixed(2); }catch(e){}
+  try{ const from=m+"-01", to=m+"-31"; const rows=lvBarnStats(from,to)||[]; let heads=0,deaths=0,sold=0; rows.forEach(r=>{ heads+=+r.heads||0; deaths+=+r.deaths||0; sold+=+r.soldHeads||0; }); if(heads+deaths+sold>0) out.lv_mortality=+(100*deaths/(heads+deaths+sold)).toFixed(2); }catch(e){}
+  try{ let rev=0,gross=0,ret=0; (DB.harvests||[]).filter(h=>inM(h.date)&&!h.voided).forEach(h=>{ const v=hNet(h); rev+=v; if((h.returnOf||h.creditNote)&&!h.reversalOf) ret+=-v; else gross+=v; });
+    let exp=0,feedX=0,labX=0; (DB.expenses||[]).filter(x=>inM(x.date)&&!x.voided).forEach(x=>{ const a=+x.amount||0; exp+=a; if(/علف|أعلاف/.test(String(x.cat||""))) feedX+=a; if(/رواتب|عمالة/.test(String(x.cat||""))) labX+=a; });
+    if(rev>0&&exp>0) out.expense_ratio=+(100*exp/rev).toFixed(2); if(gross>0) out.returns_rate=+(100*ret/gross).toFixed(2); if(exp>0){ out.feed_share=+(100*feedX/exp).toFixed(2); out.labor_share=+(100*labX/exp).toFixed(2); } }catch(e){}
+  Object.keys(out).forEach(k=>{ if(!isFinite(out[k])) delete out[k]; });
+  return out;
+}
+async function benchPush(force){
+  try{
+    if(!benchOn()||!cloudOn()||!(cloudIsFarmOwner()||ksIsCoOwner())||(DB.settings&&DB.settings.demo)) return false;
+    if(!force){ const at=+(localStorage.getItem("ksBenchAt")||0); if(Date.now()-at<864e5) return false; }
+    const fid=cloudFarmId(); const cur=today().slice(0,7); const d=new Date(); d.setMonth(d.getMonth()-1); const prev=ksISO(d).slice(0,7);
+    const rows=[cur,prev].map(mo=>({farm_id:fid, month:mo, metrics:benchMetrics(mo)})).filter(r=>Object.keys(r.metrics).length);
+    if(!rows.length) return false;
+    const r=await cloudAuthFetch("/rest/v1/farm_bench?on_conflict=farm_id,month",{method:"POST",headers:{Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(rows)});
+    localStorage.setItem("ksBenchAt", String(Date.now())); return r.ok;
+  }catch(e){ return false; }
+}
+async function benchFetch(month){ try{ const r=await cloudAuthFetch("/rest/v1/rpc/bench_avg",{method:"POST",body:JSON.stringify({p_month:month})}); if(!r.ok) return null; return await r.json(); }catch(e){ return null; } }
+async function renderBench(){
+  const el=document.getElementById("benchCard"), body=document.getElementById("benchBody"), chk=document.getElementById("benchChk"); if(!el||!body) return;
+  const show=isOwner() && !(DB.settings&&DB.settings.demo); el.style.display=show?"":"none"; if(!show) return;
+  if(chk) chk.checked=benchOn();
+  if(!benchOn()){ body.innerHTML='<span class="muted" style="font-size:.76rem">غير مفعّلة — لا يُرسل شيء عن مزرعتك.</span>'; return; }
+  if(!cloudOn()){ body.innerHTML='<span class="muted">📴 يحتاج اتصالاً بالسحابة</span>'; return; }
+  const d=new Date(); d.setMonth(d.getMonth()-1); const mo=ksISO(d).slice(0,7); const mine=benchMetrics(mo); body.innerHTML='<span class="muted">⏳ …</span>';
+  const avg=await benchFetch(mo); if(avg===null){ body.innerHTML='<span class="muted">نفّذ ملف <b>المرفقات-والمقارنة.sql</b> في السحابة لتفعيل المقارنة</span>'; return; }
+  const fmtV=(k,v)=>v==null?"—":(BENCH_KEYS.find(x=>x[0]===k)[2]==="%"?fmt(v)+"%":fmt(v));
+  body.innerHTML='<div class="muted" style="font-size:.74rem;margin-bottom:6px">شهر '+mo+' — قيمك مقابل متوسط المزارع المشاركة (يظهر المتوسط عند 5 مزارع فأكثر)</div><table><tr><th>المؤشر</th><th>مزرعتك</th><th>المتوسط</th><th>عدد المزارع</th></tr>'
+    +BENCH_KEYS.map(k=>{ const a=avg&&avg[k[0]]; return '<tr><td>'+k[1]+'</td><td><b>'+fmtV(k[0],mine[k[0]])+'</b></td><td>'+(a?fmtV(k[0],a.avg):'<span class="muted">لا متوسط بعد</span>')+'</td><td>'+(a?fmt(a.n):"—")+'</td></tr>'; }).join("")+'</table>';
+}
+/* ═══ 📎 v12.48-A — المرفقات في Supabase Storage (حاوية farm-files خاصة، المسار <farmId>/…) ═══
+   الشكل الجديد للمرفق: {ref:"sb:<path>", name, type, size, ts} بدل {data:"data:…base64", name}. القاعدة: الرفع لا يفقد شيئاً —
+   base64 يبقى في السجل حتى ينجح الرفع ثم يُستبدل بالمرجع (ksAttSync كسولة: تغطي القديم والجديد معاً). العرض يفتح المرجع بجلب مصادَق ثم blob URL. */
+function ksAttOn(){ return cloudOn() && !(DB.settings&&DB.settings.demo) && navigator.onLine!==false; }
+function ksAttHolders(){
+  const out=[];
+  (DB.expenses||[]).forEach(x=>{ if(x.invFile) out.push({owner:x, key:"invFile", file:x.invFile, label:"فاتورة مصروف"}); });
+  (DB.recurring||[]).forEach(x=>{ if(x.invFile) out.push({owner:x, key:"invFile", file:x.invFile, label:"فاتورة متكرر"}); });
+  (DB.employees||[]).forEach(em=>{ if(em.contractFile) out.push({owner:em, key:"contractFile", file:em.contractFile, label:"عقد "+(em.name||"")}); Object.keys(em.docs||{}).forEach(k=>{ if(em.docs[k]) out.push({owner:em.docs, key:k, file:em.docs[k], label:(typeof EMP_DOC_KEYS!=="undefined"&&EMP_DOC_KEYS[k])||k}); }); });
+  return out;
+}
+function ksAttStats(){ const h=ksAttHolders(); let local=0, cloud=0, bytes=0; h.forEach(x=>{ if(x.file.ref) cloud++; else if(x.file.data){ local++; bytes+=String(x.file.data).length; } }); return {local, cloud, kb:Math.round(bytes/1024), total:h.length}; }
+function ksAttPath(name){ const fid=cloudFarmId(); const safe=(typeof ksSafeName==="function"?ksSafeName(name||"file"):String(name||"file").replace(/[^\w.\-\u0600-\u06FF]+/g,"_")).slice(0,60); return fid+"/"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7)+"-"+safe; }
+async function ksAttPut(file){
+  if(!ksAttOn() || !file || !file.data || file.ref) return null;
+  try{
+    const blob=await (await fetch(file.data)).blob(); if(!blob.size) return null;
+    const path=ksAttPath(file.name||"file");
+    const r=await cloudAuthFetch("/storage/v1/object/farm-files/"+path.split("/").map(encodeURIComponent).join("/"),{method:"POST",headers:{"Content-Type":blob.type||"application/octet-stream","x-upsert":"false"},body:blob});
+    if(!r.ok) return null;
+    return {ref:"sb:"+path, name:file.name||"", type:blob.type||file.type||"", size:blob.size, ts:file.ts||today()};
+  }catch(e){ return null; }
+}
+async function ksAttBlobUrl(ref){
+  const path=String(ref||"").replace(/^sb:/,""); if(!path) return null;
+  try{ const r=await cloudAuthFetch("/storage/v1/object/authenticated/farm-files/"+path.split("/").map(encodeURIComponent).join("/"),{headers:{"Content-Type":undefined}}); if(!r.ok) return null; const b=await r.blob(); return {url:URL.createObjectURL(b), type:b.type}; }catch(e){ return null; }
+}
+async function ksAttDel(ref){ const path=String(ref||"").replace(/^sb:/,""); if(!path||!cloudOn()) return false; try{ const r=await cloudAuthFetch("/storage/v1/object/farm-files/"+path.split("/").map(encodeURIComponent).join("/"),{method:"DELETE"}); return r.ok; }catch(e){ return false; } }
+async function ksAttOpen(file, title){
+  if(!file) return;
+  if(typeof ksOutAllowed==="function" && !ksOutAllowed()){ toast("⛔ العرض معطّل"); return; }
+  let src=file.data||"", type=file.type||"";
+  if(!src && file.ref){ if(!cloudOn()){ toast("📴 المرفق في السحابة — يحتاج اتصالاً"); return; } const u=await ksAttBlobUrl(file.ref); if(!u){ toast("❌ تعذر جلب المرفق"); return; } src=u.url; type=u.type||type; }
+  if(!src) return;
+  const isPdf=type==="application/pdf"||src.startsWith("data:application/pdf");
+  const w=window.open("","_blank"); if(!w){ toast("⚠️ اسمح بالنوافذ المنبثقة"); return; }
+  w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>'+escH(title||file.name||"مرفق")+'</title></head><body style="margin:0;background:#222;display:flex;align-items:center;justify-content:center;min-height:100vh">'+(isPdf?'<iframe src="'+src+'" style="width:100vw;height:100vh;border:none"></iframe>':'<img src="'+src+'" style="max-width:98vw;max-height:98vh">')+'</body></html>');
+  w.document.close();
+}
+let __ksAttBusy=false;
+async function ksAttSync(force){
+  /* رفع المرفقات المخزّنة base64 إلى السحابة واستبدالها بمراجع — كسولة، آمنة، وتقبل الفشل الجزئي */
+  if(__ksAttBusy || !ksAttOn()) return 0;
+  if(!force){ const at=+(localStorage.getItem("ksAttAt")||0); if(Date.now()-at<6*3600e3) return 0; }
+  if(typeof ksDataDrift==="function" && ksDataDrift()) return 0;
+  __ksAttBusy=true; let done=0, failed=0;
+  try{
+    const list=ksAttHolders().filter(x=>x.file.data && !x.file.ref);
+    for(const x of list){ const nf=await ksAttPut(x.file); if(nf){ x.owner[x.key]=nf; done++; } else failed++; if(done && done%5===0){ try{ save(); }catch(e){} } }
+    if(done){ try{ logEdit("☁️ نقل مرفقات للسحابة", done+" مرفق"); }catch(e){} (typeof saveNow==="function"?saveNow:save)(); }
+    localStorage.setItem("ksAttAt", String(Date.now()));
+    if(force) toast(done?("☁️ نُقل "+fmt(done)+" مرفق إلى السحابة"+(failed?" — تعذّر "+fmt(failed):"")):(failed?"⚠️ تعذّر رفع "+fmt(failed)+" مرفق — نفّذ ملف المرفقات-والمقارنة.sql أو تحقق من الاتصال":"✅ كل المرفقات في السحابة"));
+    try{ renderAttCard(); ksStoreUI(); }catch(e){}
+  }catch(e){}
+  __ksAttBusy=false; return done;
+}
+function renderAttCard(){
+  const el=document.getElementById("attCard"), body=document.getElementById("attBody"); if(!el||!body) return;
+  const st=ksAttStats(); const show=!(DB.settings&&DB.settings.demo);
+  el.style.display=show?"":"none"; if(!show) return;
+  body.innerHTML='<div class="muted" style="font-size:.78rem">المرفقات (فواتير المصروفات، عقود ووثائق الموظفين): <b>'+fmt(st.total)+'</b> — في السحابة <b>'+fmt(st.cloud)+'</b> · على هذا الجهاز فقط <b>'+fmt(st.local)+'</b>'+(st.local?' (≈ '+fmt(st.kb)+' ك.ب من مساحة المتصفح)':'')+'</div>'
+    +(st.local?'<button class="btn small" type="button" style="margin-top:8px" onclick="ksAttSync(true)" '+(cloudOn()?'':'disabled title="يحتاج جلسة سحابية"')+'>☁️ نقل المرفقات إلى السحابة الآن</button>':'<div class="muted" style="font-size:.72rem;margin-top:6px">✅ لا مرفقات عالقة على الجهاز — الجديدة تُرفع تلقائياً بعد كل مزامنة</div>');
+}
 function viewExpFile(id){
   const x=DB.expenses.find(r=>r.id===id);
   let file=x&&x.invFile;
   if(!file && x&&x.invFileRef){ const t=(DB.recurring||[]).find(r=>r.id===x.invFileRef); file=t&&t.invFile; }
   if(!file){ toast("لا مرفق لهذا المصروف"); return; }
+  if(file.ref){ ksAttOpen(file, file.name||"فاتورة"); return; }
   const w=window.open("","_blank");
   w.document.write(`<title>${file.name||"فاتورة"}</title><body style="margin:0;background:#222;display:flex;align-items:center;justify-content:center;min-height:100vh">`+
     (file.data.startsWith("data:application/pdf")?`<iframe src="${file.data}" style="width:100vw;height:100vh;border:none"></iframe>`:`<img src="${file.data}" style="max-width:98vw;max-height:98vh">`)+`</body>`);
@@ -11804,6 +11976,7 @@ function renderEmDocsList(){
 }
 function viewEmDoc(id, key){
   const em = DB.employees.find(x=>x.id===id); const d = em && em.docs && em.docs[key]; if(!d) return;
+  if(d.ref){ ksAttOpen(d, (EMP_DOC_KEYS[key]||key)+" — "+em.name); return; }
   const w = window.open("","_blank");
   if(!w){ toast("⚠️ اسمح بالنوافذ المنبثقة"); return; }
   w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>${EMP_DOC_KEYS[key]} — ${em.name}</title></head>
@@ -11815,11 +11988,12 @@ function viewEmDoc(id, key){
 function delEmDoc(id, key){
   const em = DB.employees.find(x=>x.id===id); if(!em || !em.docs || !em.docs[key]) return;
   if(confirm("حذف مرفق «"+EMP_DOC_KEYS[key]+"» لـ"+em.name+"؟")){
-    delete em.docs[key]; save(); toast("🗑️ حذف المرفق"); empProfile(id);
+    const __r=(em.docs[key]||{}).ref; delete em.docs[key]; save(); toast("🗑️ حذف المرفق"); empProfile(id); if(__r) ksAttDel(__r);
   }
 }
 function viewEmContract(id){
   const em = DB.employees.find(x=>x.id===id); if(!em||!em.contractFile) return;
+  if(em.contractFile.ref){ ksAttOpen(em.contractFile, "عقد العمل — "+em.name); return; }
   const w = window.open("","_blank");
   if(!w){ toast("⚠️ اسمح بالنوافذ المنبثقة"); return; }
   w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>عقد ${em.name}</title></head>
@@ -11831,7 +12005,7 @@ function viewEmContract(id){
 function delEmContract(id){
   const em = DB.employees.find(x=>x.id===id); if(!em||!em.contractFile) return;
   if(confirm("حذف ملف العقد المرفق لـ"+em.name+"؟ (سجل العقد في الموارد البشرية يبقى)")){
-    delete em.contractFile; save(); renderEmployees(); toast("🗑️ حذف المرفق");
+    const __r=(em.contractFile||{}).ref; delete em.contractFile; save(); renderEmployees(); toast("🗑️ حذف المرفق"); if(__r) ksAttDel(__r);
   }
 }
 function editEmployee(id){
@@ -13045,7 +13219,7 @@ function renderDash(){
   const cycSec = c => secF==="all" || c.section===secF;
   const hSec = h => hSecOf(h);
   const harvests = DB.harvests.filter(h=>inPeriod(h.date)&&(secF==="all"||hSec(h)===secF));
-  const expenses = DB.expenses.filter(x=> (secF==="all" || x.section===secF || x.section.startsWith("عام")) && inPeriod(x.date));
+  const expenses = DB.expenses.filter(x=> (secF==="all" || x.section===secF || String(x.section||"").startsWith("عام")) && inPeriod(x.date));   /* 🛡️ مصروف بلا قسم كان يُسقط اللوحة كلها (ومعها الدخول) */
   const cycles = DB.cycles.filter(c=>cycSec(c)&&inPeriod(c.plantDate));
 
   /* الوضع الرقابي: اللوحة تعرض الدفاتر (المعتمد) والمعلّق يُعرض منفصلاً لا مدموجاً — كانت تخالف الميزان */
@@ -13079,7 +13253,7 @@ function renderDash(){
       ? (now.getMonth()===0 ? (now.getFullYear()-1)+"-12" : now.getFullYear()+"-"+String(now.getMonth()).padStart(2,"0"))
       : String(now.getFullYear()-1);
     const prevH = DB.harvests.filter(h=>h.date.startsWith(key)&&(secF==="all"||hSec(h)===secF));
-    const prevE = DB.expenses.filter(x=>x.date.startsWith(key)&&(secF==="all"||x.section===secF||x.section.startsWith("عام")));
+    const prevE = DB.expenses.filter(x=>String(x.date||"").startsWith(key)&&(secF==="all"||x.section===secF||String(x.section||"").startsWith("عام")));
     const prevCyc = DB.cycles.filter(c=>cycSec(c)&&(c.plantDate||"").startsWith(key));
     prevRev = prevH.reduce((s,h)=>s+hNet(h),0);   /* نفس أساس الفترة الحالية — كانت المقارنة بين شامل وصافي */
     prevCost = prevE.reduce((s,x)=>s+x.amount,0) + prevCyc.reduce((s,c)=>s+(c.initCost||0),0);
@@ -16591,7 +16765,7 @@ function stView(k){
     if(k==="company"){ try{ fillCompanyInfo(); }catch(e){} }
     if(k==="perms"){ try{ permFillSelect(); }catch(e){} }
     if(k==="log"){ try{ empMovesInit(); }catch(e){} }
-    if(k==="backup"){ try{ cloudStatusUI(); }catch(e){} try{ ksStoreUI(); }catch(e){} try{ ctrlUI(); }catch(e){} try{ renderArchive(); }catch(e){} try{ renderCloudHist(); }catch(e){} try{ ksNotifUI(); }catch(e){} try{ renderMfa(); }catch(e){} try{ renderDevices(true); }catch(e){} }
+    if(k==="backup"){ try{ cloudStatusUI(); }catch(e){} try{ ksStoreUI(); }catch(e){} try{ ctrlUI(); }catch(e){} try{ renderArchive(); }catch(e){} try{ renderCloudHist(); }catch(e){} try{ ksNotifUI(); }catch(e){} try{ renderMfa(); }catch(e){} try{ renderDevices(true); }catch(e){} try{ renderAttCard(); }catch(e){} try{ renderBench(); }catch(e){} }
   }
   try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(e){}
 }
@@ -20324,6 +20498,7 @@ ${lines}
 /* ── شاشة الحالة: ما يراه صاحب المزرعة ── */
 function zkRender(){
   const box=document.getElementById("zkStatusBox"); if(!box) return;
+  try{ zkSignRender(); }catch(e){}
   const z=zkState();
   const st=(DB.settings||{});
   const noVat=(typeof ksNoVat==="function")?ksNoVat():false;
@@ -20384,6 +20559,51 @@ function zkShowChain(){
   d.innerHTML = r.ok
     ? `<div style="background:var(--green-light);border-radius:10px;padding:10px 14px;font-size:.8rem"><b>✅ السلسلة سليمة</b> — ${r.total} فاتورة مترابطة بلا فجوة ولا تكرار.</div>`
     : `<div style="background:#FDF7F7;border:1px solid #F09595;border-radius:10px;padding:10px 14px;font-size:.8rem"><b style="color:#791F1F">⚠️ خلل في السلسلة (${bad.length})</b><ul style="margin:6px 18px 0">${bad.map(x=>"<li>"+ksTxt(x)+"</li>").join("")}</ul></div>`;
+}
+/* ═══ 🔏 v12.48-A — عميل خدمة التوقيع (العقد في zatca-sign/index.ts): التوقيع والتجزئة الرسمية والإبلاغ خارج المتصفح بمكتبة الهيئة ═══ */
+function zkSignUrl(){ return String((DB.settings||{}).zkSignUrl||"").trim(); }
+function zkSignSet(){ if(!ksOwnerOnly("خدمة التوقيع")) return; const v=(document.getElementById("zkSignUrlInp")||{}).value||""; DB.settings.zkSignUrl=String(v).trim(); save(); zkSignRender(); }
+async function zkSignCall(payload){
+  const url=zkSignUrl(); if(!url) throw new Error("لم تُضبط خدمة التوقيع");
+  const s=cloudSess(); if(!s||!s.access_token) throw new Error("يحتاج جلسة سحابية");
+  const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+s.access_token,apikey:SUPA_KEY},body:JSON.stringify(payload)});
+  let j=null; try{ j=await r.json(); }catch(e){ j={}; }
+  return {status:r.status, ok:r.ok, body:j||{}};
+}
+async function zkSignPing(){
+  const box=document.getElementById("zkSignMsg"); if(box) box.textContent="⏳ …";
+  try{ const r=await zkSignCall({farm_id:cloudFarmId(), ping:true}); const b=r.body||{};
+    const msg=r.status===501?"🟡 الخدمة تستجيب لكنها غير مفعّلة بعد: "+(b.note||b.error||"")+(b.need?" — يلزم: "+b.need.join("، "):""):r.status===400?"🟢 الخدمة تستجيب (رفضت طلب الفحص كما هو متوقع)":r.ok?"🟢 الخدمة تعمل":"🔴 "+r.status+" "+(b.error||"");
+    if(box) box.textContent=msg; return r.status; }catch(e){ if(box) box.textContent="🔴 تعذر الوصول للخدمة ("+(e.message||"")+")"; return 0; }
+}
+async function zkSignSend(invId){
+  const inv=(DB.invoices||[]).find(i=>i.id===invId); if(!inv||!inv.zkIcv||inv.zkSent) return false;
+  if(!zkSignUrl()){ toast("⚠️ اضبط عنوان خدمة التوقيع أولاً"); return false; }
+  try{
+    const xml=zkBuildXml(inv);
+    const r=await zkSignCall({farm_id:cloudFarmId(), invoice_no:inv.no, uuid:inv.zkUuid, icv:inv.zkIcv, pih:inv.zkPih, simplified:!!inv.zkSimplified, xml});
+    if(r.ok && r.body && r.body.signedXml){
+      inv.zkSignedXml=r.body.signedXml; inv.zkOfficialHash=r.body.hash||""; inv.zkQr=r.body.qr||inv.zkQr||""; inv.zkClearance=r.body.clearance||null; inv.zkSent=true; inv.zkSentAt=r.body.reportedAt||new Date().toISOString();
+      try{ logEdit("🔏 توقيع وإبلاغ فاتورة", inv.no||""); }catch(e){} save(); return true;
+    }
+    if(r.status===501){ toast("🟡 خدمة التوقيع غير مفعّلة بعد — "+((r.body&&r.body.note)||"")); return false; }
+    toast("❌ رفضت الخدمة الفاتورة "+(inv.no||"")+" ("+r.status+"): "+((r.body&&(r.body.error||r.body.message))||"")); return false;
+  }catch(e){ toast("📴 تعذر الاتصال بخدمة التوقيع"); return false; }
+}
+async function zkSignQueue(){
+  if(!isOwner() && !canTab("invoices")){ toast("⚠️ الإرسال للمالك أو لمن له تبويب الفواتير"); return 0; }
+  const q=zkQueue(); let ok=0;
+  for(const x of q){ const inv=(DB.invoices||[]).find(i=>i.zkIcv===x.icv); if(!inv) continue; if(await zkSignSend(inv.id)) ok++; else break; }   /* بترتيب السلسلة — التوقف عند أول فشل يحفظ الترتيب */
+  toast(ok?"🔏 وُقّعت وأُبلغت "+fmt(ok)+" فاتورة":"لم تُرسل أي فاتورة"); try{ zkRender(); zkShowQueue(); }catch(e){} return ok;
+}
+function zkSignRender(){
+  const box=document.getElementById("zkSignBox"); if(!box) return;
+  const noVat=(typeof ksNoVat==="function")?ksNoVat():false; if(noVat){ box.innerHTML=""; return; }
+  const q=zkQueue().length; const url=zkSignUrl();
+  box.innerHTML='<div style="background:var(--bg);border-radius:10px;padding:10px 14px"><b>🔏 خدمة التوقيع والإبلاغ</b> <span class="muted" style="font-size:.72rem">— التوقيع والتجزئة الرسمية بمكتبة الهيئة على خادم، لا في المتصفح</span>'
+    +'<div class="row" style="margin-top:6px"><div style="flex:2;min-width:240px"><label>عنوان الخدمة (Edge Function)</label><input id="zkSignUrlInp" dir="ltr" placeholder="https://…/functions/v1/zatca-sign" value="'+escH(url)+'" '+(isOwner()?'onchange="zkSignSet()"':'readonly')+'></div>'
+    +'<div style="display:flex;align-items:end;gap:6px"><button class="btn small secondary" type="button" onclick="zkSignPing()" '+(url?'':'disabled')+'>🔌 فحص</button><button class="btn small" type="button" onclick="zkSignQueue()" '+(url&&q?'':'disabled')+'>📤 توقيع وإبلاغ الطابور ('+fmt(q)+')</button></div></div>'
+    +'<p id="zkSignMsg" class="muted" style="font-size:.72rem;margin:6px 0 0">'+(url?'':'لم تُضبط بعد — حتى ذلك الحين تبقى الفواتير موسومة في الطابور ولا يُدّعى إرسالها.')+'</p></div>';
 }
 function zkShowQueue(){
   const d=document.getElementById("zkDetail"); if(!d) return;

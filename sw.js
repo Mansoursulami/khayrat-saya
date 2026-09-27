@@ -1,8 +1,8 @@
 /* عامل الخدمة — يجعل النظام يفتح فعلاً بلا إنترنت.
    القاعدة: نخزّن الصفحة وملفات المكتبات فقط. لا نلمس أي نداء بيانات (Supabase)
    ولا أي طلب غير GET — البيانات تُدار في السستم نفسه لا هنا. */
-const CACHE = "ks-shell-v2";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
+const CACHE = "ks-shell-v3";
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
 const CDN = [
   "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",

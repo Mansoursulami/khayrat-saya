@@ -680,7 +680,9 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="مزرعة خيرات سايه">
+<meta name="apple-mobile-web-app-title" content="المزرعة">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 </head>
 <body>
 <header>
@@ -735,6 +737,7 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <div style="margin-top:10px;border-top:1px solid #eee;padding-top:10px;display:flex;flex-direction:column;gap:6px">
         <a href="#" onclick="cgShow('join');return false" style="font-size:.74rem;color:#065f46">👷 موظف جديد؟ اطلب الانضمام لمزرعتك</a>
         <a href="#" onclick="cgShow('new');return false" style="font-size:.74rem;color:#065f46">🏡 مزرعة جديدة؟ اطلب اشتراكك</a>
+        <a href="privacy.html" target="_blank" rel="noopener" style="font-size:.7rem;color:#6b7280">🔒 سياسة الخصوصية</a>
       </div>
     </div>
     <div id="cgView_join" style="display:none">
@@ -3526,6 +3529,11 @@ form>button.btn:not(.secondary):not(.small){display:block;width:100%;margin-top:
       <p class="muted" style="font-size:.74rem;margin:6px 0 8px">اختيارية. تُرسل <b>نِسَباً فقط</b> (معامل التحويل، البقاء، تكلفة الكيلو، النفوق، نسب المصروفات) — بلا مبالغ ولا أسماء ولا عملاء. ولا يظهر متوسط لأي مؤشر إلا إذا شاركت 5 مزارع فأكثر، فلا يُستدل على مزرعة بعينها.</p>
       <div id="benchBody" class="table-wrap">—</div>
     </div>
+    <div id="delAccCard" style="border:1px solid #fecaca;background:#fff7f7;border-radius:12px;padding:12px 14px;margin-bottom:14px">
+      <b>🗑️ حذف حسابي نهائياً</b>
+      <p class="muted" style="font-size:.74rem;margin:6px 0 8px" id="delAccTxt">يحذف حساب الدخول من السحابة فوراً ولا يُسترجع. صاحب المزرعة: تُحذف معه بيانات المزرعة كاملة ومرفقاتها وعضويات موظفيها. الموظف أو الشريك: تُحذف عضوياته وأجهزته فقط. صدّر نسخة كاملة أولاً من الأعلى.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn small secondary" type="button" style="border-color:#c66;color:#791F1F" onclick="ksDeleteAccount()">🗑️ حذف حسابي</button><a href="privacy.html" target="_blank" rel="noopener" class="muted" style="font-size:.72rem">🔒 سياسة الخصوصية</a></div>
+    </div>
     <div id="stgCard" style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
         <b>💾 مساحة البيانات على هذا الجهاز</b><span id="stgTxt" class="muted" style="font-size:.8rem">—</span>
@@ -4414,6 +4422,8 @@ Object.assign(I18N.en,{"— عميل محذوف —":"— deleted customer —",
 Object.assign(I18N.ur,{"— عميل محذوف —":"— حذف شدہ گاہک —","— موظف محذوف —":"— حذف شدہ ملازم —","المبيعات الإجمالية":"مجموعی فروخت"});
 /* i18n v12.12 — نصوص جولة الأرقام والفاعلية والقرارات الثلاثة */
 Object.assign(I18N.en,{"🏠 بدل السكن (⃁)":"🏠 Housing allowance (⃁)","🚗 بدل المواصلات (⃁)":"🚗 Transport allowance (⃁)","بدلات أخرى (⃁)":"Other allowances (⃁)","إجمالي البدلات الشهرية (⃁)":"Total monthly allowances (⃁)","السكن والمواصلات يدخلان في مكافأة نهاية الخدمة — «أخرى» لا تدخل":"Housing & transport count toward end-of-service; \"Other\" does not","خاضعة لضريبة القيمة المضافة":"Subject to VAT","نعم — فاتورة ضريبية من مورّد مسجَّل":"Yes — tax invoice from a registered supplier","لا — رسوم حكومية / تأمينات / مورّد غير مسجَّل":"No — government fees / insurance / unregistered supplier","🔍 مراجعة الضريبة الداخلة على المصروفات":"🔍 Input VAT review on expenses","↩️ مؤشر المردودات":"↩️ Returns indicator","عدد المصروفات":"Expenses count","الضريبة الداخلة المفترضة":"Assumed input VAT","التصنيف بالجملة":"Bulk classify","🚫 غير خاضعة":"🚫 Not subject","✅ خاضعة":"✅ Subject","✅ كلها خاضعة":"✅ All subject","مصروفات غير خاضعة (رسوم/تأمينات/مورّد غير مسجَّل)":"Non-taxable expenses (fees/insurance/unregistered supplier)","غير مستحق":"Not due","1–30 يوم":"1–30 days","31–60 يوم":"31–60 days","61–90 يوم":"61–90 days","أكثر من 90":"Over 90","الأسبوع":"Week","متوقع وارد":"Expected in","متوقع صادر":"Expected out","الرصيد المتوقع":"Projected balance","الرصيد الحالي":"Current balance","النقدية (صندوق + بنك)":"Cash (cash + bank)","عدد المبيعات":"Sales count","الدورات":"Cycles","الإيراد (صافي الضريبة)":"Revenue (net of VAT)","متوسط السعر":"Avg. price","متوسط الكمية للبيعة":"Avg. qty per sale","التغيّر":"Change","جديد":"New","المبيعات الإجمالية":"Gross sales","المردودات":"Returns","نسبة المردودات":"Returns rate","صافي المبيعات":"Net sales","النسبة":"Rate","رصيد افتتاحي":"Opening balance","قيمة المخزون بعده":"Stock value after","قيمة الفروقات":"Variance value","السبب":"Reason","الاسم المختصر (للتقارير)":"Short name (for reports)","مردود مبيعات":"Sales return","بيع مباشر":"Direct sale","— منتج محذوف —":"— deleted product —","— مورد محذوف —":"— deleted supplier —","— صنف محذوف —":"— deleted item —","— بلا مورد —":"— no supplier —","— موظف غير موجود —":"— employee not found —"});
+Object.assign(I18N.en,{"🗑️ حذف حسابي نهائياً":"🗑️ Delete my account permanently","🗑️ حذف حسابي":"🗑️ Delete my account","🔒 سياسة الخصوصية":"🔒 Privacy policy"});
+Object.assign(I18N.ur,{"🗑️ حذف حسابي نهائياً":"🗑️ میرا اکاؤنٹ مستقل حذف کریں","🗑️ حذف حسابي":"🗑️ میرا اکاؤنٹ حذف کریں","🔒 سياسة الخصوصية":"🔒 رازداری کی پالیسی"});
 Object.assign(I18N.en,{"☁️ تحتاج جلسة سحابية لصاحب المزرعة أو شريكه":"☁️ Needs the farm owner's or co-owner's cloud session"});
 Object.assign(I18N.ur,{"☁️ تحتاج جلسة سحابية لصاحب المزرعة أو شريكه":"☁️ مالک یا شریک مالک کا کلاؤڈ سیشن درکار ہے"});
 Object.assign(I18N.en,{"📎 المرفقات في السحابة":"📎 Attachments in the cloud","☁️ نقل المرفقات إلى السحابة الآن":"☁️ Move attachments to the cloud now","📊 المقارنة المجهولة مع مزارع أخرى":"📊 Anonymous benchmarking with other farms","مشاركة مؤشرات مزرعتي":"Share my farm's indicators","المؤشر":"Indicator","مزرعتك":"Your farm","المتوسط":"Average","عدد المزارع":"Farms","لا متوسط بعد":"No average yet","🔏 خدمة التوقيع والإبلاغ":"🔏 Signing & reporting service","عنوان الخدمة (Edge Function)":"Service URL (Edge Function)","🔌 فحص":"🔌 Test","معامل التحويل الغذائي (FCR)":"Feed conversion ratio (FCR)","بقاء الأسماك":"Fish survival","تكلفة كيلو السمك":"Cost per kg of fish","نفوق المواشي":"Livestock mortality","المصروفات ÷ الإيراد":"Expenses ÷ revenue","نسبة المردودات":"Returns rate","حصة الأعلاف من المصروفات":"Feed share of expenses","حصة العمالة من المصروفات":"Labor share of expenses"});
@@ -4689,7 +4699,7 @@ function ksKeyBind(){
   KEY=k; return k;
 }
 ksKeyBind();
-const KS_VER="v12.49-A";
+const KS_VER="v12.50-A";
 function defAccounts(){
   /* دليل حسابات بنمط فودكس: 1 أصول، 2 التزامات، 3 حقوق ملكية، 4 إيرادات، 5 مصروفات */
   const base = [
@@ -7423,6 +7433,28 @@ function setTrend(elId, current, previous){
   else { el.textContent="لا تغيير"; el.className="trend neutral"; }
 }
 
+/* 🗑️ v12.50-A — حذف الحساب نهائياً من داخل التطبيق (متطلب App Store/Google Play + حق المحو). التنفيذ في Edge Function delete-account بمفتاح الخدمة؛ العميل يؤكّد مرتين ثم يمسح الجهاز. */
+const KS_DELETE_URL="https://wsrjvxfklozmwzolaqmt.supabase.co/functions/v1/delete-account";
+async function ksDeleteAccount(){
+  const s=cloudSess();
+  if(!s||!s.access_token||navigator.onLine===false){ toast("☁️ حذف الحساب يحتاج اتصالاً وجلسة سحابية"); return false; }
+  if(typeof planIsProvider==="function" && planIsProvider()){ toast("⚠️ حساب المزوّد لا يُحذف من هنا"); return false; }
+  const owner=cloudIsFarmOwner();
+  const msg=owner?"⚠️ حذف حساب المزرعة نهائياً؟\n• تُحذف كل بيانات المزرعة ومرفقاتها من السحابة\n• يفقد موظفوها وشركاؤها الوصول فوراً\n• لا يُسترجع\n\nصدّرت نسخة كاملة؟":"حذف حسابك نهائياً؟ تُحذف عضوياتك وأجهزتك وحساب دخولك، وبيانات المزرعة تبقى لصاحبها. لا يُسترجع.";
+  if(!confirm(msg)) return false;
+  const typed=prompt("للتأكيد اكتب كلمة: حذف",""); if(String(typed||"").trim()!=="حذف"){ toast("لم يُحذف شيء"); return false; }
+  toast("⏳ جارٍ حذف الحساب…");
+  let r=null, j={};
+  try{ r=await fetch(KS_DELETE_URL,{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPA_KEY,Authorization:"Bearer "+s.access_token},body:JSON.stringify({confirm:"حذف"})}); try{ j=await r.json(); }catch(e){} }
+  catch(e){ toast("📴 تعذر الاتصال بخدمة الحذف — لم يُحذف شيء"); return false; }
+  if(!r.ok){ toast("❌ لم يُحذف الحساب ("+r.status+"): "+(j.error||"")); return false; }
+  try{ logEdit("🗑️ حذف الحساب", s.email||""); }catch(e){}
+  try{ sessionStorage.clear(); }catch(e){}
+  try{ localStorage.removeItem("ksCloudSess"); localStorage.removeItem("ksCredHash"); localStorage.removeItem("ksDevId"); }catch(e){}
+  try{ ksWipeFarmData(); }catch(e){}
+  try{ alert("✅ حُذف الحساب وبياناته"+(j.owner?" وبيانات المزرعة":"")+" من السحابة ومن هذا الجهاز."); }catch(e){}
+  location.reload(); return true;
+}
 function logout(){
   if(!confirm("تسجيل الخروج النهائي؟\n• تُحذف بيانات المزرعة من هذا الجهاز (تبقى كاملة في السحابة)\n• الدخول القادم يحتاج إنترنت\nملاحظة: إغلاق الصفحة وحده يقفل الجلسة بلا حذف")) return;
   try{ ksFlushOut(); }catch(e){}                 /* ارفع كل معلّق قبل أي حذف */
